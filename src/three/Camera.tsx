@@ -12,8 +12,8 @@ const Camera: React.FC = () => {
   useFrame((state, delta) => {
     if (!cameraRef.current) return;
 
-    // Total distance across 9 chapters is 360 units
-    const targetZ = -360 * journeyProgress + 4;
+    // Camera travels along Z from +3.2 down to -356.8
+    const targetZ = -360 * journeyProgress + 3.2;
 
     // Smoothly interpolate camera position along Z
     cameraRef.current.position.z = THREE.MathUtils.lerp(
@@ -23,24 +23,25 @@ const Camera: React.FC = () => {
     );
 
     // Subtle natural breathing / cinematic sway
-    const swayAmount = qualityLevel === 'low' ? 0.3 : 0.8;
+    const swayAmount = qualityLevel === 'low' ? 0.08 : 0.15;
     cameraRef.current.position.x = THREE.MathUtils.lerp(
       cameraRef.current.position.x,
       Math.sin(state.clock.elapsedTime * 0.35) * swayAmount,
       delta * 2
     );
 
+    // Camera height placed at eye/shoulder level (1.75m)
     cameraRef.current.position.y = THREE.MathUtils.lerp(
       cameraRef.current.position.y,
-      Math.cos(state.clock.elapsedTime * 0.25) * 0.3 + 2.3, // Third person height
+      Math.cos(state.clock.elapsedTime * 0.25) * 0.06 + 1.75,
       delta * 2.5
     );
 
-    // Look slightly ahead of character toward horizon
+    // Look slightly ahead of character toward trail horizon (look target Y = 1.15)
     cameraRef.current.lookAt(
-      cameraRef.current.position.x * 0.3,
-      1.8,
-      cameraRef.current.position.z - 18
+      cameraRef.current.position.x * 0.2,
+      1.15,
+      cameraRef.current.position.z - 14
     );
   });
 
@@ -48,8 +49,8 @@ const Camera: React.FC = () => {
     <PerspectiveCamera
       ref={cameraRef}
       makeDefault
-      position={[0, 2.3, 10]}
-      fov={55}
+      position={[0, 1.75, 8]}
+      fov={52}
       near={0.1}
       far={1200}
     />
