@@ -4,9 +4,9 @@ import { Preload } from '@react-three/drei';
 import { useJourneyStore } from '../store/journeyStore';
 import Environment from './Environment';
 import Camera from './Camera';
+import Character from './Character';
 import Lighting from './Lighting';
 import Effects from './Effects';
-import Character from './Character';
 
 import IntroScene from './scenes/IntroScene';
 import EducationScene from './scenes/EducationScene';
@@ -14,6 +14,7 @@ import CodingScene from './scenes/CodingScene';
 import CareerScene from './scenes/CareerScene';
 import ProjectsScene from './scenes/ProjectsScene';
 import SkillsScene from './scenes/SkillsScene';
+import PresentScene from './scenes/PresentScene';
 import FutureScene from './scenes/FutureScene';
 import ContactScene from './scenes/ContactScene';
 
@@ -38,7 +39,7 @@ const World: React.FC = () => {
           powerPreference: 'high-performance',
           alpha: false,
         }}
-        camera={{ fov: 60, near: 0.1, far: 500 }}
+        camera={{ fov: 55, near: 0.1, far: 800 }}
       >
         <color attach="background" args={['#050505']} />
         <Suspense fallback={null}>
@@ -46,7 +47,7 @@ const World: React.FC = () => {
           <Character />
           <Lighting />
           <Environment />
-          
+
           <group>
             <IntroScene />
             <EducationScene />
@@ -54,10 +55,11 @@ const World: React.FC = () => {
             <CareerScene />
             <ProjectsScene />
             <SkillsScene />
+            <PresentScene />
             <FutureScene />
             <ContactScene />
           </group>
-          
+
           <Effects />
           <Preload all />
         </Suspense>

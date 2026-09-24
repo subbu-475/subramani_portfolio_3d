@@ -1,100 +1,233 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Float } from '@react-three/drei';
+import { Float, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { useJourneyStore } from '../../store/journeyStore';
 
-const IntroScene: React.FC = () => {
-  const groupRef = useRef<THREE.Group>(null);
-  const particlesRef = useRef<THREE.Group>(null);
+export const IntroScene: React.FC = () => {
+  const jumpToChapter = useJourneyStore((state) => state.jumpToChapter);
+  const particlesRef = useRef<THREE.Points>(null);
 
   useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.2;
-    }
     if (particlesRef.current) {
-      particlesRef.current.rotation.y = state.clock.elapsedTime * 0.05;
-      particlesRef.current.children.forEach((child, i) => {
-        child.position.y += Math.sin(state.clock.elapsedTime * 0.2 + i) * 0.01;
-      });
+      particlesRef.current.rotation.y = state.clock.elapsedTime * 0.02;
     }
   });
 
   return (
     <group position={[0, 0, 0]}>
-      <group ref={groupRef}>
-        {/* Mountains */}
-        {[...Array(8)].map((_, i) => (
-          <mesh
-            key={i}
-            position={[
-              (Math.random() - 0.5) * 40,
-              Math.random() * 2 + 1,
-              -5 - Math.random() * 25
-            ]}
-          >
-            <coneGeometry args={[2 + Math.random() * 3, 4 + Math.random() * 6, 4]} />
-            <meshStandardMaterial color="#11151A" wireframe={i % 2 === 0} />
+      {/* Golden Sunset Sun on Horizon */}
+      <mesh position={[0, 8, -45]}>
+        <sphereGeometry args={[7, 32, 32]} />
+        <meshBasicMaterial color="#FF9E40" />
+      </mesh>
+      {/* Sun glow halo */}
+      <mesh position={[0, 8, -44.8]}>
+        <ringGeometry args={[7, 18, 32]} />
+        <meshBasicMaterial color="#FFB049" transparent opacity={0.35} />
+      </mesh>
+      <pointLight position={[0, 10, -35]} color="#FFA64D" intensity={3} distance={80} />
+
+      {/* Mountain Range (Layer 1 - Distant peaks) */}
+      <mesh position={[-18, 7, -38]}>
+        <coneGeometry args={[14, 18, 5]} />
+        <meshStandardMaterial color="#1E293B" roughness={0.9} />
+      </mesh>
+      {/* Snow cap on peak 1 */}
+      <mesh position={[-18, 12.5, -37.8]}>
+        <coneGeometry args={[6, 7, 5]} />
+        <meshStandardMaterial color="#E2E8F0" roughness={0.5} />
+      </mesh>
+
+      <mesh position={[0, 9, -42]}>
+        <coneGeometry args={[18, 22, 6]} />
+        <meshStandardMaterial color="#0F172A" roughness={0.9} />
+      </mesh>
+      {/* Snow cap on center peak */}
+      <mesh position={[0, 15, -41.8]}>
+        <coneGeometry args={[8, 10, 6]} />
+        <meshStandardMaterial color="#F8FAFC" roughness={0.5} />
+      </mesh>
+
+      <mesh position={[18, 6, -36]}>
+        <coneGeometry args={[12, 16, 5]} />
+        <meshStandardMaterial color="#1E293B" roughness={0.9} />
+      </mesh>
+      {/* Snow cap on peak 3 */}
+      <mesh position={[18, 11, -35.8]}>
+        <coneGeometry args={[5, 6, 5]} />
+        <meshStandardMaterial color="#E2E8F0" roughness={0.5} />
+      </mesh>
+
+      {/* Midground Hills */}
+      <mesh position={[-10, 2, -25]}>
+        <coneGeometry args={[9, 9, 6]} />
+        <meshStandardMaterial color="#141E1B" roughness={0.9} />
+      </mesh>
+      <mesh position={[12, 2.5, -28]}>
+        <coneGeometry args={[11, 10, 6]} />
+        <meshStandardMaterial color="#141E1B" roughness={0.9} />
+      </mesh>
+
+      {/* Pine Trees lining the trail */}
+      {[
+        [-4.2, -6], [-5.5, -12], [-4.8, -18], [-6.2, -24], [-5.0, -30],
+        [4.8, -8], [5.8, -14], [4.5, -20], [6.0, -26], [5.2, -32],
+      ].map(([x, z], i) => (
+        <group key={`pine-${i}`} position={[x, 0, z]}>
+          {/* Trunk */}
+          <mesh position={[0, 0.7, 0]}>
+            <cylinderGeometry args={[0.2, 0.25, 1.4, 8]} />
+            <meshStandardMaterial color="#3B2613" roughness={0.9} />
           </mesh>
-        ))}
+          {/* Foliage Cones */}
+          <mesh position={[0, 2.0, 0]}>
+            <coneGeometry args={[1.5, 2.0, 6]} />
+            <meshStandardMaterial color="#143422" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 3.0, 0]}>
+            <coneGeometry args={[1.1, 1.8, 6]} />
+            <meshStandardMaterial color="#1B432C" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 3.8, 0]}>
+            <coneGeometry args={[0.7, 1.4, 6]} />
+            <meshStandardMaterial color="#22543D" roughness={0.8} />
+          </mesh>
+        </group>
+      ))}
 
-        {/* Trees */}
-        {[...Array(12)].map((_, i) => {
-          const x = i % 2 === 0 ? -4 - Math.random() * 6 : 4 + Math.random() * 6;
-          const z = -5 - Math.random() * 20;
-          return (
-            <group key={`tree-${i}`} position={[x, 0.5, z]}>
-              <mesh position={[0, 0, 0]}>
-                <cylinderGeometry args={[0.2, 0.2, 1]} />
-                <meshStandardMaterial color="#0B0D10" />
-              </mesh>
-              <mesh position={[0, 1.5, 0]}>
-                <coneGeometry args={[1, 3, 5]} />
-                <meshStandardMaterial color="#06B6D4" wireframe />
-              </mesh>
-            </group>
-          );
-        })}
-
-        {/* Clouds */}
-        {[...Array(5)].map((_, i) => (
-          <Float key={`cloud-${i}`} speed={2} rotationIntensity={0.1} floatIntensity={1}>
-            <mesh
-              position={[
-                (Math.random() - 0.5) * 30,
-                10 + Math.random() * 5,
-                -10 - Math.random() * 15
-              ]}
-              scale={[3 + Math.random() * 2, 0.5, 2 + Math.random() * 2]}
-            >
-              <sphereGeometry args={[1, 16, 16]} />
-              <meshStandardMaterial color="#3B82F6" transparent opacity={0.3} />
-            </mesh>
-          </Float>
-        ))}
-
-        {/* Horizon glowing line */}
-        <mesh position={[0, 0.1, -30]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[100, 1]} />
-          <meshBasicMaterial color="#06B6D4" transparent opacity={0.6} />
+      {/* Winding Trail Ground Plane */}
+      <mesh position={[0, -0.01, -20]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[10, 50]} />
+        <meshStandardMaterial color="#3E2E1F" roughness={0.95} />
+      </mesh>
+      {/* Dirt path rocks & details */}
+      {[...Array(16)].map((_, i) => (
+        <mesh
+          key={`rock-${i}`}
+          position={[
+            (Math.sin(i * 3) * 1.8),
+            0.05,
+            -2 - i * 2.2
+          ]}
+          rotation={[0, i, 0]}
+        >
+          <dodecahedronGeometry args={[0.1 + (i % 3) * 0.05, 0]} />
+          <meshStandardMaterial color="#6B5C4D" roughness={0.9} />
         </mesh>
+      ))}
+
+      {/* 3D Wooden Directional Signpost (Matching Reference Panel 2 exactly) */}
+      <group position={[3.6, 0, -4]}>
+        {/* Main rustic vertical post */}
+        <mesh position={[0, 2.2, 0]}>
+          <cylinderGeometry args={[0.14, 0.16, 4.4, 8]} />
+          <meshStandardMaterial color="#452B14" roughness={0.9} />
+        </mesh>
+
+        {/* Post cap */}
+        <mesh position={[0, 4.45, 0]}>
+          <coneGeometry args={[0.18, 0.2, 8]} />
+          <meshStandardMaterial color="#2E1C0C" />
+        </mesh>
+
+        {/* Sign 1: EDUCATION */}
+        <group
+          position={[0.5, 3.8, 0.1]}
+          onClick={() => jumpToChapter(1)}
+          onPointerOver={() => (document.body.style.cursor = 'pointer')}
+          onPointerOut={() => (document.body.style.cursor = 'auto')}
+        >
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[1.5, 0.36, 0.08]} />
+            <meshStandardMaterial color="#6B4423" roughness={0.8} />
+          </mesh>
+          <Text position={[0, 0, 0.05]} fontSize={0.16} color="#FFF7ED" font={undefined} letterSpacing={0.1}>
+            EDUCATION →
+          </Text>
+        </group>
+
+        {/* Sign 2: CAREER */}
+        <group
+          position={[-0.5, 3.2, 0.05]}
+          onClick={() => jumpToChapter(3)}
+          onPointerOver={() => (document.body.style.cursor = 'pointer')}
+          onPointerOut={() => (document.body.style.cursor = 'auto')}
+        >
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[1.5, 0.36, 0.08]} />
+            <meshStandardMaterial color="#5C3A1E" roughness={0.8} />
+          </mesh>
+          <Text position={[0, 0, 0.05]} fontSize={0.16} color="#FFF7ED" font={undefined} letterSpacing={0.1}>
+            ← CAREER
+          </Text>
+        </group>
+
+        {/* Sign 3: PROJECTS */}
+        <group
+          position={[0.5, 2.6, 0.1]}
+          onClick={() => jumpToChapter(4)}
+          onPointerOver={() => (document.body.style.cursor = 'pointer')}
+          onPointerOut={() => (document.body.style.cursor = 'auto')}
+        >
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[1.5, 0.36, 0.08]} />
+            <meshStandardMaterial color="#6B4423" roughness={0.8} />
+          </mesh>
+          <Text position={[0, 0, 0.05]} fontSize={0.16} color="#FFF7ED" font={undefined} letterSpacing={0.1}>
+            PROJECTS →
+          </Text>
+        </group>
+
+        {/* Sign 4: SKILLS */}
+        <group
+          position={[-0.5, 2.0, 0.05]}
+          onClick={() => jumpToChapter(5)}
+          onPointerOver={() => (document.body.style.cursor = 'pointer')}
+          onPointerOut={() => (document.body.style.cursor = 'auto')}
+        >
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[1.5, 0.36, 0.08]} />
+            <meshStandardMaterial color="#5C3A1E" roughness={0.8} />
+          </mesh>
+          <Text position={[0, 0, 0.05]} fontSize={0.16} color="#FFF7ED" font={undefined} letterSpacing={0.1}>
+            ← SKILLS
+          </Text>
+        </group>
+
+        {/* Sign 5: FUTURE */}
+        <group
+          position={[0.5, 1.4, 0.1]}
+          onClick={() => jumpToChapter(7)}
+          onPointerOver={() => (document.body.style.cursor = 'pointer')}
+          onPointerOut={() => (document.body.style.cursor = 'auto')}
+        >
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[1.5, 0.36, 0.08]} />
+            <meshStandardMaterial color="#6B4423" roughness={0.8} />
+          </mesh>
+          <Text position={[0, 0, 0.05]} fontSize={0.16} color="#FFF7ED" font={undefined} letterSpacing={0.1}>
+            FUTURE →
+          </Text>
+        </group>
       </group>
 
-      {/* Particles */}
-      <group ref={particlesRef}>
-        {[...Array(30)].map((_, i) => (
+      {/* Floating Golden Dust Particles */}
+      <Float speed={1.5} floatIntensity={1}>
+        {[...Array(24)].map((_, i) => (
           <mesh
-            key={`particle-${i}`}
+            key={`dust-${i}`}
             position={[
-              (Math.random() - 0.5) * 20,
-              Math.random() * 10,
-              -Math.random() * 30
+              (Math.sin(i * 1.5) * 12),
+              1 + (i % 6) * 1.2,
+              -4 - (i * 1.5)
             ]}
           >
-            <sphereGeometry args={[0.05, 8, 8]} />
-            <meshBasicMaterial color="#F8FAFC" />
+            <sphereGeometry args={[0.04, 6, 6]} />
+            <meshBasicMaterial color="#FDBA74" transparent opacity={0.6} />
           </mesh>
         ))}
-      </group>
+      </Float>
     </group>
   );
 };

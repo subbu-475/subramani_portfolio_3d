@@ -1,106 +1,132 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Float, Text } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-const ContactScene: React.FC = () => {
-  const portalRef = useRef<THREE.Mesh>(null);
-  const particlesRef = useRef<THREE.Group>(null);
+export const ContactScene: React.FC = () => {
+  const beaconRef = useRef<THREE.PointLight>(null);
 
   useFrame((state) => {
-    if (portalRef.current) {
-      portalRef.current.rotation.z = state.clock.elapsedTime * 0.2;
-    }
-    if (particlesRef.current) {
-      particlesRef.current.rotation.z = state.clock.elapsedTime * -0.1;
+    if (beaconRef.current) {
+      // Blinking aviation beacon light
+      beaconRef.current.intensity = Math.sin(state.clock.elapsedTime * 5) > 0.4 ? 2.5 : 0.2;
     }
   });
 
   return (
-    <group position={[0, 0, -280]}>
-      {/* Landing Platform */}
-      <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[8, 8, 0.5, 32]} />
-        <meshStandardMaterial color="#11151A" />
+    <group position={[0, 0, -360]}>
+      {/* Tarmac Runway Ground */}
+      <mesh position={[0, 0.01, -15]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[30, 40]} />
+        <meshStandardMaterial color="#0A0E17" roughness={0.6} />
       </mesh>
-      
-      {/* Platform inner ring */}
-      <mesh position={[0, 0.26, 0]}>
-        <cylinderGeometry args={[6, 6, 0.1, 32]} />
-        <meshBasicMaterial color="#3B82F6" transparent opacity={0.3} />
-      </mesh>
-
-      {/* Light Pillars */}
-      {[...Array(6)].map((_, i) => {
-        const angle = (i / 6) * Math.PI * 2;
-        return (
-          <group key={`pillar-${i}`} position={[Math.cos(angle) * 7, 2, Math.sin(angle) * 7]}>
-            <mesh>
-              <cylinderGeometry args={[0.2, 0.2, 4]} />
-              <meshStandardMaterial color="#0B0D10" />
-            </mesh>
-            <mesh position={[0, 2, 0]}>
-              <sphereGeometry args={[0.3, 16, 16]} />
-              <meshBasicMaterial color="#06B6D4" />
-            </mesh>
-          </group>
-        );
-      })}
-
-      {/* Portal Ring */}
-      <group position={[0, 8, -5]}>
-        <mesh ref={portalRef}>
-          <torusGeometry args={[5, 0.5, 16, 64]} />
-          <meshBasicMaterial color="#F97316" />
+      {/* Runway Centerline Markings */}
+      {[...Array(6)].map((_, i) => (
+        <mesh
+          key={`runway-stripe-${i}`}
+          position={[0, 0.03, -3 - i * 6]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <planeGeometry args={[0.5, 3.5]} />
+          <meshBasicMaterial color="#FFFFFF" />
         </mesh>
-        
-        {/* Portal ambient particles */}
-        <group ref={particlesRef}>
-          {[...Array(20)].map((_, i) => {
-            const angle = Math.random() * Math.PI * 2;
-            const r = 4 + Math.random() * 2;
-            return (
-              <mesh
-                key={`port-part-${i}`}
-                position={[Math.cos(angle) * r, Math.sin(angle) * r, (Math.random() - 0.5) * 2]}
-              >
-                <sphereGeometry args={[0.05, 8, 8]} />
-                <meshBasicMaterial color="#06B6D4" />
-              </mesh>
-            );
-          })}
+      ))}
+      {/* Runway Edge Blue & Amber Taxi Lights */}
+      {[-12, 12].map((lx, side) => (
+        <group key={`runway-lights-${side}`}>
+          {[-4, -12, -20, -28].map((lz, idx) => (
+            <mesh key={`rl-${idx}`} position={[lx, 0.15, lz]}>
+              <cylinderGeometry args={[0.08, 0.12, 0.3, 8]} />
+              <meshBasicMaterial color={idx % 2 === 0 ? '#38BDF8' : '#F59E0B'} />
+            </mesh>
+          ))}
         </group>
+      ))}
+
+      {/* Modern Airport / Spaceport Terminal Building (Matching Reference Panel 11) */}
+      <group position={[10, 0, -24]}>
+        {/* Curved Terminal Canopy / Hangar */}
+        <mesh position={[0, 7.5, 0]}>
+          <boxGeometry args={[16, 12, 22]} />
+          <meshStandardMaterial color="#1E293B" metalness={0.8} roughness={0.3} />
+        </mesh>
+
+        {/* Illuminated Sign: NEXT DESTINATION (Matching Reference Panel 11) */}
+        <group position={[-8.1, 9, 0]} rotation={[0, -Math.PI / 2, 0]}>
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[9, 1.8, 0.2]} />
+            <meshStandardMaterial color="#0284C7" emissive="#0284C7" emissiveIntensity={0.8} />
+          </mesh>
+          <Text
+            position={[0, 0, 0.15]}
+            fontSize={0.65}
+            color="#FFFFFF"
+            letterSpacing={0.15}
+            font={undefined}
+          >
+            NEXT DESTINATION
+          </Text>
+        </group>
+
+        {/* Terminal Panoramic Glass Windows */}
+        <mesh position={[-8.05, 4.5, 0]} rotation={[0, -Math.PI / 2, 0]}>
+          <planeGeometry args={[18, 6]} />
+          <meshStandardMaterial
+            color="#38BDF8"
+            emissive="#0284C7"
+            emissiveIntensity={0.6}
+            transparent
+            opacity={0.8}
+            roughness={0.1}
+          />
+        </mesh>
       </group>
 
-      {/* Small Spacecraft */}
-      <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
-        <group position={[0, 3, 0]} rotation={[0.2, Math.PI, 0]}>
-          <mesh position={[0, 0, 0]}>
-            <cylinderGeometry args={[1, 1.5, 3]} />
-            <meshStandardMaterial color="#0B0D10" />
+      {/* Airliner / Passenger Shuttle Aircraft on Runway (Matching Reference Panel 11) */}
+      <group position={[-7, 0, -22]} rotation={[0, 0.25, 0]}>
+        {/* Fuselage */}
+        <mesh position={[0, 2.2, 0]}>
+          <cylinderGeometry args={[1.2, 1.3, 16, 16]} rotation={[Math.PI / 2, 0, 0]} />
+          <meshStandardMaterial color="#E2E8F0" roughness={0.3} metalness={0.6} />
+        </mesh>
+        {/* Nose Cone */}
+        <mesh position={[0, 2.2, 9]} rotation={[-Math.PI / 2, 0, 0]}>
+          <coneGeometry args={[1.2, 2.4, 16]} />
+          <meshStandardMaterial color="#CBD5E1" roughness={0.3} />
+        </mesh>
+        {/* Cockpit Glass */}
+        <mesh position={[0, 2.7, 8.2]} rotation={[0.4, 0, 0]}>
+          <boxGeometry args={[1.4, 0.5, 0.8]} />
+          <meshStandardMaterial color="#0F172A" roughness={0.1} metalness={0.9} />
+        </mesh>
+        {/* Main Wings */}
+        <mesh position={[0, 1.8, 0]}>
+          <boxGeometry args={[16, 0.15, 3.2]} />
+          <meshStandardMaterial color="#E2E8F0" roughness={0.4} />
+        </mesh>
+        {/* Jet Engines */}
+        {[-3.5, 3.5].map((ex, i) => (
+          <mesh key={`engine-${i}`} position={[ex, 1.1, -0.5]}>
+            <cylinderGeometry args={[0.55, 0.55, 2.8, 16]} rotation={[Math.PI / 2, 0, 0]} />
+            <meshStandardMaterial color="#94A3B8" metalness={0.8} />
           </mesh>
-          <mesh position={[0, 2, 0]}>
-            <coneGeometry args={[1, 2, 16]} />
-            <meshStandardMaterial color="#0B0D10" />
-          </mesh>
-          <mesh position={[0, -1.6, 0]}>
-            <cylinderGeometry args={[1.2, 0.8, 0.5]} />
-            <meshBasicMaterial color="#06B6D4" />
-          </mesh>
-        </group>
-      </Float>
+        ))}
+        {/* Tail Fin */}
+        <mesh position={[0, 4.2, -6.8]} rotation={[0.3, 0, 0]}>
+          <boxGeometry args={[0.2, 3.2, 2.2]} />
+          <meshStandardMaterial color="#0284C7" />
+        </mesh>
+        {/* Red Aviation Warning Beacon on Tail */}
+        <mesh position={[0, 5.8, -7.2]}>
+          <sphereGeometry args={[0.15, 8, 8]} />
+          <meshBasicMaterial color="#EF4444" />
+        </mesh>
+        <pointLight ref={beaconRef} position={[0, 5.8, -7.2]} color="#EF4444" distance={15} />
+      </group>
 
-      {/* Next Destination Text */}
-      <Text
-        position={[0, 15, -5]}
-        fontSize={1}
-        color="#F8FAFC"
-        anchorX="center"
-        anchorY="middle"
-        letterSpacing={0.2}
-      >
-        NEXT DESTINATION
-      </Text>
+      {/* Golden Sunset Sky Backdrop for Terminal */}
+      <directionalLight position={[-15, 12, -40]} color="#F97316" intensity={2.2} />
+      <pointLight position={[10, 8, -20]} color="#38BDF8" intensity={1.8} distance={20} />
     </group>
   );
 };

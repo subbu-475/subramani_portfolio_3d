@@ -1,10 +1,10 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useJourneyStore } from './store/journeyStore';
+import { useJourneyStore, CHAPTERS_DATA } from './store/journeyStore';
 import World from './three/World';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { JourneyMenu } from './components/JourneyMenu';
-import { ChapterIndicator } from './components/ChapterIndicator';
+import { VerticalTimeline } from './components/VerticalTimeline';
 import { InteractionHint } from './components/InteractionHint';
 import { CustomCursor } from './components/CustomCursor';
 import { ProjectDetail } from './components/ProjectDetail';
@@ -16,6 +16,8 @@ import { Fallback2D } from './components/Fallback2D';
 import { profile } from './data/profile';
 import { education } from './data/education';
 import { experiences } from './data/experience';
+import { projects } from './data/projects';
+import { GraduationCap, User, ArrowRight, ExternalLink } from 'lucide-react';
 
 function App() {
   const {
@@ -26,11 +28,13 @@ function App() {
     setPrefersReducedMotion,
     journeyProgress,
     isLoading,
+    openProjectDetail,
+    jumpToChapter,
   } = useJourneyStore();
 
   const [hasWebGL, setHasWebGL] = useState(true);
   const scrollAccum = useRef(0);
-  const maxScroll = 8000; // Total virtual scroll distance
+  const maxScroll = 9000; // Virtual scroll units for 9 chapters
 
   // Check WebGL availability
   useEffect(() => {
@@ -57,20 +61,20 @@ function App() {
     setPrefersReducedMotion(prefersReducedMotion);
   }, [setIsMobile, setPrefersReducedMotion]);
 
-  // Simulate loading progress then mark ready
+  // Loading sequence
   useEffect(() => {
     let progress = 0;
     const interval = setInterval(() => {
-      progress += Math.random() * 15 + 8;
+      progress += Math.random() * 16 + 10;
       if (progress >= 100) {
         progress = 100;
         clearInterval(interval);
         setLoadingProgress(100);
-        setTimeout(() => setWorldReady(), 400);
+        setTimeout(() => setWorldReady(), 450);
       } else {
         setLoadingProgress(progress);
       }
-    }, 150);
+    }, 120);
     return () => clearInterval(interval);
   }, [setLoadingProgress, setWorldReady]);
 
@@ -80,7 +84,7 @@ function App() {
       e.preventDefault();
       scrollAccum.current = Math.max(
         0,
-        Math.min(maxScroll, scrollAccum.current + e.deltaY * 1.5)
+        Math.min(maxScroll, scrollAccum.current + e.deltaY * 1.6)
       );
       const progress = scrollAccum.current / maxScroll;
       setJourneyProgress(progress);
@@ -105,7 +109,7 @@ function App() {
       touchStartY.current = e.touches[0].clientY;
       scrollAccum.current = Math.max(
         0,
-        Math.min(maxScroll, scrollAccum.current + deltaY * 3)
+        Math.min(maxScroll, scrollAccum.current + deltaY * 3.2)
       );
       setJourneyProgress(scrollAccum.current / maxScroll);
     };
@@ -117,21 +121,20 @@ function App() {
     };
   }, [setJourneyProgress]);
 
-  // Sync scroll accumulator when menu navigation changes progress
+  // Sync scroll accumulator when menu or timeline jumps
   useEffect(() => {
     scrollAccum.current = journeyProgress * maxScroll;
   }, [journeyProgress]);
 
   const handleStartJourney = () => {
     const startVal = scrollAccum.current;
-    const targetVal = maxScroll * (1 / 7);
+    const targetVal = maxScroll * (1 / (CHAPTERS_DATA.length - 1));
     const duration = 1200;
     const startTime = performance.now();
 
     const animate = (now: number) => {
       const elapsed = now - startTime;
       const t = Math.min(1, elapsed / duration);
-      // Ease out cubic
       const ease = 1 - Math.pow(1 - t, 3);
       const val = startVal + (targetVal - startVal) * ease;
       scrollAccum.current = val;
@@ -146,163 +149,194 @@ function App() {
   }
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-[#050505] relative">
+    <div className="w-screen h-screen overflow-hidden bg-[#050505] relative select-none">
       {/* 3D World */}
       <World />
 
-      {/* Loading Screen */}
+      {/* Loading Screen (Matching Reference Panel 1) */}
       <LoadingScreen />
+
+      {/* Vertical Chapter Progression Timeline (Matching Reference Panels 4, 6, 7, 8, 9, 10) */}
+      <VerticalTimeline />
 
       {/* Section Content Overlays */}
       {!isLoading && (
         <div className="absolute inset-0 z-10 pointer-events-none">
-          {/* Chapter 01: The Beginning */}
-          <SectionOverlay chapter={0} title="The Beginning" position="center">
-            <div className="text-center space-y-3">
-              <p className="text-white/40 text-[11px] tracking-[0.4em] uppercase">
-                Every journey starts somewhere
+          {/* Chapter 00: Intro / Hero (Matching Reference Panel 2) */}
+          <SectionOverlay chapter={0} title={profile.name} position="hero">
+            <div className="space-y-4">
+              <span className="text-white/80 text-xl font-medium tracking-wide block">
+                Hi, I'm
+              </span>
+              <p className="text-cyan-400 text-xl sm:text-2xl font-bold tracking-wide -mt-2">
+                {profile.shortTitle}
               </p>
-              <p className="text-xs tracking-widest text-cyan-400 font-mono uppercase">
-                Welcome to my journey
+              <p className="text-white/70 max-w-md text-sm leading-relaxed">
+                I build digital experiences, solve real world problems and continuously learn.
               </p>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-[0.1em] text-white">
-                Hi, I'm {profile.name}.
-              </h1>
-              <p className="text-cyan-400 text-sm md:text-base tracking-wider max-w-md mx-auto font-medium">
-                {profile.title}
-              </p>
-              <p className="text-white/70 max-w-md mx-auto leading-relaxed text-sm pt-1">
-                I build digital experiences, solve problems and continuously learn.
-              </p>
-              <div className="pt-4">
+              <div className="pt-2">
                 <button
                   onClick={handleStartJourney}
-                  className="px-8 py-3 bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-black font-semibold text-xs tracking-[0.25em] uppercase rounded-full shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.7)] transition-all transform hover:scale-105 pointer-events-auto cursor-pointer"
+                  className="flex items-center gap-3 px-7 py-3.5 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-400/50 hover:border-cyan-400 text-white font-semibold text-xs tracking-[0.2em] uppercase rounded-full shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all transform hover:scale-105 pointer-events-auto cursor-pointer"
                 >
-                  START JOURNEY
+                  START JOURNEY <ArrowRight size={15} />
                 </button>
               </div>
             </div>
           </SectionOverlay>
 
-          {/* Chapter 02: Education */}
-          <SectionOverlay chapter={1} title="Education" subtitle="Where it began" position="left">
+          {/* Chapter 01: Education (Matching Reference Panel 4) */}
+          <SectionOverlay
+            chapter={1}
+            chapterNumberText="CHAPTER 01"
+            title="EDUCATION"
+            tagline="Where the journey began."
+            description="The foundation, the learning, and the curiosity that started it all."
+            position="left"
+          >
             {education.map((edu) => (
-              <div key={edu.id} className="space-y-2">
-                <h3 className="text-xl font-bold text-cyan-400">{edu.degree}</h3>
-                <p className="text-white/90 font-medium">{edu.institution}</p>
-                <p className="text-white/40 text-xs font-mono">{edu.location} · {edu.period}</p>
-                <p className="text-white/70 text-sm">{edu.description}</p>
-                <ul className="space-y-1.5 pt-2">
-                  {edu.highlights.map((h, i) => (
-                    <li key={i} className="text-white/60 text-xs flex items-start gap-2">
-                      <span className="text-cyan-400 mt-0.5">▸</span>
-                      <span>{h}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div
+                key={edu.id}
+                className="glass p-6 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-2 mt-2"
+              >
+                <div className="flex items-center gap-3 text-cyan-400 mb-1">
+                  <GraduationCap size={22} />
+                  <h3 className="text-base font-bold text-white">{edu.degree}</h3>
+                </div>
+                <p className="text-cyan-400/90 text-xs font-semibold">{edu.institution}</p>
+                <p className="text-white/40 text-[11px] font-mono">{edu.period}</p>
+                <p className="text-white/60 text-xs pt-1 leading-relaxed">
+                  Relevant coursework, skills and learning experience.
+                </p>
               </div>
             ))}
           </SectionOverlay>
 
-          {/* Chapter 03: First Code */}
-          <SectionOverlay chapter={2} title="First Line of Code" subtitle="Curiosity became code" position="right">
-            <div className="font-mono text-xs sm:text-sm text-cyan-300 bg-black/60 border border-white/10 p-4 rounded-xl mb-4 shadow-inner">
-              <p className="text-white/40 mb-1">{'// Curiosity became code'}</p>
-              <p><span className="text-blue-400">const</span> journey = {'{'}</p>
-              <p className="pl-4">curiosity: <span className="text-orange-400">true</span>,</p>
-              <p className="pl-4">learning: <span className="text-orange-400">true</span>,</p>
-              <p className="pl-4">building: <span className="text-orange-400">true</span>,</p>
-              <p>{'}'};</p>
-            </div>
-            <p className="text-white/70 text-sm leading-relaxed">
-              From writing my first line of code to building full-stack platforms —
-              what started as sheer curiosity grew into a lifelong craft of software engineering.
-            </p>
-          </SectionOverlay>
-
-          {/* Chapter 04: Career */}
-          <SectionOverlay chapter={3} title="Career City" subtitle="Professional journey" position="left">
-            <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2">
-              {experiences.map((exp) => (
-                <div key={exp.id} className="border-l-2 border-cyan-500/30 pl-4 py-1 space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-bold text-white">{exp.title}</h3>
-                    {exp.current && (
-                      <span className="text-[10px] tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full uppercase">
-                        Current
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-cyan-400 text-xs font-medium">{exp.company}</p>
-                  <p className="text-white/40 text-[11px] font-mono">{exp.location} · {exp.period}</p>
-                  <p className="text-white/60 text-xs leading-relaxed">{exp.description}</p>
-                </div>
-              ))}
-            </div>
-          </SectionOverlay>
-
-          {/* Chapter 05: Projects */}
-          <SectionOverlay chapter={4} title="Project World" subtitle="What I built" position="right">
-            <p className="text-white/70 text-sm mb-3">
-              Each building and node represents a major project in production or development.
-            </p>
-            <p className="text-cyan-400 text-xs font-mono uppercase tracking-wider mb-4">
-              Approach and click any floating artifact to inspect details.
-            </p>
-            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs text-white/50 space-y-1">
-              <p>• {profile.projectsCompleted} Projects Completed</p>
-              <p>• Enterprise ERP, Client Portals, Mobile & MERN</p>
-            </div>
-          </SectionOverlay>
-
-          {/* Chapter 06: Skills */}
-          <SectionOverlay chapter={5} title="Technology Galaxy" subtitle="Tools of the trade" position="left">
-            <p className="text-white/70 text-sm mb-3">
-              Explore the orbit of languages, frameworks, databases, and tools.
-            </p>
-            <p className="text-cyan-400 text-xs font-mono uppercase tracking-wider mb-4">
-              Click any planetary node to explore associated projects.
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {['React.js', 'Node.js', 'Frappe / ERPNext', 'Flutter', 'TypeScript', 'MongoDB', 'PostgreSQL', 'Docker', 'AWS'].map((tag) => (
-                <span key={tag} className="px-2.5 py-1 text-[11px] bg-white/5 border border-white/10 rounded-full text-white/80">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </SectionOverlay>
-
-          {/* Chapter 07: Present */}
-          <SectionOverlay chapter={6} title="Current Chapter" subtitle="Where I am today" position="center">
-            <div className="text-center space-y-4">
-              <p className="text-2xl sm:text-3xl font-light text-white/90 leading-relaxed tracking-wide">
-                Building.<br />
-                Learning.<br />
-                Exploring.
+          {/* Chapter 02: First Line of Code (Matching Reference Panel 5) */}
+          <SectionOverlay
+            chapter={2}
+            chapterNumberText="CHAPTER 02"
+            title="FIRST LINE OF CODE"
+            tagline="Curiosity became code."
+            position="left"
+          />
+          {/* Right-side quote card for Chapter 02 (Matching Reference Panel 5) */}
+          <SectionOverlay chapter={2} title="" position="right">
+            <div className="glass p-6 rounded-2xl border border-white/10 max-w-sm shadow-2xl backdrop-blur-xl">
+              <p className="text-white/80 text-sm leading-relaxed italic">
+                "The moment I realized I can build, create and solve problems through code."
               </p>
-              <div className="space-y-2 pt-2">
-                {experiences.filter((e) => e.current).map((exp) => (
-                  <div key={exp.id} className="p-3 bg-white/5 border border-white/10 rounded-xl max-w-sm mx-auto">
-                    <p className="text-cyan-400 font-medium text-sm">{exp.title}</p>
-                    <p className="text-white/50 text-xs">{exp.company} · {exp.location}</p>
-                  </div>
+            </div>
+          </SectionOverlay>
+
+          {/* Chapter 03: Career (Matching Reference Panel 6) */}
+          <SectionOverlay
+            chapter={3}
+            chapterNumberText="CHAPTER 03"
+            title="CAREER"
+            tagline="Turning skills into impact."
+            description="A journey of learning, building and contributing to real world products."
+            position="left"
+          />
+
+          {/* Chapter 04: Projects (Matching Reference Panel 7) */}
+          <SectionOverlay
+            chapter={4}
+            chapterNumberText="CHAPTER 04"
+            title="PROJECTS"
+            tagline="Ideas into real products."
+            description="A collection of projects that solve real problems."
+            position="left"
+          >
+            {/* Horizontal Project Thumbnail Cards Strip (Matching Reference Panel 7) */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-4 overflow-x-auto max-w-lg">
+              {projects.slice(0, 3).map((proj) => (
+                <button
+                  key={proj.id}
+                  onClick={() => openProjectDetail(proj.id)}
+                  className="glass p-3.5 rounded-xl border border-white/10 hover:border-cyan-400/50 flex-1 min-w-[140px] text-left transition-all hover:scale-105 group"
+                >
+                  <p className="text-white font-semibold text-xs truncate group-hover:text-cyan-400 transition-colors">
+                    {proj.title}
+                  </p>
+                  <span className="text-[10px] text-white/50 capitalize font-mono block mt-0.5">
+                    {proj.category} Solution
+                  </span>
+                </button>
+              ))}
+            </div>
+          </SectionOverlay>
+
+          {/* Chapter 05: Skills (Matching Reference Panel 8) */}
+          <SectionOverlay
+            chapter={5}
+            chapterNumberText="CHAPTER 05"
+            title="SKILLS"
+            tagline="Tools that power my journey."
+            description="Technologies I work with and continuously explore."
+            position="left"
+          />
+
+          {/* Chapter 06: Where I Am Today / Present (Matching Reference Panel 9) */}
+          <SectionOverlay
+            chapter={6}
+            chapterNumberText="CHAPTER 06"
+            title="WHERE I AM TODAY"
+            tagline="Building. Learning. Exploring."
+            position="left"
+          >
+            <div className="glass p-6 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-3 mt-2">
+              <div className="flex items-center gap-3 text-cyan-400">
+                <div className="p-2 rounded-xl bg-cyan-950/60 border border-cyan-800/40">
+                  <User size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Associate Software Developer</h3>
+                  <p className="text-cyan-400 text-xs">at KO Innovation Software Solutions</p>
+                </div>
+              </div>
+              <p className="text-white/60 text-xs leading-relaxed">
+                Working on meaningful products, collaborating with great people and continuously improving.
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {['React', 'Node.js', 'Frappe', 'Flutter', 'MongoDB', 'AWS'].map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-0.5 text-[10px] bg-white/5 rounded border border-white/10 text-white/70"
+                  >
+                    {tag}
+                  </span>
                 ))}
               </div>
             </div>
           </SectionOverlay>
 
-          {/* Chapter 08: Contact */}
-          <SectionOverlay chapter={7} title="Next Destination" subtitle="The journey continues" position="center">
+          {/* Chapter 07: The Journey Continues (Matching Reference Panel 10) */}
+          <SectionOverlay
+            chapter={7}
+            chapterNumberText="CHAPTER 07"
+            title="THE JOURNEY CONTINUES"
+            tagline="Still learning. Still building. Still moving forward."
+            description="Excited for new opportunities, bigger challenges and greater impact."
+            position="left"
+          />
+
+          {/* Chapter 08: Next Destination / Contact (Matching Reference Panel 11) */}
+          <SectionOverlay
+            chapter={8}
+            chapterNumberText="CHAPTER 08"
+            title="NEXT DESTINATION"
+            tagline="Maybe we build something together."
+            position="left"
+          >
             <ContactForm />
           </SectionOverlay>
         </div>
       )}
 
-      {/* UI Overlays */}
+      {/* Global UI Overlays */}
       <Navbar />
       <JourneyMenu />
-      <ChapterIndicator />
       <InteractionHint />
       <CustomCursor />
       <ProjectDetail />

@@ -3,13 +3,13 @@ import { useFrame } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
-const Environment: React.FC = () => {
+export const Environment: React.FC = () => {
   const particlesRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
     if (particlesRef.current) {
       particlesRef.current.children.forEach((child, i) => {
-        child.position.y += Math.sin(state.clock.elapsedTime * 0.2 + i) * 0.01;
+        child.position.y += Math.sin(state.clock.elapsedTime * 0.2 + i) * 0.008;
       });
     }
   });
@@ -17,43 +17,42 @@ const Environment: React.FC = () => {
   return (
     <>
       <color attach="background" args={['#050505']} />
-      <fogExp2 attach="fog" args={['#050505', 0.012]} />
+      <fogExp2 attach="fog" args={['#050505', 0.008]} />
 
-
-      {/* Solid Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, -150]}>
-        <planeGeometry args={[1000, 600]} />
+      {/* Solid Dark Base Ground */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, -190]}>
+        <planeGeometry args={[1200, 800]} />
         <meshStandardMaterial color="#050505" />
       </mesh>
 
-      {/* Wireframe Grid */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -150]}>
-        <planeGeometry args={[100, 600, 50, 300]} />
-        <meshBasicMaterial color="#11151A" wireframe transparent opacity={0.3} />
+      {/* Wireframe Perspective Grid */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -190]}>
+        <planeGeometry args={[120, 800, 40, 300]} />
+        <meshBasicMaterial color="#0F172A" wireframe transparent opacity={0.25} />
       </mesh>
 
-      {/* Continuous Road connecting everything */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, -150]}>
-        <planeGeometry args={[2, 600]} />
-        <meshBasicMaterial color="#06B6D4" transparent opacity={0.15} />
+      {/* Continuous Atmospheric Road connecting all 9 chapters */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, -190]}>
+        <planeGeometry args={[2.4, 800]} />
+        <meshBasicMaterial color="#06B6D4" transparent opacity={0.12} />
       </mesh>
 
-      {/* Dense Stars */}
-      <Stars radius={100} depth={50} count={7000} factor={4} saturation={0} fade speed={1} />
+      {/* Dense Celestial Starfield */}
+      <Stars radius={140} depth={60} count={8000} factor={4} saturation={0} fade speed={0.8} />
 
-      {/* Global floating particles along the path */}
+      {/* Ambient Floating Stardust Particles along the journey path */}
       <group ref={particlesRef}>
-        {[...Array(30)].map((_, i) => (
+        {[...Array(45)].map((_, i) => (
           <mesh
             key={`env-part-${i}`}
             position={[
-              (Math.random() - 0.5) * 40,
-              Math.random() * 10,
-              -Math.random() * 300
+              (Math.sin(i * 2.3) * 20),
+              1 + Math.random() * 8,
+              -Math.random() * 380
             ]}
           >
-            <sphereGeometry args={[0.05, 8, 8]} />
-            <meshBasicMaterial color="#F8FAFC" transparent opacity={0.5} />
+            <sphereGeometry args={[0.04, 6, 6]} />
+            <meshBasicMaterial color="#F8FAFC" transparent opacity={0.4} />
           </mesh>
         ))}
       </group>

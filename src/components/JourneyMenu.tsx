@@ -1,20 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { useJourneyStore } from '../store/journeyStore';
+import { useJourneyStore, CHAPTERS_DATA } from '../store/journeyStore';
+import { X } from 'lucide-react';
 import gsap from 'gsap';
 
-const CHAPTERS = [
-  { id: 0, num: '01', title: 'The Beginning' },
-  { id: 1, num: '02', title: 'Education' },
-  { id: 2, num: '03', title: 'First Code' },
-  { id: 3, num: '04', title: 'Career' },
-  { id: 4, num: '05', title: 'Projects' },
-  { id: 5, num: '06', title: 'Skills' },
-  { id: 6, num: '07', title: 'Present' },
-  { id: 7, num: '08', title: 'Contact' },
-];
-
 export const JourneyMenu: React.FC = () => {
-  const { isMenuOpen, closeMenu, currentChapter, setJourneyProgress } = useJourneyStore();
+  const { isMenuOpen, closeMenu, currentChapter, jumpToChapter } = useJourneyStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -24,60 +14,97 @@ export const JourneyMenu: React.FC = () => {
       gsap.fromTo(
         menuRef.current,
         { x: '100%' },
-        { x: '0%', duration: 0.5, ease: 'power3.out' }
+        { x: '0%', duration: 0.45, ease: 'power3.out' }
       );
     } else {
       gsap.to(menuRef.current, {
         x: '100%',
-        duration: 0.4,
+        duration: 0.35,
         ease: 'power3.in',
         onComplete: () => {
           gsap.to(containerRef.current, { autoAlpha: 0, duration: 0.2 });
-        }
+        },
       });
     }
   }, [isMenuOpen]);
 
-  const handleChapterClick = (chapterId: number) => {
-    const progress = chapterId / 7; // 0 to 1
-    setJourneyProgress(Math.min(progress, 0.999));
-    closeMenu();
+  const handleSelectChapter = (chapterId: number) => {
+    jumpToChapter(chapterId);
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 z-30 invisible"
-    >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeMenu} />
+    <div ref={containerRef} className="fixed inset-0 z-50 invisible">
+      {/* Dimmed backdrop */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-md transition-opacity"
+        onClick={closeMenu}
+      />
+
+      {/* Slide-out Drawer Panel (Matching Reference Panel 3) */}
       <div
         ref={menuRef}
-        className="absolute top-0 right-0 w-full max-w-md h-full bg-[#0B0D10]/90 backdrop-blur-xl border-l border-white/10 p-12 flex flex-col justify-center"
+        className="absolute top-0 right-0 w-full max-w-md h-full bg-[#0B0D10]/95 backdrop-blur-2xl border-l border-white/10 p-8 sm:p-12 flex flex-col justify-between overflow-y-auto"
       >
-        <h2 className="text-white/40 tracking-[0.2em] text-sm uppercase mb-8">Chapters</h2>
-        <ul className="space-y-6">
-          {CHAPTERS.map((chapter) => (
-            <li key={chapter.id}>
-              <button
-                onClick={() => handleChapterClick(chapter.id)}
-                className={`group flex items-center gap-4 text-left w-full transition-colors ${
-                  currentChapter === chapter.id ? 'text-white' : 'text-white/50 hover:text-white'
-                }`}
-              >
-                <span className="text-xs font-mono opacity-50">
-                  {chapter.num}
-                </span>
-                <span className="text-xl tracking-wider uppercase font-medium">
-                  {chapter.title}
-                </span>
-                {currentChapter === chapter.id && (
-                  <span className="h-[1px] flex-grow bg-white/20 ml-4" />
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div>
+          {/* Drawer Header */}
+          <div className="flex justify-between items-center pb-8 border-b border-white/10 mb-8">
+            <h2 className="text-sm font-mono tracking-[0.25em] text-white/70 uppercase">
+              THE JOURNEY
+            </h2>
+            <button
+              onClick={closeMenu}
+              className="text-white/50 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/5"
+              aria-label="Close menu"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Numbered Chapters List */}
+          <ul className="space-y-4">
+            {CHAPTERS_DATA.map((ch) => {
+              const isActive = currentChapter === ch.id;
+              return (
+                <li key={ch.id}>
+                  <button
+                    onClick={() => handleSelectChapter(ch.id)}
+                    className={`group flex items-center justify-between w-full py-2.5 px-3 rounded-xl text-left transition-all ${
+                      isActive
+                        ? 'bg-white/10 text-white font-medium shadow-[inset_0_0_15px_rgba(6,182,212,0.15)] border border-cyan-500/30'
+                        : 'text-white/60 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span
+                        className={`text-xs font-mono ${
+                          isActive ? 'text-cyan-400 font-bold' : 'text-white/40'
+                        }`}
+                      >
+                        {ch.num}
+                      </span>
+                      <span className="text-base tracking-wider uppercase">
+                        {ch.title}
+                      </span>
+                    </div>
+
+                    <span className="text-xs font-mono text-white/40 group-hover:text-white/70 transition-colors">
+                      {ch.subtitle}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* Drawer Footer Metadata */}
+        <div className="pt-8 border-t border-white/10 text-[11px] font-mono text-white/40 flex justify-between items-center">
+          <span>SUBRAMANI V</span>
+          <span>FULL STACK DEVELOPER</span>
+        </div>
       </div>
     </div>
   );
 };
+
+export default JourneyMenu;

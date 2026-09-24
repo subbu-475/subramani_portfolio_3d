@@ -7,38 +7,40 @@ import { useJourneyStore } from '../store/journeyStore';
 const Camera: React.FC = () => {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const journeyProgress = useJourneyStore((state) => state.journeyProgress);
+  const qualityLevel = useJourneyStore((state) => state.qualityLevel);
 
   useFrame((state, delta) => {
     if (!cameraRef.current) return;
-    
-    // progress is 0 to 1, spread over 8 chapters (index 0 to 7)
-    // max distance is -280.
-    const targetZ = -280 * journeyProgress;
-    
-    // Smoothly interpolate camera position
+
+    // Total distance across 9 chapters is 360 units
+    const targetZ = -360 * journeyProgress + 4;
+
+    // Smoothly interpolate camera position along Z
     cameraRef.current.position.z = THREE.MathUtils.lerp(
       cameraRef.current.position.z,
       targetZ,
-      delta * 5
+      delta * 4.5
     );
-    
-    // Slight side to side movement based on time for cinematic feel
+
+    // Subtle natural breathing / cinematic sway
+    const swayAmount = qualityLevel === 'low' ? 0.3 : 0.8;
     cameraRef.current.position.x = THREE.MathUtils.lerp(
       cameraRef.current.position.x,
-      Math.sin(state.clock.elapsedTime * 0.5) * 2,
+      Math.sin(state.clock.elapsedTime * 0.35) * swayAmount,
       delta * 2
     );
-    
+
     cameraRef.current.position.y = THREE.MathUtils.lerp(
       cameraRef.current.position.y,
-      Math.cos(state.clock.elapsedTime * 0.3) * 1 + 2, // Base height is 2
-      delta * 2
+      Math.cos(state.clock.elapsedTime * 0.25) * 0.3 + 2.3, // Third person height
+      delta * 2.5
     );
-    
+
+    // Look slightly ahead of character toward horizon
     cameraRef.current.lookAt(
-      cameraRef.current.position.x, 
-      0, 
-      cameraRef.current.position.z - 20
+      cameraRef.current.position.x * 0.3,
+      1.8,
+      cameraRef.current.position.z - 18
     );
   });
 
@@ -46,10 +48,10 @@ const Camera: React.FC = () => {
     <PerspectiveCamera
       ref={cameraRef}
       makeDefault
-      position={[0, 2, 10]}
-      fov={60}
+      position={[0, 2.3, 10]}
+      fov={55}
       near={0.1}
-      far={1000}
+      far={1200}
     />
   );
 };
