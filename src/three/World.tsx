@@ -4,7 +4,7 @@ import { Preload } from '@react-three/drei';
 import { useJourneyStore } from '../store/journeyStore';
 import Environment from './Environment';
 import Camera from './Camera';
-import Character from './Character';
+import PaperAirplane from './PaperAirplane';
 import Lighting from './Lighting';
 import Effects from './Effects';
 import Road from './Road';
@@ -44,7 +44,7 @@ const World: React.FC = () => {
       >
         <Suspense fallback={null}>
           <Camera />
-          <Character />
+          <PaperAirplane />
           <Lighting />
           <Environment />
           <Road />

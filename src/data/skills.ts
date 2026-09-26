@@ -53,10 +53,11 @@ export const skillCategories: SkillCategory[] = [
     name: 'DevOps & Tools',
     skills: [
       { name: 'Docker', category: 'devops' },
-      { name: 'AWS', category: 'devops' },
-      { name: 'Git', category: 'devops' },
       { name: 'Linux', category: 'devops' },
+      { name: 'Nginx', category: 'devops' },
+      { name: 'Git', category: 'devops' },
       { name: 'CI/CD', category: 'devops' },
+      { name: 'Cloud', category: 'devops' },
     ],
   },
   {

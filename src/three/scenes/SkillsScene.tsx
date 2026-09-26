@@ -1,239 +1,637 @@
-import React, { useRef, Suspense } from 'react';
+import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Float, Text, useTexture } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useJourneyStore } from '../../store/journeyStore';
-
-interface SkillItem {
-  name: string;
-  category: string;
-  color: string;
-  logo: string;
-  orbitRadius: number;
-  speed: number;
-  initialAngle: number;
-}
-
-const SKILLS_LIST: SkillItem[] = [
-  { name: 'React.js', category: 'Frontend', color: '#61DAFB', logo: '/logos/react.svg', orbitRadius: 4.8, speed: 0.35, initialAngle: 0 },
-  { name: 'TypeScript', category: 'Language', color: '#3178C6', logo: '/logos/typescript.svg', orbitRadius: 5.6, speed: 0.30, initialAngle: 0.8 },
-  { name: 'Node.js', category: 'Backend', color: '#539E43', logo: '/logos/nodejs.svg', orbitRadius: 6.4, speed: 0.26, initialAngle: 1.6 },
-  { name: 'Python', category: 'Backend', color: '#387EB8', logo: '/logos/python.svg', orbitRadius: 7.2, speed: 0.22, initialAngle: 2.4 },
-  { name: 'MongoDB', category: 'Database', color: '#13AA52', logo: '/logos/mongodb.svg', orbitRadius: 8.0, speed: 0.20, initialAngle: 3.2 },
-  { name: 'Docker', category: 'DevOps', color: '#2496ED', logo: '/logos/docker.svg', orbitRadius: 8.8, speed: 0.18, initialAngle: 4.0 },
-  { name: 'Flutter', category: 'Mobile', color: '#02569B', logo: '/logos/flutter.svg', orbitRadius: 9.5, speed: 0.16, initialAngle: 4.8 },
-  { name: 'JavaScript', category: 'Language', color: '#F7DF1E', logo: '/logos/javascript.svg', orbitRadius: 10.2, speed: 0.14, initialAngle: 5.6 },
-];
+import { skillCategories, type Skill } from '../../data/skills';
 
 /**
- * Single textured skill medallion featuring real SVG image of the tech stack
+ * Single Physical Technology Lab Station in Chapter 06
  */
-const SkillMedallion: React.FC<{
-  skill: SkillItem;
-  onClick: () => void;
-}> = ({ skill, onClick }) => {
-  const meshRef = useRef<THREE.Group>(null);
-  const texture = useTexture(skill.logo);
+const LabStation: React.FC<{
+  categoryIndex: number;
+  title: string;
+  subtitle: string;
+  skills: Skill[];
+  isSelected: boolean;
+  onSelect: () => void;
+  onSkillClick: (skillName: string) => void;
+  position: [number, number, number];
+}> = ({
+  categoryIndex,
+  title,
+  subtitle,
+  skills,
+  isSelected,
+  onSelect,
+  onSkillClick,
+  position,
+}) => {
+  const [hovered, setHovered] = useState(false);
+  const spotlightRef = useRef<THREE.SpotLight>(null);
+  const primaryScreenRef = useRef<THREE.Mesh>(null);
+  const pulseRef = useRef<THREE.PointLight>(null);
 
-  useFrame((state) => {
-    if (meshRef.current) {
-      const angle = skill.initialAngle + state.clock.elapsedTime * skill.speed;
-      const x = Math.cos(angle) * skill.orbitRadius;
-      const z = Math.sin(angle) * skill.orbitRadius;
-      const y = 3.5 + Math.sin(state.clock.elapsedTime * 1.5 + skill.initialAngle) * 0.4;
-      meshRef.current.position.set(x, y, z);
-      // Billboard facing camera/road
-      meshRef.current.rotation.y = -angle + Math.PI / 2;
+  useFrame((state, delta) => {
+    if (spotlightRef.current) {
+      const targetIntensity = isSelected ? 3.4 : hovered ? 1.8 : 0.6;
+      spotlightRef.current.intensity = THREE.MathUtils.lerp(
+        spotlightRef.current.intensity,
+        targetIntensity,
+        delta * 4.0
+      );
+    }
+    if (primaryScreenRef.current) {
+      const mat = primaryScreenRef.current.material as THREE.MeshStandardMaterial;
+      if (mat) {
+        const targetEmissive = isSelected ? 0.35 : hovered ? 0.2 : 0.08;
+        mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, targetEmissive, delta * 4.0);
+      }
+    }
+    if (pulseRef.current) {
+      const t = state.clock.elapsedTime;
+      pulseRef.current.intensity = isSelected
+        ? 1.8 + Math.sin(t * 3.0) * 0.4
+        : 0.4;
     }
   });
 
   return (
     <group
-      ref={meshRef}
+      position={position}
       onClick={(e) => {
         e.stopPropagation();
-        onClick();
+        onSelect();
       }}
-      onPointerOver={() => (document.body.style.cursor = 'pointer')}
-      onPointerOut={() => (document.body.style.cursor = 'auto')}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = 'auto';
+      }}
     >
-      <Float speed={2} rotationIntensity={0.2} floatIntensity={0.3}>
-        {/* Glow Halo */}
-        <mesh position={[0, 0, -0.05]}>
-          <cylinderGeometry args={[0.9, 0.9, 0.08, 32]} />
+      {/* Ceiling Architectural Spotlight above Station */}
+      <spotLight
+        ref={spotlightRef}
+        position={[0, 6.2, 1.6]}
+        color={isSelected ? '#FFFBEB' : '#E2E8F0'}
+        intensity={isSelected ? 3.4 : 0.6}
+        distance={10.5}
+        angle={0.42}
+        penumbra={0.7}
+      />
+
+      {/* ========================================================= */}
+      {/* SOLID ARCHITECTURAL CONSOLE BASE                          */}
+      {/* ========================================================= */}
+      <group position={[0, 0, 0]}>
+        {/* Recessed Dark Bronze Reveal */}
+        <mesh position={[0, 0.05, 0]}>
+          <boxGeometry args={[3.0, 0.1, 1.7]} />
+          <meshStandardMaterial color="#4A3B2C" metalness={0.8} roughness={0.3} />
+        </mesh>
+
+        {/* Main Dark Slate Console Plinth */}
+        <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
+          <boxGeometry args={[3.2, 0.72, 1.9]} />
           <meshStandardMaterial
-            color={skill.color}
-            emissive={skill.color}
-            emissiveIntensity={0.7}
+            color={isSelected ? '#1A202C' : hovered ? '#171B24' : '#12151D'}
+            roughness={0.8}
+            metalness={0.2}
+          />
+        </mesh>
+
+        {/* Top Trim Accent Inlay */}
+        <mesh position={[0, 0.815, 0]}>
+          <boxGeometry args={[3.22, 0.02, 1.92]} />
+          <meshStandardMaterial
+            color={isSelected ? '#38BDF8' : hovered ? '#0284C7' : '#2A303C'}
             metalness={0.8}
             roughness={0.2}
           />
         </mesh>
 
-        {/* Real Logo Face Front */}
-        <mesh position={[0, 0, 0.02]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.78, 0.78, 0.08, 32]} />
-          <meshStandardMaterial map={texture} roughness={0.3} metalness={0.1} />
-        </mesh>
+        {/* Station Front Placard */}
+        <group position={[0, 0.45, 0.97]}>
+          <Text
+            position={[-1.2, 0.14, 0]}
+            fontSize={0.16}
+            color={isSelected ? '#38BDF8' : '#94A3B8'}
+            letterSpacing={0.1}
+            anchorX="left"
+          >
+            {`0${categoryIndex + 1}`}
+          </Text>
+          <Text
+            position={[-0.8, 0.14, 0]}
+            fontSize={0.15}
+            color="#F8FAFC"
+            letterSpacing={0.06}
+            anchorX="left"
+            maxWidth={2.0}
+          >
+            {title.toUpperCase()}
+          </Text>
+          <Text
+            position={[-0.8, -0.10, 0]}
+            fontSize={0.10}
+            color={isSelected ? '#38BDF8' : '#64748B'}
+            letterSpacing={0.08}
+            anchorX="left"
+          >
+            {subtitle.toUpperCase()}
+          </Text>
+        </group>
+      </group>
 
-        {/* Real Logo Face Back */}
-        <mesh position={[0, 0, -0.08]} rotation={[-Math.PI / 2, Math.PI, 0]}>
-          <cylinderGeometry args={[0.78, 0.78, 0.08, 32]} />
-          <meshStandardMaterial map={texture} roughness={0.3} metalness={0.1} />
-        </mesh>
+      {/* ========================================================= */}
+      {/* 3D PHYSICAL LABORATORY WORKSTATION / HARDWARE             */}
+      {/* ========================================================= */}
+      <group position={[0, 0.82, 0]}>
+        {/* ========================================================= */}
+        {/* 1. FRONTEND WORKSTATION: Curved Panoramic Display         */}
+        {/* ========================================================= */}
+        {categoryIndex === 0 && (
+          <group position={[0, 0, 0]}>
+            {/* Monitor Mount Bracket */}
+            <mesh position={[0, 0.35, -0.2]}>
+              <boxGeometry args={[0.3, 0.7, 0.15]} />
+              <meshStandardMaterial color="#2B303C" metalness={0.9} />
+            </mesh>
+            {/* Curved Primary Panoramic Glass Monitor */}
+            <mesh position={[0, 1.15, 0]}>
+              <boxGeometry args={[2.8, 1.6, 0.06]} />
+              <meshStandardMaterial color="#0A0C10" metalness={0.9} roughness={0.2} />
+            </mesh>
+            <mesh ref={primaryScreenRef} position={[0, 1.15, 0.035]}>
+              <planeGeometry args={[2.68, 1.48]} />
+              <meshStandardMaterial
+                color="#0F172A"
+                emissive="#0284C7"
+                emissiveIntensity={0.2}
+                roughness={0.2}
+              />
+            </mesh>
+            {/* UI Component Layout Lines */}
+            <group position={[0, 1.15, 0.04]}>
+              <mesh position={[0, 0.58, 0]}>
+                <planeGeometry args={[2.5, 0.1]} />
+                <meshBasicMaterial color="#1E293B" />
+              </mesh>
+              <mesh position={[-0.7, 0.12, 0]}>
+                <planeGeometry args={[1.0, 0.68]} />
+                <meshBasicMaterial color="#142033" />
+              </mesh>
+              <mesh position={[0.6, 0.12, 0]}>
+                <planeGeometry args={[1.2, 0.68]} />
+                <meshBasicMaterial color="#1E293B" />
+              </mesh>
+              {/* Active React / TS Code Highlight Pill */}
+              <mesh position={[-0.8, -0.42, 0]}>
+                <planeGeometry args={[0.75, 0.22]} />
+                <meshBasicMaterial color="#0284C7" />
+              </mesh>
+            </group>
+            {/* Articulated Portrait Tablet on Right Arm */}
+            <group position={[1.65, 0.85, 0.1]} rotation={[0, -0.3, 0]}>
+              <mesh>
+                <boxGeometry args={[0.65, 1.1, 0.04]} />
+                <meshStandardMaterial color="#1E232E" metalness={0.8} />
+              </mesh>
+              <mesh position={[0, 0, 0.024]}>
+                <planeGeometry args={[0.58, 1.02]} />
+                <meshStandardMaterial color="#090D16" emissive="#38BDF8" emissiveIntensity={0.15} />
+              </mesh>
+            </group>
+          </group>
+        )}
 
-        {/* Outer Cyan Ring */}
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.95, 0.04, 8, 32]} />
-          <meshBasicMaterial color="#00F0FF" />
-        </mesh>
+        {/* ========================================================= */}
+        {/* 2. BACKEND WORKSTATION: Dual Terminal & Telemetry Rack   */}
+        {/* ========================================================= */}
+        {categoryIndex === 1 && (
+          <group position={[0, 0, 0]}>
+            {/* Server Rack Tower (Behind Console) */}
+            <group position={[0, 1.25, -0.6]}>
+              <mesh>
+                <boxGeometry args={[1.3, 2.5, 0.8]} />
+                <meshStandardMaterial color="#0B0E14" metalness={0.8} roughness={0.3} />
+              </mesh>
+              {/* Server Blade Slots & Status LEDs */}
+              {[-0.8, -0.4, 0, 0.4, 0.8].map((sy, i) => (
+                <group key={`blade-${i}`} position={[0, sy, 0.41]}>
+                  <mesh>
+                    <planeGeometry args={[1.15, 0.26]} />
+                    <meshBasicMaterial color="#1E232E" />
+                  </mesh>
+                  <mesh position={[-0.45, 0, 0.005]}>
+                    <circleGeometry args={[0.025, 8]} />
+                    <meshBasicMaterial color={i % 2 === 0 ? '#10B981' : '#38BDF8'} />
+                  </mesh>
+                </group>
+              ))}
+            </group>
 
-        {/* Skill Name Floating Tag */}
-        <Text
-          position={[0, 1.25, 0]}
-          fontSize={0.28}
-          color="#FFFFFF"
-          letterSpacing={0.06}
-        >
-          {skill.name}
-        </Text>
-        <Text
-          position={[0, 0.98, 0]}
-          fontSize={0.18}
-          color={skill.color}
-          letterSpacing={0.04}
-        >
-          {skill.category.toUpperCase()}
-        </Text>
-      </Float>
+            {/* Dual Terminal Monitors */}
+            {/* Left Screen: Python & Frappe Logic */}
+            <group position={[-0.78, 1.0, -0.05]} rotation={[0, 0.16, 0]}>
+              <mesh>
+                <boxGeometry args={[1.35, 0.95, 0.05]} />
+                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
+              </mesh>
+              <mesh ref={primaryScreenRef} position={[0, 0, 0.028]}>
+                <planeGeometry args={[1.28, 0.88]} />
+                <meshStandardMaterial
+                  color="#0F172A"
+                  emissive="#0284C7"
+                  emissiveIntensity={0.2}
+                />
+              </mesh>
+              {/* Terminal code lines */}
+              {[-0.25, -0.12, 0.01, 0.14, 0.26].map((cy, i) => (
+                <mesh key={`b-code-${i}`} position={[-0.15 + (i % 2) * 0.1, cy, 0.032]}>
+                  <planeGeometry args={[0.7 + (i % 3) * 0.2, 0.045]} />
+                  <meshBasicMaterial color={i === 0 ? '#F59E0B' : '#38BDF8'} />
+                </mesh>
+              ))}
+            </group>
+
+            {/* Right Screen: REST APIs & Microservices */}
+            <group position={[0.78, 1.0, -0.05]} rotation={[0, -0.16, 0]}>
+              <mesh>
+                <boxGeometry args={[1.35, 0.95, 0.05]} />
+                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
+              </mesh>
+              <mesh position={[0, 0, 0.028]}>
+                <planeGeometry args={[1.28, 0.88]} />
+                <meshStandardMaterial color="#090D16" emissive="#10B981" emissiveIntensity={0.15} />
+              </mesh>
+              {/* Endpoint Status Blocks */}
+              {[-0.22, 0.02, 0.24].map((ey, i) => (
+                <mesh key={`b-api-${i}`} position={[0, ey, 0.032]}>
+                  <planeGeometry args={[1.1, 0.14]} />
+                  <meshBasicMaterial color="#1E293B" />
+                </mesh>
+              ))}
+            </group>
+          </group>
+        )}
+
+        {/* ========================================================= */}
+        {/* 3. DATABASE STATION: Modular Storage Tower & Metrics      */}
+        {/* ========================================================= */}
+        {categoryIndex === 2 && (
+          <group position={[0, 0, 0]}>
+            {/* Sleek Central Storage Column */}
+            <mesh position={[0, 1.05, -0.2]}>
+              <cylinderGeometry args={[0.55, 0.65, 2.1, 24]} />
+              <meshStandardMaterial color="#1E232E" metalness={0.8} roughness={0.3} />
+            </mesh>
+            {/* Tiered Database Storage Rings */}
+            {[-0.6, -0.2, 0.2, 0.6].map((ry, i) => (
+              <mesh key={`db-ring-${i}`} position={[0, 1.05 + ry, -0.2]}>
+                <cylinderGeometry args={[0.58, 0.58, 0.12, 24]} />
+                <meshStandardMaterial
+                  color={i === 1 ? '#0284C7' : '#2A303C'}
+                  metalness={0.9}
+                  emissive={i === 1 ? '#0284C7' : '#000000'}
+                  emissiveIntensity={0.3}
+                />
+              </mesh>
+            ))}
+
+            {/* Left Schema Screen */}
+            <group position={[-1.0, 0.95, 0.1]} rotation={[0, 0.25, 0]}>
+              <mesh>
+                <boxGeometry args={[1.2, 0.8, 0.04]} />
+                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
+              </mesh>
+              <mesh ref={primaryScreenRef} position={[0, 0, 0.024]}>
+                <planeGeometry args={[1.12, 0.72]} />
+                <meshStandardMaterial color="#0B132B" emissive="#06B6D4" emissiveIntensity={0.2} />
+              </mesh>
+              {/* Table / Collection schema rows */}
+              {[-0.2, 0, 0.2].map((dy, i) => (
+                <mesh key={`db-row-${i}`} position={[0, dy, 0.028]}>
+                  <planeGeometry args={[0.95, 0.11]} />
+                  <meshBasicMaterial color="#1E293B" />
+                </mesh>
+              ))}
+            </group>
+
+            {/* Right Cache / Throughput Gauge Screen */}
+            <group position={[1.0, 0.95, 0.1]} rotation={[0, -0.25, 0]}>
+              <mesh>
+                <boxGeometry args={[1.2, 0.8, 0.04]} />
+                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
+              </mesh>
+              <mesh position={[0, 0, 0.024]}>
+                <planeGeometry args={[1.12, 0.72]} />
+                <meshStandardMaterial color="#090D16" emissive="#10B981" emissiveIntensity={0.2} />
+              </mesh>
+              {/* Redis throughput bars */}
+              {[-0.2, 0, 0.2].map((my, i) => (
+                <mesh key={`db-metric-${i}`} position={[0, my, 0.028]}>
+                  <planeGeometry args={[0.95, 0.09]} />
+                  <meshBasicMaterial color="#15803D" />
+                </mesh>
+              ))}
+            </group>
+          </group>
+        )}
+
+        {/* ========================================================= */}
+        {/* 4. DEVOPS STATION: Cloud Telemetry & Container Console    */}
+        {/* ========================================================= */}
+        {categoryIndex === 3 && (
+          <group position={[0, 0, 0]}>
+            {/* Cloud Server Tower (Right Side) */}
+            <group position={[1.0, 1.25, -0.4]}>
+              <mesh>
+                <boxGeometry args={[0.85, 2.5, 0.85]} />
+                <meshStandardMaterial color="#0B0E14" metalness={0.9} roughness={0.2} />
+              </mesh>
+              {/* Container stack lights */}
+              {[-0.8, -0.3, 0.2, 0.7].map((cy, i) => (
+                <mesh key={`c-light-${i}`} position={[0, cy, 0.435]}>
+                  <planeGeometry args={[0.65, 0.28]} />
+                  <meshBasicMaterial color="#0284C7" />
+                </mesh>
+              ))}
+            </group>
+
+            {/* CI/CD Pipeline & Deployment Console (Center-Left) */}
+            <group position={[-0.45, 1.05, 0]}>
+              <mesh>
+                <boxGeometry args={[1.9, 1.2, 0.05]} />
+                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
+              </mesh>
+              <mesh ref={primaryScreenRef} position={[0, 0, 0.028]}>
+                <planeGeometry args={[1.82, 1.12]} />
+                <meshStandardMaterial color="#0B132B" emissive="#0284C7" emissiveIntensity={0.22} />
+              </mesh>
+              {/* 5-Stage Pipeline Tracker */}
+              <group position={[0, 0, 0.034]}>
+                <mesh position={[0, 0.38, 0]}>
+                  <planeGeometry args={[1.65, 0.1]} />
+                  <meshBasicMaterial color="#1E293B" />
+                </mesh>
+                {/* 5 pipeline step badges */}
+                {[-0.6, -0.3, 0, 0.3, 0.6].map((px, i) => (
+                  <mesh key={`pipe-step-${i}`} position={[px, 0.08, 0]}>
+                    <planeGeometry args={[0.22, 0.22]} />
+                    <meshBasicMaterial color="#10B981" />
+                  </mesh>
+                ))}
+                {/* Deployment Log Console */}
+                <mesh position={[0, -0.32, 0]}>
+                  <planeGeometry args={[1.65, 0.38]} />
+                  <meshBasicMaterial color="#0F172A" />
+                </mesh>
+              </group>
+            </group>
+          </group>
+        )}
+
+        {/* Ambient Station Workstation Glow */}
+        <pointLight
+          ref={pulseRef}
+          position={[0, 0.6, 0.5]}
+          color={isSelected ? '#38BDF8' : '#FEF08A'}
+          intensity={isSelected ? 1.8 : 0.4}
+          distance={6}
+        />
+      </group>
+
+      {/* ========================================================= */}
+      {/* COMPACT INTERACTIVE TECH CHIPS DISPLAYED AT STATION       */}
+      {/* ========================================================= */}
+      <group position={[0, 0.03, 1.35]}>
+        {skills.slice(0, 6).map((skill, si) => {
+          const col = si % 3;
+          const row = Math.floor(si / 3);
+          const cx = (col - 1) * 0.95;
+          const cz = row * 0.35;
+
+          return (
+            <group
+              key={skill.name}
+              position={[cx, 0.02, cz]}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSkillClick(skill.name);
+              }}
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = 'pointer';
+              }}
+              onPointerOut={() => {
+                document.body.style.cursor = 'auto';
+              }}
+            >
+              {/* Chip Plaque */}
+              <mesh position={[0, 0.02, 0]}>
+                <boxGeometry args={[0.85, 0.04, 0.26]} />
+                <meshStandardMaterial
+                  color={isSelected ? '#1E293B' : '#141822'}
+                  metalness={0.7}
+                  roughness={0.4}
+                />
+              </mesh>
+              <Text
+                position={[0, 0.045, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+                fontSize={0.075}
+                color={isSelected ? '#38BDF8' : '#94A3B8'}
+                letterSpacing={0.06}
+                anchorX="center"
+              >
+                {skill.name}
+              </Text>
+            </group>
+          );
+        })}
+      </group>
     </group>
   );
 };
 
 /**
- * CH 05 — TECHNOLOGY GALAXY: Holographic Arena with Real Tech Stack Logos
- * Positioned along the LEFT turn segment at WP11 (-42, 0.2, -265).
- * The holographic dais is on the LEFT side of the road (negative X),
- * facing +X towards the traveler walking along the path.
+ * Modern Laboratory Botanical Planter
+ */
+const LabBotanical: React.FC<{ position: [number, number, number] }> = ({ position }) => {
+  return (
+    <group position={position}>
+      {/* Dark Slate Ceramic Pot */}
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.38, 0.32, 1.0, 16]} />
+        <meshStandardMaterial color="#1E232E" roughness={0.7} />
+      </mesh>
+      {/* Soil */}
+      <mesh position={[0, 0.98, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.35, 16]} />
+        <meshStandardMaterial color="#151210" roughness={0.95} />
+      </mesh>
+      {/* Sculpted Architectural Foliage */}
+      {[-0.12, 0, 0.12].map((ox, i) =>
+        [-0.1, 0.1].map((oz, j) => (
+          <mesh
+            key={`l-leaf-${i}-${j}`}
+            position={[ox, 1.5 + (i % 2) * 0.2, oz]}
+            rotation={[0, (i * 2 + j) * 0.7, (ox * 0.25)]}
+          >
+            <planeGeometry args={[0.2, 1.2]} />
+            <meshStandardMaterial
+              color="#1B382B"
+              roughness={0.7}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        ))
+      )}
+    </group>
+  );
+};
+
+/**
+ * CH 05 / CHAPTER 06 — TECHNOLOGY LABORATORY
+ * 
+ * Futuristic yet realistic technology laboratory featuring:
+ * - Dark architectural stone composite floor with illuminated runner line
+ * - 4 dedicated physical 3D stations: Frontend, Backend, Database, DevOps
+ * - Coordinated museum/lab ceiling spotlights focusing on active station
+ * - Glass partition fins and titanium column structures
+ * - Smooth scroll-driven station activation
  */
 export const SkillsScene: React.FC = () => {
+  const selectedSkillCategoryIndex = useJourneyStore((state) => state.selectedSkillCategoryIndex);
+  const setSelectedSkillCategoryIndex = useJourneyStore((state) => state.setSelectedSkillCategoryIndex);
   const openSkillDetail = useJourneyStore((state) => state.openSkillDetail);
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
-  const reactAtomRing1 = useRef<THREE.Group>(null);
-  const reactAtomRing2 = useRef<THREE.Group>(null);
-  const reactAtomRing3 = useRef<THREE.Group>(null);
+  const journeyProgress = useJourneyStore((state) => state.journeyProgress);
 
-  useFrame((_, delta) => {
-    if (ring1Ref.current) ring1Ref.current.rotation.z += delta * 0.2;
-    if (ring2Ref.current) ring2Ref.current.rotation.z -= delta * 0.15;
-
-    // React atomic orbital ring rotations
-    if (reactAtomRing1.current) reactAtomRing1.current.rotation.y += delta * 1.2;
-    if (reactAtomRing2.current) reactAtomRing2.current.rotation.x += delta * 1.0;
-    if (reactAtomRing3.current) reactAtomRing3.current.rotation.z += delta * 1.1;
+  // Sync scroll progress through Chapter 06 (0.56 to 0.68) to automatically activate stations on scroll
+  useFrame(() => {
+    if (journeyProgress >= 0.56 && journeyProgress <= 0.68) {
+      const step = Math.min(3, Math.max(0, Math.floor(((journeyProgress - 0.56) / 0.12) * 4)));
+      if (step !== selectedSkillCategoryIndex) {
+        setSelectedSkillCategoryIndex(step);
+      }
+    }
   });
+
+  // Coordinates for the 4 physical stations along lab promenade
+  const stationPositions: [number, number, number][] = [
+    [-11.5, 0, -3.2],
+    [-3.8, 0, -4.2],
+    [3.8, 0, -4.2],
+    [11.5, 0, -3.2],
+  ];
+
+  const stationSubtitles = [
+    'UI & Web Engineering',
+    'APIs & Business Logic',
+    'Clusters & Schemas',
+    'Cloud & Pipelines',
+  ];
 
   return (
     <group position={[-42, 0.2, -265]}>
-      {/* ========================================================= */}
-      {/* 3D HOLOGRAPHIC SKILLS ARENA (LEFT SIDE, FACING ROAD)      */}
-      {/* ========================================================= */}
-      <group position={[-18, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-        {/* Main Circular Platform Base */}
-        <mesh position={[0, 0.2, 0]}>
-          <cylinderGeometry args={[12, 13, 0.4, 48]} />
-          <meshStandardMaterial color="#0B132B" metalness={0.9} roughness={0.2} />
+      {/* Laboratory Pavilion Enclosure (Left side of road, facing +X towards road/traveler) */}
+      <group position={[-16, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+        {/* ========================================================= */}
+        {/* ARCHITECTURAL LABORATORY ENCLOSURE                        */}
+        {/* ========================================================= */}
+
+        {/* Polished Dark Laboratory Floor */}
+        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[38, 28]} />
+          <meshStandardMaterial
+            color="#0C1019"
+            roughness={0.38}
+            metalness={0.2}
+          />
         </mesh>
 
-        {/* Concentric Cybernetic Rings on Floor */}
-        <mesh ref={ring1Ref} position={[0, 0.42, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[10.5, 11.2, 48]} />
-          <meshBasicMaterial color="#00F0FF" transparent opacity={0.8} />
-        </mesh>
-        <mesh ref={ring2Ref} position={[0, 0.43, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[7.8, 8.3, 36]} />
-          <meshBasicMaterial color="#3B82F6" transparent opacity={0.65} />
-        </mesh>
-        <mesh position={[0, 0.44, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[4.2, 4.6, 32]} />
-          <meshBasicMaterial color="#00F0FF" transparent opacity={0.9} />
+        {/* Subtle Illuminated Pathway Runner (Embedded LED runner) */}
+        <mesh position={[0, 0.025, 0.5]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[36, 0.08]} />
+          <meshBasicMaterial color="#38BDF8" transparent opacity={0.5} />
         </mesh>
 
-        {/* Vertical Hologram Beacon Emitters around dais perimeter */}
-        {[...Array(8)].map((_, i) => {
-          const angle = (i / 8) * Math.PI * 2;
-          const px = Math.cos(angle) * 11;
-          const pz = Math.sin(angle) * 11;
-          return (
-            <group key={`emitter-${i}`} position={[px, 0.4, pz]}>
-              <mesh position={[0, 0.3, 0]}>
-                <cylinderGeometry args={[0.15, 0.22, 0.6, 12]} />
-                <meshStandardMaterial color="#1E293B" metalness={0.9} />
-              </mesh>
-              <mesh position={[0, 0.62, 0]}>
-                <sphereGeometry args={[0.08, 8, 8]} />
-                <meshBasicMaterial color="#00F0FF" />
-              </mesh>
-              {/* Vertical light ray */}
-              <mesh position={[0, 2.5, 0]}>
-                <cylinderGeometry args={[0.02, 0.05, 4.5, 8]} />
-                <meshBasicMaterial color="#00F0FF" transparent opacity={0.25} />
-              </mesh>
-            </group>
-          );
-        })}
+        {/* Minimalist Matte Exhibition Back Wall */}
+        <mesh position={[0, 4.5, -7.5]}>
+          <boxGeometry args={[38, 9.0, 0.4]} />
+          <meshStandardMaterial color="#141822" roughness={0.9} />
+        </mesh>
 
-        {/* Centerpiece: Glowing React Atom Hologram */}
-        <group
-          position={[0, 4.0, 0]}
-          onClick={() => openSkillDetail('React.js')}
-          onPointerOver={() => (document.body.style.cursor = 'pointer')}
-          onPointerOut={() => (document.body.style.cursor = 'auto')}
-        >
-          {/* Central Nucleus */}
-          <mesh>
-            <sphereGeometry args={[1.2, 32, 32]} />
-            <meshStandardMaterial
-              color="#00F0FF"
-              emissive="#00F0FF"
-              emissiveIntensity={1.5}
-              roughness={0.1}
+        {/* Dark Coffer Ceiling with Recessed Beams */}
+        <mesh position={[0, 8.8, 0]}>
+          <boxGeometry args={[38, 0.4, 28]} />
+          <meshStandardMaterial color="#0A0D14" roughness={0.85} />
+        </mesh>
+
+        {/* Subtle Ceiling Track Light Rails */}
+        {[-4.5, 4.5].map((rz, i) => (
+          <mesh key={`lab-rail-${i}`} position={[0, 8.55, rz]}>
+            <boxGeometry args={[36, 0.12, 0.18]} />
+            <meshStandardMaterial color="#1E232E" metalness={0.9} />
+          </mesh>
+        ))}
+
+        {/* Tempered Glass Divider Fins between Station Bays */}
+        {[-7.6, 0, 7.6].map((gx, i) => (
+          <mesh key={`lab-glass-${i}`} position={[gx, 3.2, -3.8]}>
+            <boxGeometry args={[0.06, 5.5, 4.6]} />
+            <meshPhysicalMaterial
+              color="#CBD5E1"
+              transparent
+              opacity={0.3}
+              roughness={0.08}
+              transmission={0.88}
+              thickness={0.4}
             />
           </mesh>
-          <pointLight position={[0, 0, 0]} color="#00F0FF" intensity={3.5} distance={15} />
+        ))}
 
-          {/* Three Orbital Rings of the React Logo */}
-          <group ref={reactAtomRing1} rotation={[0.6, 0, 0]}>
-            <mesh>
-              <torusGeometry args={[3.2, 0.08, 16, 64]} />
-              <meshBasicMaterial color="#00F0FF" />
-            </mesh>
-          </group>
-          <group ref={reactAtomRing2} rotation={[-0.6, 0.8, 0]}>
-            <mesh>
-              <torusGeometry args={[3.2, 0.08, 16, 64]} />
-              <meshBasicMaterial color="#38BDF8" />
-            </mesh>
-          </group>
-          <group ref={reactAtomRing3} rotation={[0, 0.9, 0.7]}>
-            <mesh>
-              <torusGeometry args={[3.2, 0.08, 16, 64]} />
-              <meshBasicMaterial color="#818CF8" />
-            </mesh>
-          </group>
-        </group>
+        {/* Structural Titanium Columns */}
+        {[-16.5, -7.6, 0, 7.6, 16.5].map((cx, i) => (
+          <mesh key={`lab-col-${i}`} position={[cx, 4.5, 9.5]}>
+            <boxGeometry args={[0.35, 9.0, 0.35]} />
+            <meshStandardMaterial color="#1B202C" metalness={0.8} roughness={0.2} />
+          </mesh>
+        ))}
 
-        {/* Orbiting Real Tech Logo Medallions */}
-        <Suspense fallback={null}>
-          {SKILLS_LIST.map((skill) => (
-            <SkillMedallion
-              key={skill.name}
-              skill={skill}
-              onClick={() => openSkillDetail(skill.name)}
-            />
-          ))}
-        </Suspense>
+        {/* Minimalist Modern Laboratory Botanicals */}
+        <LabBotanical position={[-16.5, 0, 6.5]} />
+        <LabBotanical position={[16.5, 0, 6.5]} />
+        <LabBotanical position={[-16.5, 0, -5.5]} />
+        <LabBotanical position={[16.5, 0, -5.5]} />
+
+        {/* ========================================================= */}
+        {/* 4 DEDICATED PHYSICAL TECHNOLOGY STATIONS                  */}
+        {/* ========================================================= */}
+        {skillCategories.slice(0, 4).map((cat, idx) => (
+          <LabStation
+            key={cat.id}
+            categoryIndex={idx}
+            title={cat.name}
+            subtitle={stationSubtitles[idx]}
+            skills={cat.skills}
+            isSelected={idx === selectedSkillCategoryIndex}
+            onSelect={() => setSelectedSkillCategoryIndex(idx)}
+            onSkillClick={(skillName) => openSkillDetail(skillName)}
+            position={stationPositions[idx]}
+          />
+        ))}
+
+        {/* Illuminated Paved Entrance Linking to Road Corridor */}
+        <mesh position={[0, 0.015, 13.5]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[14, 8]} />
+          <meshStandardMaterial color="#1A202C" roughness={0.5} />
+        </mesh>
       </group>
     </group>
   );

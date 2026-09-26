@@ -20,9 +20,7 @@ import { projects } from './data/projects';
 import { skillCategories } from './data/skills';
 import { JOURNEY_CHAPTERS } from './data/journey';
 import {
-  GraduationCap,
   User,
-  ArrowRight,
   ExternalLink,
   Terminal,
   Sparkles,
@@ -39,7 +37,14 @@ function App() {
     isLoading,
     openProjectDetail,
     openSkillDetail,
+    selectedProjectIndex,
+    setSelectedProjectIndex,
+    selectedSkillCategoryIndex,
+    setSelectedSkillCategoryIndex,
   } = useJourneyStore();
+
+  const selectedProject = projects[selectedProjectIndex] || projects[0];
+  const selectedSkillCategory = skillCategories[selectedSkillCategoryIndex] || skillCategories[0];
 
   const [hasWebGL, setHasWebGL] = useState(true);
   const scrollAccum = useRef(0);
@@ -172,53 +177,77 @@ function App() {
       {/* Section Content Overlays */}
       {!isLoading && (
         <div className="absolute inset-0 z-10 pointer-events-none">
-          {/* Chapter 00: Intro / Hero */}
-          <ChapterPanel chapter={0} title={profile.name} position="hero">
-            <div className="space-y-4">
-              <span className="text-white/80 text-xl font-medium tracking-wide block">
-                Hi, I'm
-              </span>
-              <p className="text-cyan-400 text-xl sm:text-2xl font-bold tracking-wide -mt-2">
-                {profile.shortTitle}
+          {/* Chapter 00: Intro / Hero — The Journey Begins */}
+          <ChapterPanel chapter={0} position="hero">
+            <div className="space-y-4 sm:space-y-5">
+              {/* 1. Small uppercase label */}
+              <div className="inline-flex items-center gap-2">
+                <span className="text-[11px] sm:text-xs font-mono font-medium tracking-[0.22em] text-amber-200/80 uppercase">
+                  THE JOURNEY BEGINS
+                </span>
+              </div>
+
+              {/* 2. Large headline */}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.08] drop-shadow-md">
+                I'm Subramani.
+              </h1>
+
+              {/* 3. Medium accent text */}
+              <p className="text-sm sm:text-base md:text-lg font-semibold tracking-wider text-amber-300 uppercase">
+                FULL STACK DEVELOPER
               </p>
-              <p className="text-white/70 max-w-md text-sm leading-relaxed">
-                {profile.bio}
+
+              {/* 4. Small readable text */}
+              <p className="text-xs sm:text-sm md:text-[15px] text-stone-300/85 leading-relaxed font-normal max-w-sm sm:max-w-md">
+                I build software, explore technology, and keep moving forward.
               </p>
-              <div className="pt-2">
+
+              {/* 5. Minimalist START THE JOURNEY Button */}
+              <div className="pt-2 sm:pt-3">
                 <button
                   onClick={handleStartJourney}
-                  className="flex items-center gap-3 px-7 py-3.5 bg-cyan-950/50 hover:bg-cyan-900/70 border border-cyan-400/50 hover:border-cyan-400 text-white font-semibold text-xs tracking-[0.2em] uppercase rounded-full shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all transform hover:scale-105 pointer-events-auto cursor-pointer"
+                  className="group flex items-center gap-3 px-6 sm:px-7 py-3 sm:py-3.5 bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-amber-300/60 rounded-full text-white text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-300 backdrop-blur-md cursor-pointer pointer-events-auto transform hover:translate-x-1"
                 >
-                  START JOURNEY <ArrowRight size={15} />
+                  <span>START THE JOURNEY</span>
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                 </button>
               </div>
             </div>
           </ChapterPanel>
 
-          {/* Chapter 01: Education (Landmark on LEFT -> Overlay on RIGHT) */}
+          {/* Chapter 01: Education (Landmark on LEFT -> Overlay in negative space on RIGHT) */}
           <ChapterPanel
             chapter={1}
-            chapterNumberText="CHAPTER 01"
+            chapterNumberText="CHAPTER 02"
             title="EDUCATION"
             tagline="Where the journey began."
-            description="The foundation, the learning, and the curiosity that started it all."
             position="right"
           >
             {education.map((edu) => (
               <div
                 key={edu.id}
-                className="glass p-5 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-2 mt-2"
+                className="glass p-4 sm:p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[#10141C]/80 mt-2"
               >
-                <div className="flex items-center gap-3 text-cyan-400 mb-1">
-                  <GraduationCap size={22} />
-                  <h3 className="text-base font-bold text-white">{edu.degree}</h3>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
+                    Bachelor of Engineering in Computer Science
+                  </h3>
+                  <span className="text-xs font-mono font-semibold text-amber-300">
+                    (BE)
+                  </span>
                 </div>
-                <p className="text-cyan-400/90 text-xs font-semibold">{edu.institution}</p>
-                <div className="flex items-center justify-between text-white/50 text-[11px] font-mono">
-                  <span>{edu.period}</span>
-                  <span>{edu.location}</span>
+
+                <div className="border-t border-white/10 pt-2.5 space-y-1">
+                  <p className="text-xs sm:text-sm font-semibold text-white/90">
+                    {edu.institution}
+                  </p>
+                  <div className="flex items-center justify-between text-white/60 text-[11px] font-mono">
+                    <span className="text-amber-200/90 font-medium">2023 – 2026</span>
+                    <span>{edu.location}</span>
+                  </div>
                 </div>
-                <p className="text-white/60 text-xs pt-1 leading-relaxed">
+
+                <p className="text-xs text-white/75 leading-relaxed pt-1.5 border-t border-white/5">
                   {edu.description}
                 </p>
               </div>
@@ -228,7 +257,7 @@ function App() {
           {/* Chapter 02: First Line of Code (Landmark on RIGHT -> Overlay on LEFT) */}
           <ChapterPanel
             chapter={2}
-            chapterNumberText="CHAPTER 02"
+            chapterNumberText="CHAPTER 03"
             title="FIRST LINE OF CODE"
             tagline="Curiosity became code."
             description="The pivotal moment when logic and problem solving clicked into place."
@@ -258,7 +287,7 @@ function App() {
           {/* Chapter 03: Career (Landmark on LEFT -> Overlay on RIGHT) */}
           <ChapterPanel
             chapter={3}
-            chapterNumberText="CHAPTER 03"
+            chapterNumberText="CHAPTER 04"
             title="CAREER"
             tagline="Turning skills into impact."
             description="A journey of building and contributing to enterprise products and client platforms."
@@ -300,71 +329,158 @@ function App() {
           {/* Chapter 04: Projects (Landmark on RIGHT -> Overlay on LEFT) */}
           <ChapterPanel
             chapter={4}
-            chapterNumberText="CHAPTER 04"
-            title="PROJECTS"
-            tagline="Ideas into real products."
-            description="Selected enterprise, mobile, and web applications built from scratch."
+            chapterNumberText="CHAPTER 05"
+            title="PROJECTS EXHIBITION"
+            tagline="Curated gallery of built digital platforms."
             position="left"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 max-w-lg">
-              {projects.map((proj) => (
-                <button
-                  key={proj.id}
-                  onClick={() => openProjectDetail(proj.id)}
-                  className="glass p-3.5 rounded-xl border border-white/10 hover:border-cyan-400/50 text-left transition-all hover:scale-[1.02] group cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-mono text-cyan-400 uppercase">
-                      {proj.category}
-                    </span>
-                    <ExternalLink size={12} className="text-white/40 group-hover:text-cyan-400 transition-colors" />
-                  </div>
-                  <h4 className="text-white font-bold text-xs truncate group-hover:text-cyan-400 transition-colors">
-                    {proj.title}
-                  </h4>
-                  <p className="text-white/50 text-[11px] line-clamp-2 mt-1 leading-snug">
-                    {proj.shortDescription}
+            <div className="space-y-3 max-w-md pt-1">
+              {/* Compact Project Navigation List */}
+              <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
+                {projects.map((proj, idx) => {
+                  const isSel = idx === selectedProjectIndex;
+                  return (
+                    <button
+                      key={proj.id}
+                      onClick={() => setSelectedProjectIndex(idx)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isSel
+                          ? 'bg-amber-400/20 border border-amber-400/60 text-amber-300 font-semibold shadow-sm'
+                          : 'bg-transparent border border-transparent text-white/50 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <span className="text-[10px] text-white/40">{String(idx + 1).padStart(2, '0')}</span>
+                      <span className="truncate max-w-[90px] sm:max-w-none">{proj.title.replace('Platform', '').replace('Portal', '').replace('Custom App', '').trim()}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Single Compact Project Information Panel for Selected Exhibit */}
+              <div className="glass p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[#10141C]/90">
+                <div className="flex items-center justify-between text-[11px] font-mono border-b border-white/10 pb-2">
+                  <span className="text-amber-400 font-semibold tracking-widest uppercase">
+                    PROJECT {String(selectedProjectIndex + 1).padStart(2, '0')}
+                  </span>
+                  <span className="text-white/40 uppercase tracking-wider text-[10px]">
+                    {selectedProject.category}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white tracking-tight uppercase leading-snug">
+                    {selectedProject.title}
+                  </h3>
+                  <p className="text-xs text-white/70 leading-relaxed pt-1">
+                    {selectedProject.shortDescription}
                   </p>
-                </button>
-              ))}
+                </div>
+
+                {/* Inline Technology Stack Tags */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-[11px] font-mono text-cyan-300/90 font-medium">
+                  {selectedProject.technologies.slice(0, 4).map((tech, i) => (
+                    <span key={tech} className="inline-flex items-center gap-1.5">
+                      <span>{tech.toUpperCase()}</span>
+                      {i < Math.min(3, selectedProject.technologies.length - 1) && (
+                        <span className="text-white/30">•</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Action CTA & Live Link */}
+                <div className="pt-1.5 flex items-center gap-3">
+                  <button
+                    onClick={() => openProjectDetail(selectedProject.id)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 hover:border-amber-400/60 text-white text-xs font-mono font-semibold tracking-wider uppercase transition-all cursor-pointer group"
+                  >
+                    <span>VIEW PROJECT</span>
+                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                  </button>
+                  {selectedProject.demo && (
+                    <a
+                      href={selectedProject.demo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-mono text-white/50 hover:text-white transition-colors"
+                    >
+                      <span>Live Site</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  )}
+                </div>
+              </div>
             </div>
           </ChapterPanel>
 
-          {/* Chapter 05: Technology Galaxy (Landmark on LEFT -> Overlay on RIGHT) */}
+          {/* Chapter 05: Technology Lab (Landmark on LEFT -> Overlay on RIGHT) */}
           <ChapterPanel
             chapter={5}
-            chapterNumberText="CHAPTER 05"
-            title="TECHNOLOGY GALAXY"
+            chapterNumberText="CHAPTER 06"
+            title="TECHNOLOGY"
             tagline="Tools that power my journey."
-            description="Core technologies, frameworks, and database architectures."
             position="right"
           >
-            <div className="space-y-2.5 max-w-lg max-h-[46vh] overflow-y-auto pr-1">
-              {skillCategories.map((cat) => (
-                <div key={cat.id} className="glass p-3 rounded-xl border border-white/10 space-y-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold block">
-                    {cat.name}
+            <div className="space-y-3 max-w-sm pt-1">
+              {/* Compact Category Navigation Chips */}
+              <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
+                {skillCategories.slice(0, 4).map((cat, idx) => {
+                  const isSel = idx === selectedSkillCategoryIndex;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedSkillCategoryIndex(idx)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isSel
+                          ? 'bg-cyan-500/20 border border-cyan-400/70 text-cyan-300 font-semibold shadow-sm'
+                          : 'bg-transparent border border-transparent text-white/50 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <span className="text-[10px] text-white/40">{String(idx + 1).padStart(2, '0')}</span>
+                      <span>{cat.name.split(' ')[0].toUpperCase()}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Station Info & Skill Chips Card */}
+              <div className="glass p-4 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[#0C1220]/90">
+                <div className="flex items-center justify-between text-[11px] font-mono border-b border-white/10 pb-2">
+                  <span className="text-cyan-400 font-semibold tracking-widest uppercase flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    STATION {String(selectedSkillCategoryIndex + 1).padStart(2, '0')}
                   </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {cat.skills.map((s) => (
-                      <button
-                        key={s.name}
-                        onClick={() => openSkillDetail(s.name)}
-                        className="px-2.5 py-1 text-xs font-mono rounded-lg bg-white/5 hover:bg-cyan-950/60 border border-white/10 hover:border-cyan-400 text-white/80 hover:text-cyan-300 transition-all cursor-pointer"
-                      >
-                        {s.name}
-                      </button>
-                    ))}
-                  </div>
+                  <span className="text-white/40 uppercase tracking-wider text-[10px]">
+                    {selectedSkillCategory.name}
+                  </span>
                 </div>
-              ))}
+
+                {/* Compact Skills Chips */}
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {selectedSkillCategory.skills.map((skill) => (
+                    <button
+                      key={skill.name}
+                      onClick={() => openSkillDetail(skill.name)}
+                      className="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-white/[0.06] hover:bg-cyan-950/70 border border-white/10 hover:border-cyan-400 text-white/85 hover:text-cyan-200 transition-all cursor-pointer flex items-center gap-1.5 group"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-cyan-400/60 group-hover:bg-cyan-300" />
+                      <span>{skill.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="text-[10px] font-mono text-white/40 pt-1 flex items-center justify-between">
+                  <span>Interactive 3D Station</span>
+                  <span className="text-cyan-400/80">Click skill for details</span>
+                </div>
+              </div>
             </div>
           </ChapterPanel>
 
           {/* Chapter 06: Where I Am Today (Landmark on RIGHT -> Overlay on LEFT) */}
           <ChapterPanel
             chapter={6}
-            chapterNumberText="CHAPTER 06"
+            chapterNumberText="CHAPTER 07"
             title="WHERE I AM TODAY"
             tagline="Building. Learning. Exploring."
             position="left"
@@ -379,8 +495,8 @@ function App() {
                   <p className="text-cyan-400 text-xs">at KO Innovation Software Solutions</p>
                 </div>
               </div>
-              <p className="text-white/70 text-xs leading-relaxed">
-                Building high-performance full-stack applications, scalable backend microservices, and custom Frappe ERP solutions.
+              <p className="text-white/80 text-xs leading-relaxed">
+                {profile.bio}
               </p>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {['React', 'Node.js', 'TypeScript', 'Frappe ERP', 'Flutter', 'MongoDB', 'AWS', 'Docker'].map((tag) => (
@@ -398,7 +514,7 @@ function App() {
           {/* Chapter 07: The Journey Continues (Landmark on LEFT -> Overlay on RIGHT) */}
           <ChapterPanel
             chapter={7}
-            chapterNumberText="CHAPTER 07"
+            chapterNumberText="CHAPTER 08"
             title="THE JOURNEY CONTINUES"
             tagline="Still learning. Still building. Still moving forward."
             description="Excited for new opportunities, bigger engineering challenges, and greater impact."
@@ -426,12 +542,12 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 08: Next Destination / Contact (In Deep Space) */}
+          {/* Chapter 08: Contact (Landing Platform) */}
           <ChapterPanel
             chapter={8}
-            chapterNumberText="CHAPTER 08"
-            title="NEXT DESTINATION"
-            tagline="Maybe we build something together."
+            chapterNumberText="CHAPTER 06"
+            title="LET'S BUILD SOMETHING TOGETHER"
+            tagline="Touchdown. Where one journey ends, the next project takes flight."
             position="left"
           >
             <ContactForm />

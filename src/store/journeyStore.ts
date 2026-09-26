@@ -14,7 +14,7 @@ export const CHAPTERS_DATA: ChapterMeta[] = [
   { id: 2, num: '03', title: 'First Code', subtitle: 'Learning' },
   { id: 3, num: '04', title: 'Career', subtitle: 'Experience' },
   { id: 4, num: '05', title: 'Projects', subtitle: 'My Work' },
-  { id: 5, num: '06', title: 'Skills', subtitle: 'Technologies' },
+  { id: 5, num: '06', title: 'Technology', subtitle: 'Technology Lab' },
   { id: 6, num: '07', title: 'Present', subtitle: 'Current Chapter' },
   { id: 7, num: '08', title: 'Future', subtitle: "What's Next" },
   { id: 8, num: '09', title: 'Contact', subtitle: "Let's Connect" },
@@ -38,6 +38,8 @@ export interface JourneyState {
   isMenuOpen: boolean;
   isProjectDetailOpen: boolean;
   activeProjectId: string | null;
+  selectedProjectIndex: number;
+  selectedSkillCategoryIndex: number;
   isSkillDetailOpen: boolean;
   activeSkillName: string | null;
 
@@ -59,6 +61,8 @@ export interface JourneyState {
   closeMenu: () => void;
   openProjectDetail: (projectId: string) => void;
   closeProjectDetail: () => void;
+  setSelectedProjectIndex: (index: number) => void;
+  setSelectedSkillCategoryIndex: (index: number) => void;
   openSkillDetail: (skillName: string) => void;
   closeSkillDetail: () => void;
   setQualityLevel: (level: 'auto' | 'low' | 'high') => void;
@@ -81,6 +85,8 @@ export const useJourneyStore = create<JourneyState>((set) => ({
   isMenuOpen: false,
   isProjectDetailOpen: false,
   activeProjectId: null,
+  selectedProjectIndex: 0,
+  selectedSkillCategoryIndex: 0,
   isSkillDetailOpen: false,
   activeSkillName: null,
 
@@ -113,6 +119,8 @@ export const useJourneyStore = create<JourneyState>((set) => ({
     set({ isProjectDetailOpen: true, activeProjectId: projectId }),
   closeProjectDetail: () =>
     set({ isProjectDetailOpen: false, activeProjectId: null }),
+  setSelectedProjectIndex: (index) => set({ selectedProjectIndex: index }),
+  setSelectedSkillCategoryIndex: (index) => set({ selectedSkillCategoryIndex: index }),
   openSkillDetail: (skillName) =>
     set({ isSkillDetailOpen: true, activeSkillName: skillName }),
   closeSkillDetail: () =>

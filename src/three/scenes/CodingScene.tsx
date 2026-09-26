@@ -60,31 +60,46 @@ export const CodingScene: React.FC = () => {
       {/* 3D COZY CODING GARAGE / ROOM (RIGHT SIDE, FACING ROAD)   */}
       {/* ========================================================= */}
       <group position={[12, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        {/* Expansive Ground Lawn around studio */}
+        <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[120, 90]} />
+          <meshStandardMaterial color="#203828" roughness={0.95} />
+        </mesh>
+
         {/* Dark Wood Studio Floor */}
         <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[14, 12]} />
           <meshStandardMaterial color="#1C1917" roughness={0.8} />
         </mesh>
 
-        {/* Exposed Dark Brick Back Wall */}
+        {/* Solid Exterior/Interior Back Wall */}
         <mesh position={[0, 4.5, -6]}>
-          <planeGeometry args={[14, 9]} />
+          <boxGeometry args={[14.4, 9, 0.4]} />
           <meshStandardMaterial color="#292524" roughness={0.9} />
         </mesh>
-        {/* Left Brick Wall */}
-        <mesh position={[-7, 4.5, 0]} rotation={[0, Math.PI / 2, 0]}>
-          <planeGeometry args={[12, 9]} />
-          <meshStandardMaterial color="#201C1A" roughness={0.9} />
+        {/* Solid Left Wall */}
+        <mesh position={[-7, 4.5, 0]}>
+          <boxGeometry args={[0.4, 9, 12.4]} />
+          <meshStandardMaterial color="#24201E" roughness={0.9} />
         </mesh>
-        {/* Right Brick Wall */}
-        <mesh position={[7, 4.5, 0]} rotation={[0, -Math.PI / 2, 0]}>
-          <planeGeometry args={[12, 9]} />
-          <meshStandardMaterial color="#201C1A" roughness={0.9} />
+        {/* Open Architecture on Upstream Side (Structural Columns, no camera clipping) */}
+        <mesh position={[7, 4.5, -6]}>
+          <boxGeometry args={[0.5, 9, 0.5]} />
+          <meshStandardMaterial color="#24201E" roughness={0.9} />
         </mesh>
-        {/* Ceiling */}
-        <mesh position={[0, 9, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[14, 12]} />
-          <meshStandardMaterial color="#1C1917" roughness={0.9} />
+        <mesh position={[7, 4.5, 6]}>
+          <boxGeometry args={[0.5, 9, 0.5]} />
+          <meshStandardMaterial color="#24201E" roughness={0.9} />
+        </mesh>
+        {/* Low Perimeter Base Curb */}
+        <mesh position={[7, 0.4, 0]}>
+          <boxGeometry args={[0.4, 0.8, 12.4]} />
+          <meshStandardMaterial color="#24201E" roughness={0.9} />
+        </mesh>
+        {/* Solid Roof with Overhang */}
+        <mesh position={[0, 9.2, 0]}>
+          <boxGeometry args={[15.2, 0.4, 13.2]} />
+          <meshStandardMaterial color="#1C1917" roughness={0.8} />
         </mesh>
 
         {/* Warm Studio Ambiance Light leaking out */}

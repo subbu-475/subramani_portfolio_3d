@@ -5,15 +5,17 @@ import * as THREE from 'three';
 import { useJourneyStore } from '../store/journeyStore';
 
 // Sky & Fog colors for the 9-stage day-to-space progression
+// Stage 0 calibrated to a sophisticated cinematic travel palette:
+// Deep charcoal slate zenith, warm sunset horizon, soft golden-hour mist
 const SKY_COLORS = [
-  { sky: '#c27847', fog: '#e0a070', density: 0.0020 }, // 0: Morning Dawn / Village
-  { sky: '#2563eb', fog: '#60a5fa', density: 0.0018 }, // 1: Late Morning / College
-  { sky: '#b45309', fog: '#d97706', density: 0.0020 }, // 2: Mid-Afternoon / First Code
-  { sky: '#9a3412', fog: '#ea580c', density: 0.0020 }, // 3: Golden Hour / Career
-  { sky: '#581c87', fog: '#7e22ce', density: 0.0022 }, // 4: Sunset / Projects
-  { sky: '#1e1b4b', fog: '#312e81', density: 0.0020 }, // 5: Twilight / Skills
-  { sky: '#030712', fog: '#090d1a', density: 0.0018 }, // 6: Night City / Balcony
-  { sky: '#010206', fog: '#030712', density: 0.0006 }, // 7: Space Ascent
+  { sky: '#1E232D', fog: '#2A2A34', density: 0.0015 }, // 0: Cinematic Sunset / Trailhead
+  { sky: '#142033', fog: '#202D42', density: 0.0014 }, // 1: Education Campus (Deep navy sky, clean atmospheric fog)
+  { sky: '#4A3B32', fog: '#6B5344', density: 0.0018 }, // 2: Mid-Afternoon / First Code
+  { sky: '#3D282E', fog: '#5C3843', density: 0.0018 }, // 3: Golden Hour / Career
+  { sky: '#11141A', fog: '#171B22', density: 0.0016 }, // 4: Modern Architecture Gallery / Projects
+  { sky: '#0A0F1D', fog: '#101625', density: 0.0015 }, // 5: Technology Laboratory / Skills
+  { sky: '#07090E', fog: '#0C101A', density: 0.0016 }, // 6: Night City / Balcony
+  { sky: '#020307', fog: '#04060C', density: 0.0006 }, // 7: Space Ascent
   { sky: '#000103', fog: '#010204', density: 0.0001 }, // 8: Orbital Deep Space
 ];
 
@@ -22,7 +24,7 @@ export const Environment: React.FC = () => {
   const journeyProgress = useJourneyStore((state) => state.journeyProgress);
 
   const fogRef = useRef<THREE.FogExp2>(null);
-  const bgColorRef = useRef<THREE.Color>(new THREE.Color('#c27847'));
+  const bgColorRef = useRef<THREE.Color>(new THREE.Color('#1E232D'));
   const sunRef = useRef<THREE.Group>(null);
   const moonRef = useRef<THREE.Group>(null);
   const earthRef = useRef<THREE.Group>(null);
@@ -43,13 +45,13 @@ export const Environment: React.FC = () => {
       fogRef.current.density = THREE.MathUtils.lerp(fogRef.current.density, config.density, delta * 2.0);
     }
 
-    // Dynamic Sun position across day
+    // Dynamic Natural Sun position across the journey
     if (sunRef.current) {
       if (journeyProgress < 0.60) {
         sunRef.current.visible = true;
-        const sunZ = -40 - journeyProgress * 300;
-        const sunY = Math.max(12, 32 - Math.abs(journeyProgress - 0.18) * 55);
-        sunRef.current.position.set(22, sunY, sunZ);
+        const sunZ = -70 - journeyProgress * 260;
+        const sunY = Math.max(14, 24 - Math.abs(journeyProgress - 0.15) * 45);
+        sunRef.current.position.set(20, sunY, sunZ);
       } else {
         sunRef.current.visible = false;
       }
@@ -85,9 +87,9 @@ export const Environment: React.FC = () => {
 
   return (
     <>
-      <fogExp2 ref={fogRef} attach="fog" args={['#e0a070', 0.002]} />
+      <fogExp2 ref={fogRef} attach="fog" args={['#2A2A34', 0.0015]} />
 
-      {/* Main Ground Plane */}
+      {/* Main Ground Plane: Rich charcoal earth terrain */}
       <mesh
         ref={groundRef}
         rotation={[-Math.PI / 2, 0, 0]}
@@ -96,23 +98,27 @@ export const Environment: React.FC = () => {
       >
         <planeGeometry args={[800, 750, 16, 16]} />
         <meshStandardMaterial
-          color="#1c1917"
-          roughness={0.90}
-          metalness={0.08}
+          color="#13161C"
+          roughness={0.92}
+          metalness={0.06}
         />
       </mesh>
 
-
-      {/* Celestial Sun */}
-      <group ref={sunRef} position={[22, 18, -60]}>
+      {/* Natural, Soft Celestial Sun (nestled on mountain horizon, non-distracting) */}
+      <group ref={sunRef} position={[20, 20, -70]}>
+        {/* Soft Sun Core */}
         <mesh>
-          <sphereGeometry args={[8.5, 32, 32]} />
-          <meshBasicMaterial color="#FFB049" />
+          <sphereGeometry args={[2.5, 32, 32]} />
+          <meshBasicMaterial color="#FFF7ED" />
         </mesh>
-        {/* Sun Corona Halo */}
+        {/* Subtle, Delicate Golden Corona */}
         <mesh>
-          <sphereGeometry args={[13, 24, 24]} />
-          <meshBasicMaterial color="#FDBA74" transparent opacity={0.25} />
+          <sphereGeometry args={[4.2, 24, 24]} />
+          <meshBasicMaterial color="#FBBF24" transparent opacity={0.16} />
+        </mesh>
+        <mesh>
+          <sphereGeometry args={[6.8, 24, 24]} />
+          <meshBasicMaterial color="#F97316" transparent opacity={0.06} />
         </mesh>
       </group>
 

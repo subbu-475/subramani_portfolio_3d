@@ -36,9 +36,9 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     landmarkProgress: 0.03,
     timeOfDay: 'morning',
     cameraMode: 'follow',
-    // Camera centered behind character, looking straight forward along village road
-    cameraOffset: [0, 2.0, 7.5],
-    lookOffset: [0, 1.2, -15],
+    // Establishing hero composition: character prominent on right-center, open vista on left for text
+    cameraOffset: [-1.4, 1.35, 3.8],
+    lookOffset: [0.35, 1.25, -14],
     landmarkSide: 'center',
   },
   {
@@ -52,9 +52,9 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     landmarkProgress: 0.17,
     timeOfDay: 'late-morning',
     cameraMode: 'wide-establishing',
-    // Camera on RIGHT of path, looking LEFT at college campus
-    cameraOffset: [5.0, 2.8, 7.5],
-    lookOffset: [-3.5, 3.0, -10],
+    // Cinematic composition: college on left, traveler in foreground facing entrance, negative space on right
+    cameraOffset: [1.2, 1.65, 4.6],
+    lookOffset: [-1.4, 1.55, -2.8],
     landmarkSide: 'left',
   },
   {
@@ -68,9 +68,9 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     landmarkProgress: 0.29,
     timeOfDay: 'afternoon',
     cameraMode: 'side-workspace',
-    // Camera on LEFT, looking RIGHT at coding room
-    cameraOffset: [-4.0, 2.0, 5.5],
-    lookOffset: [3.0, 1.5, -6],
+    // Consistent cinematic framing matching Ch 1 & 2: traveler prominent on right-center, looking at studio on right
+    cameraOffset: [-1.35, 1.55, 4.4],
+    lookOffset: [1.2, 1.45, -3.2],
     landmarkSide: 'right',
   },
   {
@@ -84,9 +84,9 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     landmarkProgress: 0.40,
     timeOfDay: 'golden-hour',
     cameraMode: 'street-level',
-    // Camera on RIGHT, looking LEFT at office towers
-    cameraOffset: [4.5, 2.5, 8.0],
-    lookOffset: [-3.0, 3.5, -14],
+    // Consistent cinematic framing matching Ch 1 & 2: traveler prominent on left-center, looking up at towers on left
+    cameraOffset: [1.25, 1.60, 4.5],
+    lookOffset: [-1.4, 1.55, -3.2],
     landmarkSide: 'left',
   },
   {
@@ -100,25 +100,25 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     landmarkProgress: 0.52,
     timeOfDay: 'sunset',
     cameraMode: 'project-showcase',
-    // Camera on LEFT, looking RIGHT at tech pavilion
-    cameraOffset: [-3.5, 2.0, 7.0],
-    lookOffset: [2.5, 1.5, -8],
+    // Consistent cinematic framing matching Ch 1 & 2: traveler prominent on right-center, looking at tech showroom on right
+    cameraOffset: [-1.35, 1.55, 4.4],
+    lookOffset: [1.2, 1.45, -3.2],
     landmarkSide: 'right',
   },
   {
     id: 'skills',
     chapter: '06',
-    title: 'Technology Galaxy',
-    subtitle: 'Technologies',
+    title: 'Technology',
+    subtitle: 'Technology Lab',
     tagline: 'Tools that power my journey.',
     progressStart: 0.56,
     progressEnd: 0.68,
     landmarkProgress: 0.64,
     timeOfDay: 'twilight',
     cameraMode: 'observatory',
-    // Camera on RIGHT, elevated, looking LEFT at holographic arena
-    cameraOffset: [3.5, 3.2, 8.5],
-    lookOffset: [-2.5, 2.0, -10],
+    // Consistent cinematic framing matching Ch 1 & 2: traveler prominent on left-center, looking at skill arena on left
+    cameraOffset: [1.25, 1.60, 4.5],
+    lookOffset: [-1.4, 1.55, -3.2],
     landmarkSide: 'left',
   },
   {
@@ -132,9 +132,9 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     landmarkProgress: 0.75,
     timeOfDay: 'night',
     cameraMode: 'balcony-overlook',
-    // Camera on LEFT, looking RIGHT at neon city skyline
-    cameraOffset: [-3.0, 2.2, 7.0],
-    lookOffset: [2.0, 1.8, -18],
+    // Consistent cinematic framing matching Ch 1 & 2: traveler prominent on right-center, looking out at night skyline on right
+    cameraOffset: [-1.35, 1.55, 4.4],
+    lookOffset: [1.2, 1.50, -3.4],
     landmarkSide: 'right',
   },
   {
@@ -148,9 +148,9 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     landmarkProgress: 0.87,
     timeOfDay: 'space',
     cameraMode: 'launch-ascent',
-    // Camera below and behind during ascent, looking upward
-    cameraOffset: [0, -1.5, 10.0],
-    lookOffset: [0, 6.0, -20],
+    // Consistent cinematic framing matching Ch 1 & 2: traveler prominent on left-center, looking up at ascending rocket
+    cameraOffset: [1.25, 1.55, 4.6],
+    lookOffset: [-1.2, 2.2, -4.5],
     landmarkSide: 'left',
   },
   {
@@ -164,9 +164,9 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     landmarkProgress: 0.96,
     timeOfDay: 'space',
     cameraMode: 'orbital',
-    // Floating orbital camera
-    cameraOffset: [4.0, 2.0, 8.5],
-    lookOffset: [-1.5, 0.5, -12],
+    // Consistent cinematic framing matching Ch 1 & 2: traveler prominent in orbit, looking at space station
+    cameraOffset: [1.2, 1.55, 4.6],
+    lookOffset: [-0.6, 1.2, -4.0],
     landmarkSide: 'center',
   },
 ];

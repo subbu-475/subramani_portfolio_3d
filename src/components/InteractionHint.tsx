@@ -19,17 +19,17 @@ export const InteractionHint: React.FC = () => {
     };
   }, []);
 
-  // Only show on chapter 0 (Intro) if user hasn't scrolled yet
+  // Only show on chapter 0 (Intro / Hero) if user hasn't scrolled yet
   if (isLoading || currentChapter !== 0 || hasScrolled) return null;
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center gap-2 select-none">
-      {/* Mouse Icon with Animated Scroll Wheel */}
-      <div className="w-5 h-8 rounded-full border-2 border-white/60 flex items-start justify-center p-1 shadow-[0_0_10px_rgba(255,255,255,0.2)]">
-        <div className="w-1 h-2 bg-cyan-400 rounded-full animate-bounce shadow-[0_0_8px_#06b6d4]" />
+    <div className="fixed bottom-16 sm:bottom-18 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center gap-2 select-none">
+      {/* Minimalist Mouse / Scroll Pill */}
+      <div className="w-4 h-7 rounded-full border border-white/40 flex items-start justify-center p-1">
+        <div className="w-1 h-1.5 bg-amber-300/90 rounded-full animate-bounce" />
       </div>
-      <span className="text-[10px] font-mono tracking-[0.25em] text-white/70 uppercase">
-        SCROLL TO TRAVEL
+      <span className="text-[9px] sm:text-[10px] font-mono tracking-[0.25em] text-white/50 uppercase">
+        SCROLL TO EXPLORE
       </span>
     </div>
   );

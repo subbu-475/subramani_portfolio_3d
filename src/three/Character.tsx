@@ -1,5 +1,6 @@
-import Traveler from './Traveler';
+import PaperAirplane from './PaperAirplane';
 
-export { Traveler };
-export const Character = Traveler;
-export default Traveler;
+export { PaperAirplane };
+export const Character = PaperAirplane;
+export const Traveler = PaperAirplane;
+export default PaperAirplane;

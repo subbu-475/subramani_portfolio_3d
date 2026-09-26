@@ -109,24 +109,67 @@ export const ContactScene: React.FC = () => {
         </group>
       </group>
 
-      {/* Floating Contact Terminal Billboard */}
+      {/* ========================================================= */}
+      {/* CLEAN ARCHITECTURAL AIRPLANE LANDING PLATFORM               */}
+      {/* ========================================================= */}
       <group position={[0, 0, 0]}>
-        <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.3}>
+        {/* Solid Circular Landing Pad Plinth */}
+        <mesh position={[0, 0.18, 0]} receiveShadow>
+          <cylinderGeometry args={[4.2, 4.6, 0.36, 32]} />
+          <meshStandardMaterial color="#0F172A" roughness={0.6} metalness={0.4} />
+        </mesh>
+
+        {/* Outer Warm Golden Inlay Ring */}
+        <mesh position={[0, 0.37, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[3.8, 3.9, 48]} />
+          <meshBasicMaterial color="#F59E0B" />
+        </mesh>
+
+        {/* Inner Cyan Guidance Landing Circle */}
+        <mesh position={[0, 0.375, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.8, 1.88, 32]} />
+          <meshBasicMaterial color="#38BDF8" />
+        </mesh>
+
+        {/* Center Touchdown Crosshair */}
+        <mesh position={[0, 0.376, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[1.2, 0.04]} />
+          <meshBasicMaterial color="#FDE047" transparent opacity={0.8} />
+        </mesh>
+        <mesh position={[0, 0.376, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+          <planeGeometry args={[1.2, 0.04]} />
+          <meshBasicMaterial color="#FDE047" transparent opacity={0.8} />
+        </mesh>
+
+        {/* Soft Golden Landing Pad Spotlight */}
+        <spotLight
+          position={[0, 5.0, 0]}
+          color="#FFFBEB"
+          intensity={2.6}
+          distance={10}
+          angle={0.5}
+          penumbra={0.8}
+        />
+      </group>
+
+      {/* Floating Contact Terminal Display */}
+      <group position={[0, 2.8, -4.5]}>
+        <Float speed={1.2} rotationIntensity={0.05} floatIntensity={0.2}>
           <mesh position={[0, 0, -0.1]}>
             <boxGeometry args={[9.5, 2.6, 0.25]} />
             <meshStandardMaterial color="#0B132B" metalness={0.9} roughness={0.2} />
           </mesh>
           <mesh position={[0, 0, 0.05]} rotation={[-Math.PI / 2, 0, 0]}>
             <ringGeometry args={[4.2, 4.3, 32]} />
-            <meshBasicMaterial color="#00F0FF" />
+            <meshBasicMaterial color="#38BDF8" />
           </mesh>
           <Text
             position={[0, 0.55, 0.1]}
-            fontSize={0.44}
-            color="#00F0FF"
+            fontSize={0.46}
+            color="#38BDF8"
             letterSpacing={0.16}
           >
-            NEXT DESTINATION
+            LET'S BUILD SOMETHING TOGETHER
           </Text>
           <Text
             position={[0, -0.05, 0.1]}
@@ -134,7 +177,7 @@ export const ContactScene: React.FC = () => {
             color="#FEF08A"
             letterSpacing={0.08}
           >
-            LET'S BUILD SOMETHING EXTRAORDINARY
+            THE FLIGHT CONTINUES
           </Text>
           <Text
             position={[0, -0.6, 0.1]}
@@ -142,9 +185,9 @@ export const ContactScene: React.FC = () => {
             color="#94A3B8"
             letterSpacing={0.06}
           >
-            Subramani • Full Stack Developer • Ready to Launch
+            Subramani • Full Stack Developer • Ready for New Horizons
           </Text>
-          <pointLight position={[0, 0, 1.2]} color="#00F0FF" intensity={2.2} distance={12} />
+          <pointLight position={[0, 0, 1.2]} color="#38BDF8" intensity={2.0} distance={12} />
         </Float>
       </group>
     </group>

@@ -87,14 +87,14 @@ export const Road: React.FC = () => {
             <mesh position={[0, 0.95, 0]}>
               <boxGeometry args={[0.16, 0.22, 0.16]} />
               <meshStandardMaterial
-                color="#06B6D4"
-                emissive="#06B6D4"
-                emissiveIntensity={1.2}
+                color="#FDE68A"
+                emissive="#F59E0B"
+                emissiveIntensity={0.8}
                 transparent
-                opacity={0.9}
+                opacity={0.85}
               />
             </mesh>
-            <pointLight position={[0, 0.95, 0]} color="#06B6D4" intensity={0.5} distance={5} />
+            <pointLight position={[0, 0.95, 0]} color="#FDE68A" intensity={0.4} distance={4} />
           </group>
 
           {/* Right lantern */}
@@ -106,20 +106,20 @@ export const Road: React.FC = () => {
             <mesh position={[0, 0.95, 0]}>
               <boxGeometry args={[0.16, 0.22, 0.16]} />
               <meshStandardMaterial
-                color="#06B6D4"
-                emissive="#06B6D4"
-                emissiveIntensity={1.2}
+                color="#FDE68A"
+                emissive="#F59E0B"
+                emissiveIntensity={0.8}
                 transparent
-                opacity={0.9}
+                opacity={0.85}
               />
             </mesh>
-            <pointLight position={[0, 0.95, 0]} color="#06B6D4" intensity={0.5} distance={5} />
+            <pointLight position={[0, 0.95, 0]} color="#FDE68A" intensity={0.4} distance={4} />
           </group>
 
           {/* Ground Chapter Milestone Disc */}
           <mesh position={[m.center.x, m.center.y + 0.025, m.center.z]} rotation={[-Math.PI / 2, 0, m.yaw]}>
             <ringGeometry args={[0.7, 0.85, 32]} />
-            <meshBasicMaterial color="#06B6D4" transparent opacity={0.35} />
+            <meshBasicMaterial color="#F59E0B" transparent opacity={0.25} />
           </mesh>
         </group>
       ))}

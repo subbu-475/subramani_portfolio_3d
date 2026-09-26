@@ -110,6 +110,118 @@ export function getJourneyFacingYaw(progress: number): number {
 }
 
 /**
+ * Calculates the 3D flight position of the Paper Airplane along the journey.
+ * Elevates the airplane above the road terrain at cruising altitude,
+ * handles liftoff from the launch desk (progress = 0) and landing on the
+ * contact landing pad (progress = 1.0).
+ */
+export function getAirplaneFlightPosition(progress: number, target = new THREE.Vector3()): THREE.Vector3 {
+  const p = Math.max(0, Math.min(1, progress));
+  journeyCurve.getPointAt(p, target);
+
+  let altOffset = 2.0; // standard cruising altitude above ground
+
+  if (p < 0.04) {
+    // HOME: liftoff from launch desk (y = 0.44 up to cruising altitude 2.0)
+    const t = p / 0.04;
+    const ease = t * t * (3 - 2 * t);
+    altOffset = THREE.MathUtils.lerp(0.44, 2.0, ease);
+  } else if (p >= 0.15 && p <= 0.19) {
+    // EDUCATION: slight dip near campus landmark
+    const t = Math.sin(((p - 0.15) / 0.04) * Math.PI);
+    altOffset = 2.0 - t * 0.25;
+  } else if (p >= 0.38 && p <= 0.42) {
+    // CAREER: glide across boulevard
+    const t = Math.sin(((p - 0.38) / 0.04) * Math.PI);
+    altOffset = 2.0 - t * 0.2;
+  } else if (p >= 0.50 && p <= 0.54) {
+    // PROJECTS: glide through gallery exhibits
+    const t = Math.sin(((p - 0.50) / 0.04) * Math.PI);
+    altOffset = 2.0 + t * 0.2;
+  } else if (p >= 0.62 && p <= 0.66) {
+    // SKILLS: laboratory promenade
+    const t = Math.sin(((p - 0.62) / 0.04) * Math.PI);
+    altOffset = 2.0 - t * 0.25;
+  } else if (p >= 0.74 && p <= 0.88) {
+    // FUTURE: climbing towards the golden horizon!
+    const t = (p - 0.74) / 0.14;
+    altOffset = THREE.MathUtils.lerp(2.0, 4.0, t);
+  } else if (p > 0.88 && p <= 0.98) {
+    // CONTACT: gentle glide descent to landing platform
+    const t = (p - 0.88) / 0.10;
+    const ease = t * t * (3 - 2 * t);
+    altOffset = THREE.MathUtils.lerp(4.0, 0.42, ease);
+  } else if (p > 0.98) {
+    // Resting on contact landing platform
+    altOffset = 0.42;
+  }
+
+  // Aerodynamic gentle thermals wave during active flight
+  const thermals = (p > 0.04 && p < 0.88) ? Math.sin(p * 32) * 0.08 : 0;
+  target.y += altOffset + thermals;
+
+  return target;
+}
+
+/**
+ * Calculates the exact 3D orientation quaternion for the Paper Airplane.
+ * Perfectly aligns the airplane's nose along the road path tangent,
+ * computes true aerodynamic banking roll into curves, and avoids any Euler gimbal errors.
+ */
+export function getAirplaneOrientationQuaternion(progress: number, time: number = 0): THREE.Quaternion {
+  const p = Math.max(0.0001, Math.min(0.9999, progress));
+  const forward = getJourneyTangent(p).normalize();
+
+  // Stable perpendicular reference (handles space ascent when tangent is nearly vertical)
+  const upRef = Math.abs(forward.y) > 0.85 ? new THREE.Vector3(0, 0, -1) : new THREE.Vector3(0, 1, 0);
+  const right = new THREE.Vector3().crossVectors(forward, upRef).normalize();
+  const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+  const back = forward.clone().negate();
+
+  const basisMat = new THREE.Matrix4().makeBasis(right, up, back);
+  const q = new THREE.Quaternion().setFromRotationMatrix(basisMat);
+
+  // If airborne, compute banking into road curves
+  const isAirborne = p > 0.035 && p < 0.98;
+  if (isAirborne) {
+    const aheadP = Math.min(0.9999, p + 0.008);
+    const aheadForward = getJourneyTangent(aheadP).normalize();
+    const turnCross = new THREE.Vector3().crossVectors(forward, aheadForward);
+
+    // Turn cross Y: >0 when curving left (bank left), <0 when curving right (bank right)
+    const bankAngle = THREE.MathUtils.clamp(turnCross.y * 3.8, -0.65, 0.65);
+    // Subtle aerodynamic micro-flutter in flight
+    const flutter = Math.sin(time * 3.4) * 0.02;
+
+    const qRoll = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankAngle + flutter);
+    q.multiply(qRoll);
+  }
+
+  return q;
+}
+
+/**
+ * Computes complete 3D aerodynamic flight transform for the Paper Airplane:
+ * - Position in world coordinates
+ * - Exact alignment quaternion along the road path
+ * - Forward unit vector
+ */
+export function getAirplaneFlightTransform(progress: number, time: number = 0) {
+  const p = Math.max(0.0001, Math.min(0.999, progress));
+  const pos = getAirplaneFlightPosition(p);
+  const forward = getJourneyTangent(p).normalize();
+  const quat = getAirplaneOrientationQuaternion(p, time);
+
+  // Compute road turn rate for camera banking
+  const aheadP = Math.min(0.9999, p + 0.008);
+  const aheadForward = getJourneyTangent(aheadP).normalize();
+  const turnCross = new THREE.Vector3().crossVectors(forward, aheadForward);
+  const bankAngle = THREE.MathUtils.clamp(turnCross.y * 3.8, -0.65, 0.65);
+
+  return { pos, quat, forward, roll: bankAngle };
+}
+
+/**
  * The progress value beyond which the road stops rendering (space begins).
  * Road dissolves before the rocket launch ramp.
  */
