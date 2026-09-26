@@ -1,45 +1,249 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useJourneyStore } from '../../store/journeyStore';
-import { projects, type Project } from '../../data/projects';
+import { PROJECT_COMPARTMENTS, type ProjectCompartment } from '../../data/projectCompartments';
 
 /**
- * Single Curated Physical Exhibit Display in the Technology Gallery
+ * CHAPTER 04 — PROJECTS: INDIAN VANDE BHARAT EXPRESS AT RAILWAY LEVEL CROSSING
+ * 
+ * Cinematic Indian Railway Level Crossing (Railway Gate) experience.
+ * The high-speed Indian Vande Bharat Express (Train 18) speeds across the
+ * road from RIGHT to LEFT on dual broad-gauge electrified tracks.
+ * 
+ * Each compartment features interactive project details, illuminated 3D screens,
+ * exterior digital coach boards, and authentic Vande Bharat livery.
+ * 
+ * Level Crossing Elements:
+ * - Red & white striped railway gate boom barriers with flashing red warning beacons
+ * - Classic Indian Railways gatekeeper cabin (Ghumti) with tiled roof and solar panel
+ * - Indian Railways caution signboard & "W/L" / "सी/फा" whistle boards
+ * - Overhead Electrification (OHE) catenary portal masts with high-voltage contact wire
+ * - Color Light Signal (CLS) showing green clear for the express
+ * - Dual steel tracks with crushed basalt ballast and concrete sleepers
  */
-const ExhibitDisplay: React.FC<{
-  project: Project;
+
+// ─── 1. BOGIE WHEEL TRUCK (FLANGED STEEL WHEELS ON RAILS) ─────────────────────
+interface BogieProps {
+  position: [number, number, number];
+  wheelRotation: number;
+}
+
+const BogieTruck: React.FC<BogieProps> = ({ position, wheelRotation }) => {
+  return (
+    <group position={position}>
+      {/* Bogie Steel Chassis Frame */}
+      <mesh position={[0, 0.28, 0]}>
+        <boxGeometry args={[2.5, 0.16, 2.1]} />
+        <meshStandardMaterial color="#1E232E" metalness={0.9} roughness={0.3} />
+      </mesh>
+      {/* Secondary Air Spring Bellows & Pivot Bolster */}
+      <mesh position={[0, 0.44, 0]}>
+        <cylinderGeometry args={[0.32, 0.36, 0.2, 12]} />
+        <meshStandardMaterial color="#0F172A" metalness={0.7} />
+      </mesh>
+      {/* Primary Coil Suspension */}
+      {[-0.85, 0.85].map((sx, i) => (
+        <group key={`susp-${i}`} position={[sx, 0.3, 0]}>
+          <cylinderGeometry args={[0.12, 0.12, 0.24, 8]} />
+          <meshStandardMaterial color="#475569" metalness={0.9} />
+        </group>
+      ))}
+
+      {/* 4 Flanged Steel Wheels (y = 0.22) */}
+      {[-0.9, 0.9].map((wx, i) => (
+        <group key={`axle-${i}`} position={[wx, 0.22, 0]}>
+          {/* Steel Axle Shaft */}
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.05, 0.05, 2.0, 12]} />
+            <meshStandardMaterial color="#334155" metalness={0.9} />
+          </mesh>
+
+          {/* Left Flanged Wheel (Z = +0.84) */}
+          <group position={[0, 0, 0.84]} rotation={[0, 0, wheelRotation]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.34, 0.34, 0.12, 24]} />
+              <meshStandardMaterial color="#64748B" metalness={0.95} roughness={0.2} />
+            </mesh>
+            <mesh position={[0, 0, -0.06]} rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.38, 0.38, 0.03, 24]} />
+              <meshStandardMaterial color="#475569" metalness={0.95} />
+            </mesh>
+          </group>
+
+          {/* Right Flanged Wheel (Z = -0.84) */}
+          <group position={[0, 0, -0.84]} rotation={[0, 0, wheelRotation]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.34, 0.34, 0.12, 24]} />
+              <meshStandardMaterial color="#64748B" metalness={0.95} roughness={0.2} />
+            </mesh>
+            <mesh position={[0, 0, 0.06]} rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.38, 0.38, 0.03, 24]} />
+              <meshStandardMaterial color="#475569" metalness={0.95} />
+            </mesh>
+          </group>
+        </group>
+      ))}
+    </group>
+  );
+};
+
+// ─── 2. CATEGORY-SPECIFIC INTERIOR 3D PROJECT EXHIBIT ─────────────────────────
+interface WindowScreenProps {
+  type: string;
+  active: boolean;
+  accent: string;
+}
+
+const CategoryProjectExhibit: React.FC<WindowScreenProps> = ({ type, active, accent }) => {
+  const intensity = active ? 1.0 : 0.3;
+
+  return (
+    <group position={[0, 1.85, 0.6]}>
+      {type === 'ecommerce' && (
+        <group>
+          {/* E-Commerce Shopping Experience & Payment Checkout Flow */}
+          <mesh position={[-1.3, 0.05, 0]}>
+            <boxGeometry args={[1.3, 0.8, 0.04]} />
+            <meshStandardMaterial color="#07111E" emissive={accent} emissiveIntensity={intensity} />
+          </mesh>
+          <mesh position={[0.1, -0.05, 0]}>
+            <boxGeometry args={[1.1, 0.65, 0.04]} />
+            <meshStandardMaterial color="#0A1628" emissive="#38BDF8" emissiveIntensity={intensity * 0.8} />
+          </mesh>
+          <mesh position={[1.4, 0.1, 0]}>
+            <boxGeometry args={[0.9, 0.7, 0.04]} />
+            <meshStandardMaterial color="#07111E" emissive="#10B981" emissiveIntensity={intensity * 0.9} />
+          </mesh>
+        </group>
+      )}
+
+      {type === 'erp-business' && (
+        <group>
+          {/* ERP Automated Workflows & DocType Schema Nodes */}
+          <mesh position={[-1.3, 0.05, 0]}>
+            <boxGeometry args={[1.3, 0.8, 0.04]} />
+            <meshStandardMaterial color="#0F172A" emissive="#F59E0B" emissiveIntensity={intensity} />
+          </mesh>
+          <mesh position={[0.1, -0.05, 0]}>
+            <boxGeometry args={[1.1, 0.65, 0.04]} />
+            <meshStandardMaterial color="#0B132B" emissive={accent} emissiveIntensity={intensity * 0.8} />
+          </mesh>
+          <mesh position={[1.4, 0.1, 0]}>
+            <boxGeometry args={[0.9, 0.7, 0.04]} />
+            <meshStandardMaterial color="#0F172A" emissive="#E2E8F0" emissiveIntensity={intensity * 0.6} />
+          </mesh>
+        </group>
+      )}
+
+      {type === 'hrms-workforce' && (
+        <group>
+          {/* HRMS Employee Telemetry & Attendance Cycles */}
+          <mesh position={[-1.2, 0, 0]}>
+            <boxGeometry args={[1.3, 0.8, 0.04]} />
+            <meshStandardMaterial color="#09141D" emissive="#10B981" emissiveIntensity={intensity} />
+          </mesh>
+          <mesh position={[0.2, 0.1, 0]}>
+            <boxGeometry args={[1.0, 0.65, 0.04]} />
+            <meshStandardMaterial color="#07111E" emissive={accent} emissiveIntensity={intensity * 0.7} />
+          </mesh>
+          <mesh position={[1.5, -0.05, 0]}>
+            <boxGeometry args={[0.85, 0.7, 0.04]} />
+            <meshStandardMaterial color="#09141D" emissive="#38BDF8" emissiveIntensity={intensity * 0.8} />
+          </mesh>
+        </group>
+      )}
+
+      {type === 'mobile-apps' && (
+        <group>
+          {/* Native Smartphone Interface Displays */}
+          {[-1.1, 0.15, 1.4].map((px, i) => (
+            <mesh key={`phone-${i}`} position={[px, 0, 0]}>
+              <boxGeometry args={[0.55, 0.95, 0.04]} />
+              <meshStandardMaterial
+                color="#060A14"
+                emissive="#60A5FA"
+                emissiveIntensity={intensity * (i === 1 ? 1.0 : 0.7)}
+              />
+            </mesh>
+          ))}
+        </group>
+      )}
+
+      {type === 'admin-analytics' && (
+        <group>
+          {/* Telemetry Charts & Executive KPI Gauges */}
+          <mesh position={[-1.3, 0.05, 0]}>
+            <boxGeometry args={[1.3, 0.8, 0.04]} />
+            <meshStandardMaterial color="#0B1220" emissive="#FBBF24" emissiveIntensity={intensity} />
+          </mesh>
+          <mesh position={[0.1, -0.05, 0]}>
+            <boxGeometry args={[1.1, 0.65, 0.04]} />
+            <meshStandardMaterial color="#0A0F1D" emissive="#38BDF8" emissiveIntensity={intensity * 0.8} />
+          </mesh>
+          <mesh position={[1.4, 0.1, 0]}>
+            <boxGeometry args={[0.9, 0.7, 0.04]} />
+            <meshStandardMaterial color="#0B1220" emissive="#34D399" emissiveIntensity={intensity * 0.7} />
+          </mesh>
+        </group>
+      )}
+
+      {type === 'saas-web' && (
+        <group>
+          {/* Cloud Native Multi-Tenant SaaS Infrastructure */}
+          <mesh position={[-1.2, 0, 0]}>
+            <boxGeometry args={[1.4, 0.8, 0.04]} />
+            <meshStandardMaterial color="#07111E" emissive="#34D399" emissiveIntensity={intensity} />
+          </mesh>
+          <mesh position={[0.3, 0.08, 0]}>
+            <boxGeometry args={[1.1, 0.7, 0.04]} />
+            <meshStandardMaterial color="#09141D" emissive="#38BDF8" emissiveIntensity={intensity * 0.9} />
+          </mesh>
+          <mesh position={[1.5, -0.08, 0]}>
+            <boxGeometry args={[0.8, 0.6, 0.04]} />
+            <meshStandardMaterial color="#07111E" emissive="#FAF7F0" emissiveIntensity={intensity * 0.6} />
+          </mesh>
+        </group>
+      )}
+    </group>
+  );
+};
+
+// ─── 3. INDIAN VANDE BHARAT COACH (COMPARTMENT) ──────────────────────────────
+interface VandeBharatCoachProps {
+  data: ProjectCompartment;
   index: number;
   isSelected: boolean;
   onSelect: () => void;
-  position: [number, number, number];
-}> = ({ project, index, isSelected, onSelect, position }) => {
+  wheelRotation: number;
+  offsetPos: number; // position along train X
+}
+
+const VandeBharatCoach: React.FC<VandeBharatCoachProps> = ({
+  data,
+  isSelected,
+  onSelect,
+  wheelRotation,
+  offsetPos,
+}) => {
   const [hovered, setHovered] = useState(false);
-  const spotlightRef = useRef<THREE.SpotLight>(null);
-  const screenRef = useRef<THREE.Mesh>(null);
+  const interiorLightRef = useRef<THREE.PointLight>(null);
 
   useFrame((_, delta) => {
-    if (spotlightRef.current) {
-      const targetIntensity = isSelected ? 3.4 : hovered ? 1.6 : 0.6;
-      spotlightRef.current.intensity = THREE.MathUtils.lerp(
-        spotlightRef.current.intensity,
-        targetIntensity,
-        delta * 4.0
+    if (interiorLightRef.current) {
+      const targetInt = isSelected ? 2.6 : hovered ? 1.6 : 0.9;
+      interiorLightRef.current.intensity = THREE.MathUtils.lerp(
+        interiorLightRef.current.intensity,
+        targetInt,
+        delta * 5.0
       );
-    }
-    if (screenRef.current) {
-      const mat = screenRef.current.material as THREE.MeshStandardMaterial;
-      if (mat) {
-        const targetEmissive = isSelected ? 0.35 : hovered ? 0.2 : 0.08;
-        mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, targetEmissive, delta * 4.0);
-      }
     }
   });
 
   return (
     <group
-      position={position}
+      position={[offsetPos, 0, 0]}
       onClick={(e) => {
         e.stopPropagation();
         onSelect();
@@ -54,566 +258,956 @@ const ExhibitDisplay: React.FC<{
         document.body.style.cursor = 'auto';
       }}
     >
-      {/* Dedicated Museum Gallery Ceiling Spotlight */}
-      <spotLight
-        ref={spotlightRef}
-        position={[0, 5.8, 1.4]}
-        color={isSelected ? '#FFFBEB' : '#E2E8F0'}
-        intensity={isSelected ? 3.4 : 0.6}
-        distance={9.5}
-        angle={0.42}
-        penumbra={0.7}
+      {/* ── Main Coach Body: Pristine Vande Bharat Glossy White ── */}
+      <mesh position={[0, 1.88, 0]} castShadow receiveShadow>
+        <boxGeometry args={[7.2, 2.7, 2.5]} />
+        <meshStandardMaterial
+          color="#FAF7F0"
+          roughness={0.25}
+          metalness={0.2}
+        />
+      </mesh>
+
+      {/* ── Vande Bharat Signature Continuous Royal Navy Blue Window Band ── */}
+      <mesh position={[0, 2.05, 0]}>
+        <boxGeometry args={[7.22, 1.05, 2.52]} />
+        <meshStandardMaterial
+          color="#0F2C59"
+          roughness={0.2}
+          metalness={0.35}
+        />
+      </mesh>
+
+      {/* ── Vande Bharat Signature Vibrant Saffron / Orange Speed Pinstripe ── */}
+      <mesh position={[0, 1.48, 0]}>
+        <boxGeometry args={[7.23, 0.08, 2.53]} />
+        <meshStandardMaterial
+          color="#FF671F"
+          emissive="#EA580C"
+          emissiveIntensity={isSelected ? 0.9 : 0.4}
+          metalness={0.8}
+        />
+      </mesh>
+
+      {/* ── Dark Charcoal Underbody Equipment Skirt ── */}
+      <mesh position={[0, 0.45, 0]}>
+        <boxGeometry args={[7.25, 0.35, 2.45]} />
+        <meshStandardMaterial color="#1E232E" roughness={0.6} metalness={0.9} />
+      </mesh>
+
+      {/* ── Aerodynamic Rooftop Enclosure & HVAC Cowling ── */}
+      <mesh position={[0, 3.28, 0]}>
+        <boxGeometry args={[7.15, 0.22, 2.38]} />
+        <meshStandardMaterial color="#E2E8F0" roughness={0.3} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, 3.46, 0]}>
+        <boxGeometry args={[4.4, 0.16, 1.4]} />
+        <meshStandardMaterial color="#334155" metalness={0.8} />
+      </mesh>
+
+      {/* ── Panoramic Flush Dark-Tinted Passenger Windows (Crossing View Side Z = +1.26) ── */}
+      {[-2.1, -0.7, 0.7, 2.1].map((wx, i) => (
+        <group key={`win-${i}`} position={[wx, 2.05, 1.26]}>
+          <mesh>
+            <boxGeometry args={[1.15, 0.88, 0.04]} />
+            <meshPhysicalMaterial
+              color="#CBD5E1"
+              transmission={0.88}
+              opacity={0.35}
+              transparent
+              roughness={0.08}
+              thickness={0.2}
+            />
+          </mesh>
+          {/* Black Rubber Window Gasket Frame */}
+          <mesh position={[0, 0, 0.02]}>
+            <boxGeometry args={[1.19, 0.92, 0.01]} />
+            <meshStandardMaterial color="#0A0F1D" metalness={0.9} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* ── Category-Specific 3D Project Exhibit Visible Inside ── */}
+      <CategoryProjectExhibit
+        type={data.id}
+        active={isSelected || hovered}
+        accent={data.accentColor}
       />
 
-      {/* ========================================================= */}
-      {/* ARCHITECTURAL BASALT EXHIBIT PLINTH                       */}
-      {/* ========================================================= */}
-      <group position={[0, 0, 0]}>
-        {/* Recessed Warm Bronze Base Reveal */}
-        <mesh position={[0, 0.06, 0]}>
-          <boxGeometry args={[3.0, 0.12, 1.8]} />
-          <meshStandardMaterial color="#574130" metalness={0.7} roughness={0.4} />
+      {/* ── Automatic Sliding Plug Passenger Door with Orange Status LED ── */}
+      <group position={[0.0, 1.62, 1.27]}>
+        <mesh>
+          <boxGeometry args={[0.95, 2.1, 0.02]} />
+          <meshStandardMaterial color="#0F2C59" metalness={0.6} roughness={0.3} />
         </mesh>
+        {/* Door Glass Inset */}
+        <mesh position={[0, 0.35, 0.02]}>
+          <boxGeometry args={[0.42, 0.7, 0.02]} />
+          <meshPhysicalMaterial color="#94A3B8" transmission={0.9} transparent opacity={0.3} />
+        </mesh>
+        {/* Door Orange Status Indicator LED */}
+        <mesh position={[0.35, 1.15, 0.02]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.02, 12]} />
+          <meshStandardMaterial color="#FF671F" emissive="#FF671F" emissiveIntensity={1.8} />
+        </mesh>
+      </group>
 
-        {/* Main Basalt Stone Plinth Block */}
-        <mesh position={[0, 0.48, 0]} castShadow receiveShadow>
-          <boxGeometry args={[3.2, 0.76, 2.0]} />
+      {/* ── Exterior Illuminated Digital Coach LED Destination Board ── */}
+      <group position={[-2.2, 2.76, 1.27]}>
+        <mesh>
+          <boxGeometry args={[1.9, 0.42, 0.04]} />
+          <meshStandardMaterial color="#050B14" roughness={0.3} metalness={0.9} />
+        </mesh>
+        {/* LED Matrix Face */}
+        <mesh position={[0, 0, 0.025]}>
+          <planeGeometry args={[1.82, 0.35]} />
           <meshStandardMaterial
-            color={isSelected ? '#1E232E' : hovered ? '#1A1E26' : '#14171E'}
-            roughness={0.85}
-            metalness={0.15}
+            color="#080E18"
+            emissive={isSelected ? data.accentColor : '#F59E0B'}
+            emissiveIntensity={isSelected ? 0.9 : 0.35}
           />
         </mesh>
 
-        {/* Subtle Bronze Top Perimeter Inlay */}
-        <mesh position={[0, 0.865, 0]}>
-          <boxGeometry args={[3.22, 0.02, 2.02]} />
-          <meshStandardMaterial
-            color={isSelected ? '#F59E0B' : hovered ? '#D97706' : '#333842'}
-            metalness={0.8}
-            roughness={0.3}
-          />
-        </mesh>
-
-        {/* Museum Exhibit Placard on Front Face */}
-        <group position={[0, 0.48, 1.02]}>
-          {/* Index Number */}
+        {/* Coach Code (e.g. EC1, C1) & Project Category Title */}
+        <group position={[0, 0, 0.035]}>
           <Text
-            position={[-1.2, 0.16, 0]}
-            fontSize={0.16}
-            color={isSelected ? '#FBBF24' : '#94A3B8'}
+            position={[-0.72, 0.04, 0]}
+            fontSize={0.14}
+            color={isSelected ? '#FDE047' : '#F59E0B'}
             letterSpacing={0.1}
             anchorX="left"
+            anchorY="middle"
           >
-            {String(index + 1).padStart(2, '0')}
+            {data.coachCode}
           </Text>
-
-          {/* Project Title */}
           <Text
-            position={[-0.8, 0.16, 0]}
-            fontSize={0.14}
-            color="#F8FAFC"
-            letterSpacing={0.04}
-            anchorX="left"
-            maxWidth={2.0}
-          >
-            {project.title.toUpperCase()}
-          </Text>
-
-          {/* Category Subtitle */}
-          <Text
-            position={[-0.8, -0.10, 0]}
-            fontSize={0.10}
-            color={isSelected ? '#FBBF24' : '#64748B'}
+            position={[-0.32, 0.04, 0]}
+            fontSize={0.11}
+            color="#FAF7F0"
             letterSpacing={0.08}
             anchorX="left"
+            anchorY="middle"
           >
-            {project.category.toUpperCase()} • EXHIBIT
+            {data.title}
+          </Text>
+          <Text
+            position={[-0.72, -0.11, 0]}
+            fontSize={0.075}
+            color="#94A3B8"
+            letterSpacing={0.05}
+            anchorX="left"
+            anchorY="middle"
+          >
+            VANDE BHARAT // 20608
           </Text>
         </group>
       </group>
 
-      {/* ========================================================= */}
-      {/* 3D PHYSICAL EXHIBIT HARDWARE / DISPLAY                    */}
-      {/* ========================================================= */}
-      <group position={[0, 0.88, 0]}>
-        {/* Exhibit 0: SSS Smart Tech Platform — Curved Ultra-Thin OLED Display */}
-        {index === 0 && (
-          <group position={[0, 0, 0]}>
-            {/* Display Stand Bracket */}
-            <mesh position={[0, 0.4, -0.2]}>
-              <boxGeometry args={[0.3, 0.8, 0.15]} />
-              <meshStandardMaterial color="#2B303C" metalness={0.8} roughness={0.3} />
-            </mesh>
-            <mesh position={[0, 0.05, 0]}>
-              <boxGeometry args={[1.2, 0.08, 0.8]} />
-              <meshStandardMaterial color="#1E232E" metalness={0.8} roughness={0.3} />
-            </mesh>
-            {/* OLED Display Frame */}
-            <mesh position={[0, 1.15, 0]}>
-              <boxGeometry args={[2.7, 1.6, 0.06]} />
-              <meshStandardMaterial color="#0A0C10" metalness={0.9} roughness={0.2} />
-            </mesh>
-            {/* Illuminated UI Screen */}
-            <mesh ref={screenRef} position={[0, 1.15, 0.035]}>
-              <planeGeometry args={[2.58, 1.48]} />
-              <meshStandardMaterial
-                color="#0F172A"
-                emissive="#0F243A"
-                emissiveIntensity={0.2}
-                roughness={0.3}
-              />
-            </mesh>
-            {/* Simulated UI Content Blocks */}
-            <group position={[0, 1.15, 0.04]}>
-              {/* Header Bar */}
-              <mesh position={[0, 0.58, 0]}>
-                <planeGeometry args={[2.4, 0.12]} />
-                <meshBasicMaterial color="#1E293B" />
-              </mesh>
-              {/* Logo Pill */}
-              <mesh position={[-0.95, 0.58, 0.005]}>
-                <planeGeometry args={[0.32, 0.06]} />
-                <meshBasicMaterial color="#38BDF8" />
-              </mesh>
-              {/* Hero Banner Card */}
-              <mesh position={[0, 0.22, 0]}>
-                <planeGeometry args={[2.4, 0.46]} />
-                <meshBasicMaterial color="#142033" />
-              </mesh>
-              {/* Service Cards Grid */}
-              {[-0.8, 0, 0.8].map((cx, i) => (
-                <mesh key={`c-serv-${i}`} position={[cx, -0.32, 0]}>
-                  <planeGeometry args={[0.7, 0.42]} />
-                  <meshBasicMaterial color="#1E293B" />
-                </mesh>
-              ))}
-            </group>
-          </group>
-        )}
+      {/* ── Bogie Wheel Trucks (Front and Rear) ── */}
+      <BogieTruck position={[-2.3, 0, 0]} wheelRotation={wheelRotation} />
+      <BogieTruck position={[2.3, 0, 0]} wheelRotation={wheelRotation} />
 
-        {/* Exhibit 1: SSS SmartHub Portal — Angled Dashboard Touch Kiosk */}
-        {index === 1 && (
-          <group position={[0, 0, 0]}>
-            {/* Angled Column Pedestal */}
-            <mesh position={[0, 0.45, -0.1]} rotation={[0.2, 0, 0]}>
-              <cylinderGeometry args={[0.25, 0.35, 1.0, 16]} />
-              <meshStandardMaterial color="#2B303C" metalness={0.8} roughness={0.3} />
-            </mesh>
-            {/* Angled Touch Screen Housing */}
-            <group position={[0, 0.95, 0]} rotation={[-0.32, 0, 0]}>
-              <mesh position={[0, 0, 0]}>
-                <boxGeometry args={[2.3, 1.5, 0.08]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} roughness={0.2} />
-              </mesh>
-              <mesh ref={screenRef} position={[0, 0, 0.045]}>
-                <planeGeometry args={[2.2, 1.38]} />
-                <meshStandardMaterial
-                  color="#0F172A"
-                  emissive="#122538"
-                  emissiveIntensity={0.25}
-                  roughness={0.3}
-                />
-              </mesh>
-              {/* Dashboard Layout: Metric Tiles & Razorpay Status Bar */}
-              <group position={[0, 0, 0.05]}>
-                <mesh position={[-0.55, 0.35, 0]}>
-                  <planeGeometry args={[0.95, 0.4]} />
-                  <meshBasicMaterial color="#1E293B" />
-                </mesh>
-                <mesh position={[0.55, 0.35, 0]}>
-                  <planeGeometry args={[0.95, 0.4]} />
-                  <meshBasicMaterial color="#1E293B" />
-                </mesh>
-                {/* Analytics Chart Strip */}
-                <mesh position={[0, -0.22, 0]}>
-                  <planeGeometry args={[2.05, 0.55]} />
-                  <meshBasicMaterial color="#172554" />
-                </mesh>
-                {/* Razorpay Badge */}
-                <mesh position={[0.7, -0.42, 0.005]}>
-                  <planeGeometry args={[0.45, 0.1]} />
-                  <meshBasicMaterial color="#0284C7" />
-                </mesh>
-              </group>
-            </group>
-          </group>
-        )}
-
-        {/* Exhibit 2: Frappe ERP Custom App — Enterprise Workstation Display */}
-        {index === 2 && (
-          <group position={[0, 0, 0]}>
-            {/* Dual Monitor Stand */}
-            <mesh position={[0, 0.4, -0.3]}>
-              <cylinderGeometry args={[0.1, 0.14, 0.8, 12]} />
-              <meshStandardMaterial color="#2B303C" metalness={0.8} />
-            </mesh>
-            <mesh position={[0, 0.75, -0.25]}>
-              <boxGeometry args={[1.8, 0.06, 0.1]} />
-              <meshStandardMaterial color="#2B303C" metalness={0.8} />
-            </mesh>
-            {/* Monitor 1: ERPNext Schema (Left) */}
-            <group position={[-0.78, 1.05, -0.1]} rotation={[0, 0.18, 0]}>
-              <mesh>
-                <boxGeometry args={[1.35, 0.95, 0.05]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh ref={screenRef} position={[0, 0, 0.028]}>
-                <planeGeometry args={[1.28, 0.88]} />
-                <meshStandardMaterial
-                  color="#111827"
-                  emissive="#1F2937"
-                  emissiveIntensity={0.2}
-                />
-              </mesh>
-              {/* DocType Schema Rows */}
-              {[-0.25, -0.05, 0.15].map((ry, i) => (
-                <mesh key={`doc-row-${i}`} position={[0, ry, 0.032]}>
-                  <planeGeometry args={[1.1, 0.12]} />
-                  <meshBasicMaterial color="#374151" />
-                </mesh>
-              ))}
-            </group>
-            {/* Monitor 2: Python / REST Terminal (Right) */}
-            <group position={[0.78, 1.05, -0.1]} rotation={[0, -0.18, 0]}>
-              <mesh>
-                <boxGeometry args={[1.35, 0.95, 0.05]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh position={[0, 0, 0.028]}>
-                <planeGeometry args={[1.28, 0.88]} />
-                <meshStandardMaterial
-                  color="#090D16"
-                  emissive="#0F172A"
-                  emissiveIntensity={0.3}
-                />
-              </mesh>
-              {/* Code lines */}
-              {[-0.28, -0.15, -0.02, 0.11, 0.24].map((cy, i) => (
-                <mesh key={`code-line-${i}`} position={[-0.2 + (i % 2) * 0.1, cy, 0.032]}>
-                  <planeGeometry args={[0.7 + (i % 3) * 0.2, 0.05]} />
-                  <meshBasicMaterial color={i === 0 ? '#F59E0B' : '#38BDF8'} />
-                </mesh>
-              ))}
-            </group>
-          </group>
-        )}
-
-        {/* Exhibit 3: Freelance Booking App — Mobile Device Exhibition Pedestal */}
-        {index === 3 && (
-          <group position={[0, 0, 0]}>
-            {/* Slender Architectural Bronze Pedestal */}
-            <mesh position={[0, 0.45, 0]}>
-              <cylinderGeometry args={[0.08, 0.14, 0.9, 12]} />
-              <meshStandardMaterial color="#785135" metalness={0.8} roughness={0.3} />
-            </mesh>
-            {/* Angled Phone Cradle */}
-            <group position={[0, 1.05, 0]} rotation={[-0.2, 0, 0]}>
-              {/* Precision Smartphone Chassis */}
-              <mesh>
-                <boxGeometry args={[0.9, 1.8, 0.07]} />
-                <meshStandardMaterial color="#1E232E" metalness={0.8} roughness={0.2} />
-              </mesh>
-              {/* Phone Screen Display */}
-              <mesh ref={screenRef} position={[0, 0, 0.038]}>
-                <planeGeometry args={[0.82, 1.7]} />
-                <meshStandardMaterial
-                  color="#0F172A"
-                  emissive="#0369A1"
-                  emissiveIntensity={0.25}
-                  roughness={0.2}
-                />
-              </mesh>
-              {/* Mobile Booking App UI mock */}
-              <group position={[0, 0, 0.042]}>
-                {/* Header notch */}
-                <mesh position={[0, 0.76, 0]}>
-                  <planeGeometry args={[0.24, 0.04]} />
-                  <meshBasicMaterial color="#0A0C10" />
-                </mesh>
-                {/* Hero Booking Card */}
-                <mesh position={[0, 0.42, 0]}>
-                  <planeGeometry args={[0.72, 0.46]} />
-                  <meshBasicMaterial color="#0284C7" />
-                </mesh>
-                {/* Calendar / Slots */}
-                {[-0.05, -0.32, -0.58].map((sy, i) => (
-                  <mesh key={`slot-${i}`} position={[0, sy, 0]}>
-                    <planeGeometry args={[0.72, 0.2]} />
-                    <meshBasicMaterial color="#1E293B" />
-                  </mesh>
-                ))}
-              </group>
-            </group>
-          </group>
-        )}
-
-        {/* Exhibit 4: E-Commerce Platform — Interactive Storefront Tablet Kiosk */}
-        {index === 4 && (
-          <group position={[0, 0, 0]}>
-            {/* Kiosk Spine */}
-            <mesh position={[0, 0.45, -0.05]}>
-              <boxGeometry args={[0.25, 0.9, 0.15]} />
-              <meshStandardMaterial color="#2B303C" metalness={0.8} />
-            </mesh>
-            {/* Framed Tablet */}
-            <group position={[0, 1.0, 0]} rotation={[-0.26, 0, 0]}>
-              <mesh>
-                <boxGeometry args={[2.2, 1.4, 0.06]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh ref={screenRef} position={[0, 0, 0.034]}>
-                <planeGeometry args={[2.1, 1.3]} />
-                <meshStandardMaterial
-                  color="#0F172A"
-                  emissive="#1E293B"
-                  emissiveIntensity={0.2}
-                />
-              </mesh>
-              {/* E-Commerce Product Grid */}
-              <group position={[0, 0, 0.038]}>
-                {/* Navbar with Cart Badge */}
-                <mesh position={[0, 0.52, 0]}>
-                  <planeGeometry args={[2.0, 0.1]} />
-                  <meshBasicMaterial color="#1E293B" />
-                </mesh>
-                <mesh position={[0.82, 0.52, 0.005]}>
-                  <circleGeometry args={[0.045, 16]} />
-                  <meshBasicMaterial color="#10B981" />
-                </mesh>
-                {/* 4 Product Cards */}
-                {[-0.52, 0.52].map((px) =>
-                  [0.18, -0.28].map((py, j) => (
-                    <mesh key={`pcard-${px}-${j}`} position={[px, py, 0]}>
-                      <planeGeometry args={[0.9, 0.4]} />
-                      <meshBasicMaterial color="#1F2937" />
-                    </mesh>
-                  ))
-                )}
-              </group>
-            </group>
-          </group>
-        )}
-
-        {/* Exhibit 5: Task Management App — Kanban Display Station */}
-        {index === 5 && (
-          <group position={[0, 0, 0]}>
-            {/* Display Stand */}
-            <mesh position={[0, 0.45, -0.15]}>
-              <cylinderGeometry args={[0.12, 0.16, 0.9, 12]} />
-              <meshStandardMaterial color="#2B303C" metalness={0.8} />
-            </mesh>
-            {/* Widescreen Monitor */}
-            <group position={[0, 1.1, 0]}>
-              <mesh>
-                <boxGeometry args={[2.6, 1.5, 0.06]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh ref={screenRef} position={[0, 0, 0.034]}>
-                <planeGeometry args={[2.48, 1.38]} />
-                <meshStandardMaterial
-                  color="#0B132B"
-                  emissive="#141E33"
-                  emissiveIntensity={0.22}
-                />
-              </mesh>
-              {/* Kanban 3-Column Board */}
-              <group position={[0, 0, 0.038]}>
-                {/* Column Headers: Todo, Progress, Done */}
-                {[-0.78, 0, 0.78].map((kx, ci) => (
-                  <group key={`kcol-${ci}`} position={[kx, 0, 0]}>
-                    <mesh position={[0, 0.52, 0]}>
-                      <planeGeometry args={[0.68, 0.12]} />
-                      <meshBasicMaterial color="#1E293B" />
-                    </mesh>
-                    {/* Task cards */}
-                    {[-0.28, 0.0, 0.28].map((ty, ti) => (
-                      <mesh key={`tcard-${ci}-${ti}`} position={[0, ty, 0]}>
-                        <planeGeometry args={[0.68, 0.22]} />
-                        <meshBasicMaterial color="#1F2937" />
-                      </mesh>
-                    ))}
-                  </group>
-                ))}
-              </group>
-            </group>
-          </group>
-        )}
-      </group>
-    </group>
-  );
-};
-
-/**
- * Minimalist Indoor Gallery Botanical Planter
- */
-const GalleryPlanter: React.FC<{ position: [number, number, number] }> = ({ position }) => {
-  return (
-    <group position={position}>
-      {/* Matte Ceramic Pot */}
-      <mesh position={[0, 0.55, 0]}>
-        <cylinderGeometry args={[0.42, 0.35, 1.1, 16]} />
-        <meshStandardMaterial color="#D6CEBF" roughness={0.7} />
+      {/* Flexible Gangway Interconnect Bellows (linking to previous coach on right) */}
+      <mesh position={[3.65, 1.85, 0]}>
+        <boxGeometry args={[0.5, 2.5, 2.2]} />
+        <meshStandardMaterial color="#111827" roughness={0.9} />
       </mesh>
-      {/* Soil */}
-      <mesh position={[0, 1.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.39, 16]} />
-        <meshStandardMaterial color="#1F1B18" roughness={0.95} />
-      </mesh>
-      {/* Stylized Architectural Snake Plant Foliage */}
-      {[-0.15, 0, 0.15].map((ox, i) =>
-        [-0.12, 0.12].map((oz, j) => (
-          <mesh
-            key={`leaf-${i}-${j}`}
-            position={[ox, 1.7 + (i % 2) * 0.2, oz]}
-            rotation={[0, (i * 2 + j) * 0.6, (ox * 0.3)]}
-          >
-            <planeGeometry args={[0.22, 1.3]} />
-            <meshStandardMaterial
-              color="#1B382B"
-              roughness={0.7}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        ))
+
+      {/* Warm Passenger Cabin Ambiance Light */}
+      <pointLight
+        ref={interiorLightRef}
+        position={[0, 2.2, 0.5]}
+        color={isSelected ? '#FFFDF0' : '#FED7AA'}
+        intensity={isSelected ? 2.6 : 0.9}
+        distance={9}
+      />
+
+      {/* Highlight Spotlight for Selected Compartment */}
+      {isSelected && (
+        <spotLight
+          position={[0, 7.5, 2.5]}
+          target-position={[0, 1.8, 0]}
+          color="#FFFDF0"
+          intensity={3.8}
+          distance={12}
+          angle={0.5}
+          penumbra={0.6}
+        />
       )}
     </group>
   );
 };
 
-/**
- * CH 04 / CHAPTER 05 — PROJECTS: Modern Technology Exhibition Gallery
- * 
- * Elegant museum gallery space featuring:
- * - Polished dark concrete stone floor with bronze inlay
- * - Minimalist architectural back wall with warm baseboard wash
- * - 6 physical 3D exhibit pedestals with tailored device models
- * - Ceiling gallery track spotlights dynamically accenting the selected exhibit
- * - Minimalist ceramic planters and architectural glass partition fins
- */
+// ─── 4. INDIAN VANDE BHARAT AERODYNAMIC BULLET NOSE LOCOMOTIVE ───────────────
+interface VandeBharatNoseProps {
+  position: [number, number, number];
+  wheelRotation: number;
+}
+
+const VandeBharatNose: React.FC<VandeBharatNoseProps> = ({ position, wheelRotation }) => {
+  return (
+    <group position={position}>
+      {/* ── Main Engine Coach Body ── */}
+      <mesh position={[0, 1.88, 0]} castShadow receiveShadow>
+        <boxGeometry args={[7.8, 2.7, 2.5]} />
+        <meshStandardMaterial color="#FAF7F0" roughness={0.25} metalness={0.2} />
+      </mesh>
+
+      {/* ── Royal Navy Blue Window Band extending to front ── */}
+      <mesh position={[0, 2.05, 0]}>
+        <boxGeometry args={[7.82, 1.05, 2.52]} />
+        <meshStandardMaterial color="#0F2C59" roughness={0.2} metalness={0.35} />
+      </mesh>
+
+      {/* ── Saffron Waistline Speed Stripe ── */}
+      <mesh position={[0, 1.48, 0]}>
+        <boxGeometry args={[7.83, 0.08, 2.53]} />
+        <meshStandardMaterial color="#FF671F" emissive="#EA580C" emissiveIntensity={0.6} metalness={0.8} />
+      </mesh>
+
+      {/* ── Aerodynamic Bullet Nose Cone (Sloping forward towards -X = Left!) ── */}
+      <mesh position={[-4.3, 1.55, 0]} rotation={[0, 0, 0.45]} castShadow>
+        <boxGeometry args={[2.2, 2.1, 2.48]} />
+        <meshStandardMaterial color="#FAF7F0" roughness={0.25} metalness={0.2} />
+      </mesh>
+
+      {/* Nose Front Aerodynamic Cowling & Lower Lip */}
+      <mesh position={[-5.1, 0.72, 0]} castShadow>
+        <boxGeometry args={[1.3, 0.95, 2.44]} />
+        <meshStandardMaterial color="#0F2C59" roughness={0.2} metalness={0.4} />
+      </mesh>
+
+      {/* Vande Bharat Saffron Accent on Lower Nose Lip */}
+      <mesh position={[-5.3, 0.45, 0]}>
+        <boxGeometry args={[0.9, 0.2, 2.46]} />
+        <meshStandardMaterial color="#FF671F" emissive="#EA580C" emissiveIntensity={0.7} />
+      </mesh>
+
+      {/* Aerodynamic Cowcatcher / Cattle Guard under Nose */}
+      <group position={[-5.5, 0.22, 0]}>
+        <mesh>
+          <boxGeometry args={[0.4, 0.32, 2.4]} />
+          <meshStandardMaterial color="#1E232E" metalness={0.9} roughness={0.4} />
+        </mesh>
+        {/* Yellow Hazard Stripes */}
+        {[-0.8, -0.3, 0.2, 0.7].map((hz, i) => (
+          <mesh key={`haz-${i}`} position={[-0.21, 0, hz]}>
+            <boxGeometry args={[0.02, 0.28, 0.12]} />
+            <meshStandardMaterial color="#EAB308" />
+          </mesh>
+        ))}
+      </group>
+
+      {/* ── Aerodynamic Driver Panoramic Windshield with Black Visor Mask ── */}
+      <mesh position={[-3.9, 2.4, 0]} rotation={[0, 0, 0.45]}>
+        <boxGeometry args={[0.08, 0.95, 2.1]} />
+        <meshPhysicalMaterial
+          color="#0A0F1D"
+          transmission={0.8}
+          transparent
+          opacity={0.3}
+          roughness={0.08}
+        />
+      </mesh>
+      {/* Black Visor Bezel Mask around Windshield */}
+      <mesh position={[-3.86, 2.4, 0]} rotation={[0, 0, 0.45]}>
+        <boxGeometry args={[0.04, 1.05, 2.16]} />
+        <meshStandardMaterial color="#050B14" metalness={0.9} roughness={0.2} />
+      </mesh>
+
+      {/* ── Triple High-Power Vande Bharat LED Headlights ── */}
+      {/* Lower Twin Headlights */}
+      {[0.72, -0.72].map((hz, i) => (
+        <group key={`headlight-${i}`} position={[-5.6, 0.9, hz]}>
+          <mesh rotation={[0, -Math.PI / 2, 0]}>
+            <cylinderGeometry args={[0.2, 0.2, 0.08, 24]} />
+            <meshStandardMaterial color="#FEF08A" emissive="#FFFBEB" emissiveIntensity={3.2} />
+          </mesh>
+          {/* Forward Headlight Beam casting light to the Left (-X) */}
+          <spotLight
+            position={[-0.2, 0, 0]}
+            target-position={[-25, 0, 0]}
+            color="#FFFBEB"
+            intensity={4.5}
+            distance={45}
+            angle={0.45}
+            penumbra={0.5}
+          />
+        </group>
+      ))}
+
+      {/* Upper Central Twin Headlight */}
+      <group position={[-4.7, 2.65, 0]}>
+        <mesh rotation={[0, -Math.PI / 2, 0]}>
+          <boxGeometry args={[0.35, 0.15, 0.08]} />
+          <meshStandardMaterial color="#FEF08A" emissive="#FFFBEB" emissiveIntensity={3.2} />
+        </mesh>
+      </group>
+
+      {/* ── Ashoka / Vande Bharat Emblem Badge on Nose ── */}
+      <group position={[-5.45, 1.45, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        <mesh>
+          <cylinderGeometry args={[0.24, 0.24, 0.04, 24]} />
+          <meshStandardMaterial color="#D97706" metalness={0.95} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.025, 0]}>
+          <cylinderGeometry args={[0.18, 0.18, 0.02, 16]} />
+          <meshStandardMaterial color="#1E3A8A" metalness={0.8} />
+        </mesh>
+      </group>
+
+      {/* ── Vande Bharat & Project Express Typographic Livery ── */}
+      <group position={[-1.2, 2.45, 1.27]}>
+        <Text
+          fontSize={0.22}
+          color="#0F2C59"
+          letterSpacing={0.16}
+          anchorX="center"
+          anchorY="middle"
+        >
+          VANDE BHARAT
+        </Text>
+        <Text
+          position={[0, -0.25, 0]}
+          fontSize={0.11}
+          color="#FF671F"
+          letterSpacing={0.2}
+          anchorX="center"
+          anchorY="middle"
+        >
+          PROJECT EXPRESS // 20608
+        </Text>
+      </group>
+
+      {/* ── Streamlined High-Speed Roof Pantograph (Articulated Z-Arm) ── */}
+      <group position={[1.5, 3.55, 0]}>
+        <mesh position={[0, 0.08, 0]}>
+          <boxGeometry args={[1.8, 0.08, 1.2]} />
+          <meshStandardMaterial color="#475569" metalness={0.9} />
+        </mesh>
+        <mesh position={[0, 0.42, 0]} rotation={[0, 0, -0.35]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.9, 8]} />
+          <meshStandardMaterial color="#EA580C" metalness={0.9} />
+        </mesh>
+        {/* Overhead Graphite Contact Shoe */}
+        <mesh position={[-0.2, 0.85, 0]}>
+          <boxGeometry args={[0.25, 0.04, 1.4]} />
+          <meshStandardMaterial color="#1F2937" metalness={0.95} />
+        </mesh>
+      </group>
+
+      {/* Dual Bogies */}
+      <BogieTruck position={[-2.4, 0, 0]} wheelRotation={wheelRotation} />
+      <BogieTruck position={[2.4, 0, 0]} wheelRotation={wheelRotation} />
+    </group>
+  );
+};
+
+// ─── 5. RAILWAY LEVEL CROSSING (RAILWAY GATE BOOM BARRIERS) ──────────────────
+interface RailwayGateProps {
+  approachZ: number; // Z position of gate across the road
+  armSide: 'left' | 'right';
+  isFlashing: boolean;
+}
+
+const RailwayBoomGate: React.FC<RailwayGateProps> = ({ approachZ, armSide, isFlashing }) => {
+  const pivotX = armSide === 'right' ? 3.8 : -3.8;
+  const boomDir = armSide === 'right' ? -1 : 1;
+
+  return (
+    <group position={[pivotX, 0, approachZ]}>
+      {/* ── Heavy Cast Steel Gate Pivot Pedestal ── */}
+      <mesh position={[0, 0.65, 0]} castShadow>
+        <boxGeometry args={[0.65, 1.3, 0.65]} />
+        <meshStandardMaterial color="#EAB308" roughness={0.4} metalness={0.7} />
+      </mesh>
+      {/* Black Hazard Stripes on Pedestal */}
+      {[-0.3, 0.0, 0.3].map((sy, i) => (
+        <mesh key={`hstripe-${i}`} position={[0, 0.65 + sy, 0]}>
+          <boxGeometry args={[0.66, 0.12, 0.66]} />
+          <meshStandardMaterial color="#0F172A" roughness={0.5} />
+        </mesh>
+      ))}
+
+      {/* Counterweight Box at rear of pivot */}
+      <mesh position={[-boomDir * 0.5, 0.85, 0]}>
+        <boxGeometry args={[0.5, 0.55, 0.45]} />
+        <meshStandardMaterial color="#334155" metalness={0.8} />
+      </mesh>
+
+      {/* ── Red & White Striped Railway Gate Boom Barrier Pole (7.2m long) ── */}
+      <group position={[0, 0.9, 0]}>
+        {/* Alternating Red and White Segments */}
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((seg) => {
+          const isRed = seg % 2 === 0;
+          return (
+            <mesh key={`seg-${seg}`} position={[boomDir * (0.5 + seg * 0.85), 0, 0]}>
+              <boxGeometry args={[0.85, 0.12, 0.12]} />
+              <meshStandardMaterial
+                color={isRed ? '#DC2626' : '#FFFFFF'}
+                roughness={0.3}
+                metalness={0.2}
+              />
+            </mesh>
+          );
+        })}
+
+        {/* Suspended Red Retro-Reflective "STOP" Circular Disc at center of boom */}
+        <group position={[boomDir * 3.4, -0.22, 0]}>
+          <mesh>
+            <cylinderGeometry args={[0.26, 0.26, 0.02, 24]} />
+            <meshStandardMaterial color="#DC2626" emissive="#B91C1C" emissiveIntensity={0.6} />
+          </mesh>
+          {/* Inner White Rim */}
+          <mesh position={[0, 0.015, 0]}>
+            <cylinderGeometry args={[0.23, 0.23, 0.01, 24]} />
+            <meshStandardMaterial color="#FFFFFF" />
+          </mesh>
+          <mesh position={[0, 0.025, 0]}>
+            <cylinderGeometry args={[0.20, 0.20, 0.01, 24]} />
+            <meshStandardMaterial color="#DC2626" />
+          </mesh>
+        </group>
+      </group>
+
+      {/* ── Alternating Flashing Red LED Warning Lamps on Stanchion ── */}
+      <group position={[0, 1.8, 0]}>
+        {/* Signal Stanchion Pole */}
+        <mesh position={[0, -0.25, 0]}>
+          <cylinderGeometry args={[0.04, 0.04, 0.5, 8]} />
+          <meshStandardMaterial color="#1E293B" metalness={0.9} />
+        </mesh>
+        {/* Crossbar holding twin red lamps */}
+        <mesh>
+          <boxGeometry args={[0.85, 0.08, 0.08]} />
+          <meshStandardMaterial color="#0F172A" metalness={0.9} />
+        </mesh>
+        {/* Left Lamp (flashing on even beats) */}
+        <group position={[-0.32, 0, 0]}>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.13, 0.13, 0.08, 16]} />
+            <meshStandardMaterial color="#0A0F1D" metalness={0.9} />
+          </mesh>
+          <mesh position={[0, 0, 0.045]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.11, 0.11, 0.02, 16]} />
+            <meshStandardMaterial
+              color="#DC2626"
+              emissive="#EF4444"
+              emissiveIntensity={isFlashing ? 3.5 : 0.2}
+            />
+          </mesh>
+        </group>
+        {/* Right Lamp (flashing on odd beats) */}
+        <group position={[0.32, 0, 0]}>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.13, 0.13, 0.08, 16]} />
+            <meshStandardMaterial color="#0A0F1D" metalness={0.9} />
+          </mesh>
+          <mesh position={[0, 0, 0.045]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.11, 0.11, 0.02, 16]} />
+            <meshStandardMaterial
+              color="#DC2626"
+              emissive="#EF4444"
+              emissiveIntensity={!isFlashing ? 3.5 : 0.2}
+            />
+          </mesh>
+        </group>
+        {/* Acoustic Warning Bell Dome */}
+        <mesh position={[0, 0.22, 0]}>
+          <sphereGeometry args={[0.1, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <meshStandardMaterial color="#D97706" metalness={0.9} roughness={0.3} />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
+// ─── 6. CLASSIC INDIAN RAILWAYS GATEKEEPER CABIN (GHUMTI) ─────────────────────
+const GatekeeperCabin: React.FC = () => {
+  return (
+    <group position={[7.5, 0, 5.2]}>
+      {/* ── Stone Foundation Plinth ── */}
+      <mesh position={[0, 0.2, 0]}>
+        <boxGeometry args={[4.2, 0.4, 4.2]} />
+        <meshStandardMaterial color="#334155" roughness={0.8} />
+      </mesh>
+
+      {/* ── Whitewashed Stucco Cabin Walls with Royal Navy Blue Trim ── */}
+      <mesh position={[0, 1.8, 0]} castShadow receiveShadow>
+        <boxGeometry args={[3.8, 2.8, 3.8]} />
+        <meshStandardMaterial color="#F8FAFC" roughness={0.6} />
+      </mesh>
+      {/* Indian Railways Navy Blue Lower Wainscot Band */}
+      <mesh position={[0, 0.85, 0]}>
+        <boxGeometry args={[3.84, 0.9, 3.84]} />
+        <meshStandardMaterial color="#1E3A8A" roughness={0.5} />
+      </mesh>
+
+      {/* ── Sloping Terracotta Tiled Overhanging Hip Roof ── */}
+      <mesh position={[0, 3.45, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[3.3, 1.1, 4]} />
+        <meshStandardMaterial color="#9A3412" roughness={0.65} />
+      </mesh>
+
+      {/* ── Large Multi-Pane Track Observation Windows ── */}
+      {/* Window Facing Tracks (along -Z) */}
+      <group position={[0, 1.9, -1.92]}>
+        <mesh>
+          <boxGeometry args={[1.8, 1.2, 0.04]} />
+          <meshStandardMaterial color="#EAB308" metalness={0.6} />
+        </mesh>
+        <mesh position={[0, 0, 0.02]}>
+          <boxGeometry args={[1.65, 1.05, 0.02]} />
+          <meshPhysicalMaterial color="#93C5FD" transmission={0.9} transparent opacity={0.35} />
+        </mesh>
+      </group>
+
+      {/* ── Official Indian Railways Cabin Signboard ── */}
+      <group position={[0, 2.8, -1.93]}>
+        <mesh>
+          <boxGeometry args={[2.8, 0.42, 0.04]} />
+          <meshStandardMaterial color="#0A0F1D" metalness={0.9} />
+        </mesh>
+        <mesh position={[0, 0, 0.025]}>
+          <planeGeometry args={[2.72, 0.35]} />
+          <meshStandardMaterial color="#FAF7F0" />
+        </mesh>
+        <Text
+          position={[0, 0.05, 0.035]}
+          fontSize={0.11}
+          color="#0F172A"
+          letterSpacing={0.08}
+          anchorX="center"
+          anchorY="middle"
+        >
+          LC GATE NO. 47 // SPL 'C' CLASS
+        </Text>
+        <Text
+          position={[0, -0.08, 0.035]}
+          fontSize={0.08}
+          color="#1E3A8A"
+          letterSpacing={0.12}
+          anchorX="center"
+          anchorY="middle"
+        >
+          PROJECT EXPRESS CORRIDOR
+        </Text>
+      </group>
+
+      {/* ── Rooftop VHF Antenna Mast & Solar Power Panel ── */}
+      <group position={[-1.2, 4.0, 0]}>
+        <mesh position={[0, 0.7, 0]}>
+          <cylinderGeometry args={[0.02, 0.03, 1.4, 8]} />
+          <meshStandardMaterial color="#64748B" metalness={0.9} />
+        </mesh>
+        {/* Solar Panel */}
+        <mesh position={[0.4, 0.1, 0.4]} rotation={[0.4, 0, 0]}>
+          <boxGeometry args={[0.8, 0.04, 0.6]} />
+          <meshStandardMaterial color="#1E3A8A" roughness={0.2} metalness={0.8} />
+        </mesh>
+      </group>
+
+      {/* Cozy Warm Interior Light Leaking out of Cabin Windows */}
+      <pointLight position={[0, 2.0, 0]} color="#FED7AA" intensity={2.2} distance={8} />
+    </group>
+  );
+};
+
+// ─── 7. INDIAN RAILWAYS SIGNAGE, SIGNALS & OVERHEAD CATENARY (OHE) ───────────
+const RailwaySignageAndOHE: React.FC = () => {
+  return (
+    <group>
+      {/* ── 1. Indian Railways Large Yellow Caution Signboard ── */}
+      <group position={[-5.8, 0, 5.8]}>
+        {/* Support Stanchion Posts */}
+        {[-0.9, 0.9].map((sx, i) => (
+          <mesh key={`spost-${i}`} position={[sx, 1.2, 0]}>
+            <cylinderGeometry args={[0.04, 0.04, 2.4, 8]} />
+            <meshStandardMaterial color="#334155" metalness={0.9} />
+          </mesh>
+        ))}
+        {/* Board Face */}
+        <mesh position={[0, 2.0, 0.04]}>
+          <boxGeometry args={[2.5, 1.3, 0.06]} />
+          <meshStandardMaterial color="#FBBF24" roughness={0.4} />
+        </mesh>
+        {/* Sign Inscription */}
+        <group position={[0, 2.0, 0.08]}>
+          <Text
+            position={[0, 0.38, 0]}
+            fontSize={0.16}
+            color="#0F172A"
+            letterSpacing={0.12}
+            anchorX="center"
+            anchorY="middle"
+          >
+            CAUTION
+          </Text>
+          <Text
+            position={[0, 0.08, 0]}
+            fontSize={0.12}
+            color="#0F172A"
+            letterSpacing={0.08}
+            anchorX="center"
+            anchorY="middle"
+          >
+            LEVEL CROSSING
+          </Text>
+          <Text
+            position={[0, -0.18, 0]}
+            fontSize={0.10}
+            color="#DC2626"
+            letterSpacing={0.06}
+            anchorX="center"
+            anchorY="middle"
+          >
+            STOP • LOOK • LISTEN
+          </Text>
+          <Text
+            position={[0, -0.42, 0]}
+            fontSize={0.08}
+            color="#0F172A"
+            letterSpacing={0.08}
+            anchorX="center"
+            anchorY="middle"
+          >
+            2 TRACKS // HIGH SPEED
+          </Text>
+        </group>
+      </group>
+
+      {/* ── 2. Indian Railways Whistle Board (W/L and सी/फा) ── */}
+      <group position={[28, 0, 3.2]}>
+        <mesh position={[0, 1.0, 0]}>
+          <cylinderGeometry args={[0.04, 0.04, 2.0, 8]} />
+          <meshStandardMaterial color="#1E293B" metalness={0.8} />
+        </mesh>
+        {/* White Board */}
+        <mesh position={[0, 1.8, 0]}>
+          <boxGeometry args={[0.9, 0.7, 0.04]} />
+          <meshStandardMaterial color="#FAF7F0" roughness={0.3} />
+        </mesh>
+        <Text
+          position={[0, 1.95, 0.025]}
+          fontSize={0.18}
+          color="#0F172A"
+          letterSpacing={0.12}
+          anchorX="center"
+          anchorY="middle"
+        >
+          W / L
+        </Text>
+        <Text
+          position={[0, 1.68, 0.025]}
+          fontSize={0.12}
+          color="#0F172A"
+          letterSpacing={0.1}
+          anchorX="center"
+          anchorY="middle"
+        >
+          सी / फा
+        </Text>
+      </group>
+
+      {/* ── 3. Color Light Signal Mast (CLS) showing Green Clear ── */}
+      <group position={[-18, 0, 3.4]}>
+        {/* Steel Signal Post */}
+        <mesh position={[0, 3.2, 0]}>
+          <cylinderGeometry args={[0.08, 0.09, 6.4, 12]} />
+          <meshStandardMaterial color="#475569" metalness={0.9} />
+        </mesh>
+        {/* 3-Aspect Signal Housing Head */}
+        <mesh position={[0, 5.6, 0]}>
+          <boxGeometry args={[0.4, 1.4, 0.3]} />
+          <meshStandardMaterial color="#0A0F1D" metalness={0.9} />
+        </mesh>
+        {/* Red, Yellow, Green Lenses */}
+        <mesh position={[0, 6.0, 0.16]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.1, 0.1, 0.04, 16]} />
+          <meshStandardMaterial color="#330000" />
+        </mesh>
+        <mesh position={[0, 5.6, 0.16]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.1, 0.1, 0.04, 16]} />
+          <meshStandardMaterial color="#332200" />
+        </mesh>
+        {/* Glowing Green Signal Lens */}
+        <mesh position={[0, 5.2, 0.16]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.1, 0.1, 0.04, 16]} />
+          <meshStandardMaterial color="#22C55E" emissive="#10B981" emissiveIntensity={3.2} />
+        </mesh>
+        {/* Green Signal Light */}
+        <pointLight position={[0, 5.2, 0.4]} color="#10B981" intensity={2.0} distance={10} />
+      </group>
+
+      {/* ── 4. Overhead Electrification (OHE) Catenary Portal Masts ── */}
+      {[-34, -14, 14, 34].map((mx, idx) => (
+        <group key={`ohe-${idx}`} position={[mx, 0, 0]}>
+          {/* Trackside Steel H-Beam Mast */}
+          <mesh position={[0, 4.4, 4.5]}>
+            <boxGeometry args={[0.25, 8.8, 0.25]} />
+            <meshStandardMaterial color="#475569" metalness={0.9} roughness={0.3} />
+          </mesh>
+          {/* Cantilever Bracket Arm reaching over track */}
+          <mesh position={[0, 7.8, 2.2]}>
+            <boxGeometry args={[0.12, 0.12, 4.8]} />
+            <meshStandardMaterial color="#475569" metalness={0.9} />
+          </mesh>
+          {/* Porcelain Insulator */}
+          <mesh position={[0, 7.5, 0]}>
+            <cylinderGeometry args={[0.08, 0.08, 0.35, 8]} />
+            <meshStandardMaterial color="#854D0E" roughness={0.3} metalness={0.7} />
+          </mesh>
+          {/* Dropper & Contact Wire Holder */}
+          <mesh position={[0, 6.8, 0]}>
+            <cylinderGeometry args={[0.02, 0.02, 1.2, 6]} />
+            <meshStandardMaterial color="#94A3B8" metalness={0.95} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Continuous High-Voltage OHE Contact Wire spanning length */}
+      <mesh position={[0, 6.2, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.015, 0.015, 84, 8]} />
+        <meshStandardMaterial color="#F59E0B" emissive="#F59E0B" emissiveIntensity={0.3} metalness={0.9} />
+      </mesh>
+      {/* Supporting Catenary Messenger Wire */}
+      <mesh position={[0, 7.6, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.015, 0.015, 84, 8]} />
+        <meshStandardMaterial color="#94A3B8" metalness={0.9} />
+      </mesh>
+    </group>
+  );
+};
+
+// ─── 8. DUAL RAILWAY TRACKS & LEVEL CROSSING ROAD SURFACE ─────────────────────
+const RailwayTracksAndRoadCrossing: React.FC = () => {
+  const tieCount = 100;
+  const ties = useMemo(() => {
+    const arr: number[] = [];
+    for (let i = 0; i < tieCount; i++) {
+      arr.push(-42 + i * 0.84);
+    }
+    return arr;
+  }, [tieCount]);
+
+  return (
+    <group position={[0, 0, 0]}>
+      {/* ── Main Track Ballast Gravel Bed (Crushed Basalt Rock) ── */}
+      <mesh position={[0, 0.06, 0]} receiveShadow>
+        <boxGeometry args={[86, 0.16, 4.4]} />
+        <meshStandardMaterial color="#141923" roughness={0.95} />
+      </mesh>
+
+      {/* ── Concrete Sleepers with Steel Pandrol Clips ── */}
+      {ties.map((tx, idx) => (
+        <mesh key={`tie-${idx}`} position={[tx, 0.14, 0]}>
+          <boxGeometry args={[0.26, 0.12, 2.7]} />
+          <meshStandardMaterial color="#334155" roughness={0.8} metalness={0.2} />
+        </mesh>
+      ))}
+
+      {/* ── Twin Heavy Steel Rails (Indian Broad Gauge: Z = -0.84 and +0.84) ── */}
+      {[-0.84, 0.84].map((rz, i) => (
+        <group key={`rail-${i}`} position={[0, 0.24, rz]}>
+          <mesh>
+            <boxGeometry args={[86, 0.12, 0.09]} />
+            <meshStandardMaterial color="#94A3B8" metalness={0.95} roughness={0.15} />
+          </mesh>
+          {/* Polished Wheel Contact Head */}
+          <mesh position={[0, 0.065, 0]}>
+            <boxGeometry args={[86, 0.015, 0.07]} />
+            <meshStandardMaterial
+              color="#F8FAFC"
+              emissive="#E2E8F0"
+              emissiveIntensity={0.2}
+              metalness={0.98}
+              roughness={0.06}
+            />
+          </mesh>
+        </group>
+      ))}
+
+      {/* ── Road Level Crossing Surface (Rubber Flangeway Planks where Road crosses) ── */}
+      <group position={[0, 0.18, 0]}>
+        {/* Center Pad between rails */}
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[7.2, 0.08, 1.45]} />
+          <meshStandardMaterial color="#1E2430" roughness={0.8} />
+        </mesh>
+        {/* Outer Approach Pads */}
+        {[-1.3, 1.3].map((pz, i) => (
+          <mesh key={`pad-${i}`} position={[0, 0, pz]}>
+            <boxGeometry args={[7.2, 0.08, 0.85]} />
+            <meshStandardMaterial color="#1E2430" roughness={0.8} />
+          </mesh>
+        ))}
+        {/* White Zebra Road Hazard Stripes at Crossing Approach */}
+        {[-3.0, 3.0].map((sz, i) => (
+          <mesh key={`zebra-${i}`} position={[0, 0.01, sz]}>
+            <boxGeometry args={[6.8, 0.01, 0.25]} />
+            <meshStandardMaterial color="#FFFFFF" roughness={0.5} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+};
+
+// ─── 9. ATMOSPHERIC TRACKSIDE SPEED DUST & AIR PARTICLES ─────────────────────
+const TracksideDust: React.FC<{ active: boolean }> = ({ active }) => {
+  const count = 40;
+  const [pointsObj, geo, particles] = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const pData: { pos: THREE.Vector3; speed: number; life: number }[] = [];
+
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = 0;
+      pos[i * 3 + 1] = 0;
+      pos[i * 3 + 2] = 0;
+      pData.push({
+        pos: new THREE.Vector3((Math.random() - 0.5) * 44, 0.25, (Math.random() - 0.5) * 2.2),
+        speed: 0.4 + Math.random() * 0.5,
+        life: Math.random(),
+      });
+    }
+
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      size: 0.25,
+      color: '#CBD5E1',
+      transparent: true,
+      opacity: 0.25,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const pts = new THREE.Points(g, mat);
+    return [pts, g, pData];
+  }, [count]);
+
+  useFrame((_, delta) => {
+    if (!active) return;
+    const posAttr = geo.attributes.position as THREE.BufferAttribute;
+
+    particles.forEach((p, idx) => {
+      p.life += delta * p.speed;
+      if (p.life > 1.0) {
+        p.life = 0;
+        p.pos.set(22 + (Math.random() - 0.5) * 10, 0.2, (Math.random() - 0.5) * 2.4);
+      } else {
+        p.pos.x -= delta * 12.0; // rushing from right to left!
+        p.pos.y += delta * 0.2;
+      }
+      posAttr.setXYZ(idx, p.pos.x, p.pos.y, p.pos.z);
+    });
+    posAttr.needsUpdate = true;
+  });
+
+  return <primitive object={pointsObj} />;
+};
+
+// ─── MAIN PROJECTS SCENE: VANDE BHARAT AT RAILWAY LEVEL CROSSING ──────────────
 export const ProjectsScene: React.FC = () => {
+  const journeyProgress = useJourneyStore((state) => state.journeyProgress);
   const selectedProjectIndex = useJourneyStore((state) => state.selectedProjectIndex);
   const setSelectedProjectIndex = useJourneyStore((state) => state.setSelectedProjectIndex);
 
-  // Gallery Exhibit Coordinates along curved promenade
-  const exhibitPositions: [number, number, number][] = [
-    [-12.5, 0, 0.0],
-    [-7.5, 0, -1.4],
-    [-2.5, 0, -2.2],
-    [2.5, 0, -2.2],
-    [7.5, 0, -1.4],
-    [12.5, 0, 0.0],
-  ];
+  // Train Movement State along Track X axis
+  const trainPosRef = useRef(0);
+  const trainVelRef = useRef(0);
+  const wheelRotRef = useRef(0);
+  const [wheelRotation, setWheelRotation] = useState(0);
+
+  // Alternating red warning flasher state (1.5 Hz)
+  const [flasherState, setFlasherState] = useState(false);
+  const flasherTimerRef = useRef(0);
+
+  // Defined coach offsets along train X (Train moves from Right to Left!):
+  // Locomotive Nose Cab is at front (towards -X): -18.6m
+  // Coach 01 (EC1: E-Commerce)  -> -10.8m
+  // Coach 02 (C1:  ERP)         -> -3.0m
+  // Coach 03 (C2:  HRMS)        -> +4.8m
+  // Coach 04 (C3:  Mobile)      -> +12.6m
+  // Coach 05 (C4:  Analytics)   -> +20.4m
+  // Coach 06 (C5:  SaaS)        -> +28.2m
+  // When Coach k is selected, trainPos targets -compartmentOffsets[k],
+  // positioning Coach k front-and-center right at the level crossing (X = 0)!
+  const compartmentOffsets = useMemo(() => [-10.8, -3.0, 4.8, 12.6, 20.4, 28.2], []);
+
+  useFrame((_, delta) => {
+    // 1. Alternating Level Crossing Warning Lights
+    flasherTimerRef.current += delta;
+    if (flasherTimerRef.current > 0.4) {
+      flasherTimerRef.current = 0;
+      setFlasherState((prev) => !prev);
+    }
+
+    // 2. Train Target Position Tracking
+    const targetOffset = -compartmentOffsets[selectedProjectIndex];
+    const dist = targetOffset - trainPosRef.current;
+    const accel = dist * 2.8;
+    trainVelRef.current = THREE.MathUtils.lerp(trainVelRef.current, accel, delta * 4.0);
+    trainPosRef.current += trainVelRef.current * delta;
+
+    // 3. Wheel rotation proportional to movement displacement
+    wheelRotRef.current += trainVelRef.current * delta * 2.8;
+    setWheelRotation(wheelRotRef.current);
+  });
 
   return (
-    <group position={[-8, 0, -220]}>
-      {/* Gallery Hall Pavilion (Right side of road, facing -X towards traveler) */}
-      <group position={[14, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
-        {/* ========================================================= */}
-        {/* ARCHITECTURAL INTERIOR GALLERY ENCLOSURE                  */}
-        {/* ========================================================= */}
+    // ══════════════════════════════════════════════════════════════════════════
+    // WORLD POSITION & ORIENTATION:
+    // Placed precisely where the road crosses at progress p ≈ 0.51:
+    // pt = [-19.39, 0, -211.41], road yaw = -1.14 rad (-65.3 deg)
+    // In this local frame:
+    // - Z is along the road path (paper airplane flies along road)
+    // - X is across the road (tracks run along X)
+    // - +X is to the RIGHT of the road
+    // - -X is to the LEFT of the road
+    // - The Vande Bharat train moves from RIGHT (+X) to LEFT (-X)!
+    // ══════════════════════════════════════════════════════════════════════════
+    <group position={[-19.39, 0, -211.41]} rotation={[0, -1.14, 0]}>
+      {/* ── 1. DUAL RAILWAY TRACKS & FLUSH ROAD CROSSING SURFACE ── */}
+      <RailwayTracksAndRoadCrossing />
 
-        {/* Polished Dark Concrete / Basalt Stone Floor */}
-        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[36, 26]} />
-          <meshStandardMaterial
-            color="#12151C"
-            roughness={0.45}
-            metalness={0.15}
-          />
-        </mesh>
+      {/* ── 2. RAILWAY GATE BOOM BARRIERS (Approach & Exit) ── */}
+      {/* Approach Gate (Z = +4.0m) */}
+      <RailwayBoomGate approachZ={4.0} armSide="right" isFlashing={flasherState} />
+      {/* Exit Gate (Z = -4.0m) */}
+      <RailwayBoomGate approachZ={-4.0} armSide="left" isFlashing={!flasherState} />
 
-        {/* Subtle Bronze Inlay Grid Accent Lines */}
-        {[-10, -5, 0, 5, 10].map((lx, i) => (
-          <mesh key={`grid-x-${i}`} position={[lx, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[0.04, 25.8]} />
-            <meshStandardMaterial color="#44352A" metalness={0.7} roughness={0.3} />
-          </mesh>
-        ))}
-        {[-8, -2, 4, 10].map((lz, j) => (
-          <mesh key={`grid-z-${j}`} position={[0, 0.025, lz]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[35.8, 0.04]} />
-            <meshStandardMaterial color="#44352A" metalness={0.7} roughness={0.3} />
-          </mesh>
-        ))}
+      {/* ── 3. CLASSIC INDIAN RAILWAYS GATEKEEPER CABIN (GHUMTI) ── */}
+      <GatekeeperCabin />
 
-        {/* Minimalist Matte Exhibition Back Wall */}
-        <mesh position={[0, 4.5, -6.5]}>
-          <boxGeometry args={[36, 9.0, 0.4]} />
-          <meshStandardMaterial color="#161920" roughness={0.9} />
-        </mesh>
+      {/* ── 4. SIGNAGE, SIGNALS & OVERHEAD ELECTRIFICATION (OHE) ── */}
+      <RailwaySignageAndOHE />
 
-        {/* Architectural Bronze Baseboard Line */}
-        <mesh position={[0, 0.15, -6.28]}>
-          <boxGeometry args={[36, 0.3, 0.04]} />
-          <meshStandardMaterial color="#574130" metalness={0.8} />
-        </mesh>
+      {/* ── 5. ATMOSPHERIC TRACKSIDE SPEED DUST & AIR PARTICLES ── */}
+      <TracksideDust active={journeyProgress >= 0.44 && journeyProgress <= 0.58} />
 
-        {/* Warm Ambient Gallery Baseboard Cove Wash */}
-        <pointLight position={[0, 0.4, -5.8]} color="#FED7AA" intensity={1.5} distance={20} />
+      {/* ── 6. THE INDIAN VANDE BHARAT EXPRESS (MOVING RIGHT TO LEFT) ── */}
+      <group position={[trainPosRef.current, 0, 0]}>
+        {/* High-Speed Aerodynamic Bullet Nose Locomotive Cab (Facing -X / Left!) */}
+        <VandeBharatNose position={[-18.6, 0, 0]} wheelRotation={wheelRotation} />
 
-        {/* Gallery Ceiling with Recessed Coffer Beam Fixtures */}
-        <mesh position={[0, 8.8, 0]}>
-          <boxGeometry args={[36, 0.4, 26]} />
-          <meshStandardMaterial color="#0F1218" roughness={0.85} />
-        </mesh>
-        {/* Recessed Track Light Beams */}
-        {[-6, 6].map((tz, i) => (
-          <group key={`track-${i}`} position={[0, 8.55, tz]}>
-            <mesh>
-              <boxGeometry args={[34, 0.12, 0.2]} />
-              <meshStandardMaterial color="#2B303C" metalness={0.9} />
-            </mesh>
-          </group>
-        ))}
-
-        {/* Slender Structural Architectural Columns */}
-        {[-16.5, -5.5, 5.5, 16.5].map((cx, i) => (
-          <mesh key={`col-${i}`} position={[cx, 4.5, 11]}>
-            <boxGeometry args={[0.35, 9.0, 0.35]} />
-            <meshStandardMaterial color="#1A1E26" metalness={0.8} roughness={0.2} />
-          </mesh>
-        ))}
-
-        {/* Architectural Tempered Glass Divider Panels */}
-        {[-5.0, 5.0].map((gx, i) => (
-          <mesh key={`glass-div-${i}`} position={[gx, 3.2, -3.0]}>
-            <boxGeometry args={[0.06, 5.5, 5.0]} />
-            <meshPhysicalMaterial
-              color="#CBD5E1"
-              transparent
-              opacity={0.3}
-              roughness={0.1}
-              transmission={0.85}
-              thickness={0.4}
-            />
-          </mesh>
-        ))}
-
-        {/* Minimalist Gallery Botanicals */}
-        <GalleryPlanter position={[-15.5, 0, 7.5]} />
-        <GalleryPlanter position={[15.5, 0, 7.5]} />
-        <GalleryPlanter position={[-15.5, 0, -4.5]} />
-        <GalleryPlanter position={[15.5, 0, -4.5]} />
-
-        {/* ========================================================= */}
-        {/* 6 CURATED 3D EXHIBIT PLATFORMS                            */}
-        {/* ========================================================= */}
-        {projects.map((project, idx) => (
-          <ExhibitDisplay
-            key={project.id}
-            project={project}
+        {/* 6 Curated Software Project Category Coaches (EC1 through C5) */}
+        {PROJECT_COMPARTMENTS.map((category, idx) => (
+          <VandeBharatCoach
+            key={category.id}
+            data={category}
             index={idx}
             isSelected={idx === selectedProjectIndex}
             onSelect={() => setSelectedProjectIndex(idx)}
-            position={exhibitPositions[idx]}
+            wheelRotation={wheelRotation}
+            offsetPos={compartmentOffsets[idx]}
           />
         ))}
 
-        {/* Gallery Entrance Paved Walkway Link to Main Road */}
-        <mesh position={[0, 0.015, 14]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[14, 8]} />
-          <meshStandardMaterial color="#1E232E" roughness={0.6} />
+        {/* Rear Aerodynamic Tail Coach Bellows & Coupling */}
+        <mesh position={[32.0, 1.88, 0]}>
+          <boxGeometry args={[0.8, 2.6, 2.3]} />
+          <meshStandardMaterial color="#1E232E" roughness={0.7} />
         </mesh>
       </group>
     </group>

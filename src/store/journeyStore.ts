@@ -11,17 +11,16 @@ export interface ChapterMeta {
 export const CHAPTERS_DATA: ChapterMeta[] = [
   { id: 0, num: '01', title: 'The Beginning', subtitle: 'Home' },
   { id: 1, num: '02', title: 'Education', subtitle: 'University' },
-  { id: 2, num: '03', title: 'First Code', subtitle: 'Learning' },
-  { id: 3, num: '04', title: 'Career', subtitle: 'Experience' },
-  { id: 4, num: '05', title: 'Projects', subtitle: 'My Work' },
-  { id: 5, num: '06', title: 'Technology', subtitle: 'Technology Lab' },
-  { id: 6, num: '07', title: 'Present', subtitle: 'Current Chapter' },
-  { id: 7, num: '08', title: 'Future', subtitle: "What's Next" },
-  { id: 8, num: '09', title: 'Contact', subtitle: "Let's Connect" },
+  { id: 2, num: '03', title: 'Career', subtitle: 'Experience' },
+  { id: 3, num: '04', title: 'Projects', subtitle: 'Vande Bharat Express' },
+  { id: 4, num: '05', title: 'Technology', subtitle: 'Technology Lab' },
+  { id: 5, num: '06', title: 'Present', subtitle: 'Current Chapter' },
+  { id: 6, num: '07', title: 'Future', subtitle: "What's Next" },
+  { id: 7, num: '08', title: 'Contact', subtitle: "Let's Connect" },
 ];
 
 export interface JourneyState {
-  // Current chapter (0-indexed, 0 to 8)
+  // Current chapter (0-indexed, 0 to 7)
   currentChapter: number;
   totalChapters: number;
   chapterNames: string[];

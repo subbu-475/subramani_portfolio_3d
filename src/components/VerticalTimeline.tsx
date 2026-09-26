@@ -37,11 +37,11 @@ interface FlightDestination {
  */
 const FLIGHT_DESTINATIONS: FlightDestination[] = [
   { id: 1, num: '01', title: 'EDUCATION', progress: 0.17 },
-  { id: 3, num: '02', title: 'EXPERIENCE', progress: 0.40 },
-  { id: 4, num: '03', title: 'PROJECTS', progress: 0.52 },
-  { id: 5, num: '04', title: 'SKILLS', progress: 0.64 },
-  { id: 7, num: '05', title: 'FUTURE', progress: 0.82 },
-  { id: 8, num: '06', title: 'CONTACT', progress: 0.98 },
+  { id: 2, num: '02', title: 'EXPERIENCE', progress: 0.40 },
+  { id: 3, num: '03', title: 'PROJECTS', progress: 0.51 },
+  { id: 4, num: '04', title: 'SKILLS', progress: 0.64 },
+  { id: 6, num: '05', title: 'FUTURE', progress: 0.84 },
+  { id: 7, num: '06', title: 'CONTACT', progress: 0.96 },
 ];
 
 export const VerticalTimeline: React.FC = () => {

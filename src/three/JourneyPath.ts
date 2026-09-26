@@ -21,9 +21,9 @@ export const JOURNEY_WAYPOINTS: THREE.Vector3[] = [
   new THREE.Vector3(-20,    0,   -60),     // WP2:  Road bends left (intermediate)
   new THREE.Vector3(-42,    0,   -75),     // WP3:  ★ College campus landmark (LEFT side)
 
-  // ══════ TURN RIGHT → CH 02: FIRST LINE OF CODE (Mid-Afternoon) ══════
+  // ══════ CURVE RIGHT → TRANSITION TO CAREER (Afternoon) ══════
   new THREE.Vector3(-38,    0,  -105),     // WP4:  Road curves right, leaving campus
-  new THREE.Vector3( -8,    0,  -125),     // WP5:  ★ Coding garage landmark (RIGHT side)
+  new THREE.Vector3( -8,    0,  -125),     // WP5:  Road sweeps past foothills towards city
 
   // ══════ TURN LEFT → CH 03: CAREER (Late Afternoon / Golden Hour) ══════
   new THREE.Vector3(-12,    0,  -152),     // WP6:  Road curves left into city
@@ -134,10 +134,18 @@ export function getAirplaneFlightPosition(progress: number, target = new THREE.V
     // CAREER: glide across boulevard
     const t = Math.sin(((p - 0.38) / 0.04) * Math.PI);
     altOffset = 2.0 - t * 0.2;
-  } else if (p >= 0.50 && p <= 0.54) {
-    // PROJECTS: glide through gallery exhibits
-    const t = Math.sin(((p - 0.50) / 0.04) * Math.PI);
-    altOffset = 2.0 + t * 0.2;
+  } else if (p >= 0.48 && p <= 0.56) {
+    // PROJECTS (PROJECT EXPRESS):
+    // Enters railway station, glides down along platform near station sign, cruises alongside train, then ascends ahead
+    if (p <= 0.52) {
+      const t = Math.sin(((p - 0.48) / 0.04) * Math.PI * 0.5);
+      altOffset = THREE.MathUtils.lerp(2.0, 1.25, t);
+    } else if (p <= 0.54) {
+      altOffset = 1.65;
+    } else {
+      const t = (p - 0.54) / 0.02;
+      altOffset = THREE.MathUtils.lerp(1.65, 2.4, t);
+    }
   } else if (p >= 0.62 && p <= 0.66) {
     // SKILLS: laboratory promenade
     const t = Math.sin(((p - 0.62) / 0.04) * Math.PI);

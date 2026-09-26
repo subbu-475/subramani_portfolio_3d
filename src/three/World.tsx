@@ -11,7 +11,6 @@ import Road from './Road';
 
 import IntroScene from './scenes/IntroScene';
 import EducationScene from './scenes/EducationScene';
-import CodingScene from './scenes/CodingScene';
 import CareerScene from './scenes/CareerScene';
 import ProjectsScene from './scenes/ProjectsScene';
 import SkillsScene from './scenes/SkillsScene';
@@ -52,7 +51,6 @@ const World: React.FC = () => {
           <group>
             <IntroScene />
             <EducationScene />
-            <CodingScene />
             <CareerScene />
             <ProjectsScene />
             <SkillsScene />

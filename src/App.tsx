@@ -16,13 +16,12 @@ import { Fallback2D } from './components/Fallback2D';
 import { profile } from './data/profile';
 import { education } from './data/education';
 import { experiences } from './data/experience';
-import { projects } from './data/projects';
+import { PROJECT_COMPARTMENTS } from './data/projectCompartments';
 import { skillCategories } from './data/skills';
 import { JOURNEY_CHAPTERS } from './data/journey';
 import {
   User,
   ExternalLink,
-  Terminal,
   Sparkles,
 } from 'lucide-react';
 
@@ -43,12 +42,11 @@ function App() {
     setSelectedSkillCategoryIndex,
   } = useJourneyStore();
 
-  const selectedProject = projects[selectedProjectIndex] || projects[0];
   const selectedSkillCategory = skillCategories[selectedSkillCategoryIndex] || skillCategories[0];
 
   const [hasWebGL, setHasWebGL] = useState(true);
   const scrollAccum = useRef(0);
-  const maxScroll = 9000; // Virtual scroll units for 9 chapters
+  const maxScroll = 8000; // Virtual scroll units for 8 chapters
 
   // Check WebGL availability
   useEffect(() => {
@@ -254,40 +252,10 @@ function App() {
             ))}
           </ChapterPanel>
 
-          {/* Chapter 02: First Line of Code (Landmark on RIGHT -> Overlay on LEFT) */}
+          {/* Chapter 02: Career (Landmark on LEFT -> Overlay on RIGHT) */}
           <ChapterPanel
             chapter={2}
             chapterNumberText="CHAPTER 03"
-            title="FIRST LINE OF CODE"
-            tagline="Curiosity became code."
-            description="The pivotal moment when logic and problem solving clicked into place."
-            position="left"
-          >
-            <div className="glass p-5 sm:p-6 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-3">
-              <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono">
-                <Terminal size={16} />
-                <span>DEVELOPER ROOTS</span>
-              </div>
-              <p className="text-white/80 text-sm leading-relaxed italic border-l-2 border-cyan-400/60 pl-3">
-                "The moment I realized I can build, create and solve problems through code."
-              </p>
-              <div className="space-y-1.5 pt-1 text-xs text-white/60">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                  <span>Explored algorithms, data structures & modern full-stack web</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                  <span>Transitioned from curious student to product builder</span>
-                </div>
-              </div>
-            </div>
-          </ChapterPanel>
-
-          {/* Chapter 03: Career (Landmark on LEFT -> Overlay on RIGHT) */}
-          <ChapterPanel
-            chapter={3}
-            chapterNumberText="CHAPTER 04"
             title="CAREER"
             tagline="Turning skills into impact."
             description="A journey of building and contributing to enterprise products and client platforms."
@@ -326,80 +294,121 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 04: Projects (Landmark on RIGHT -> Overlay on LEFT) */}
+          {/* Chapter 03: Projects / Project Express Railway Station */}
+          {/* Chapter 03: Projects / Indian Vande Bharat Express at Railway Gate */}
           <ChapterPanel
-            chapter={4}
-            chapterNumberText="CHAPTER 05"
-            title="PROJECTS EXHIBITION"
-            tagline="Curated gallery of built digital platforms."
+            chapter={3}
+            chapterNumberText="CHAPTER 04"
+            title="VANDE BHARAT EXPRESS"
+            tagline="Project Express • Level Crossing"
+            description="The Indian Vande Bharat Express crosses the journey path, with each compartment highlighting built software solutions."
             position="left"
           >
-            <div className="space-y-3 max-w-md pt-1">
-              {/* Compact Project Navigation List */}
-              <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
-                {projects.map((proj, idx) => {
+            <div className="space-y-2.5 max-w-sm sm:max-w-md pt-0.5">
+              {/* 1. Indian Railways Vande Bharat Ticket UI */}
+              <div className="glass p-3 rounded-xl border border-orange-500/40 bg-[#0A1325]/90 shadow-xl space-y-1.5">
+                <div className="flex items-center justify-between border-b border-white/10 pb-1 text-[10px] font-mono">
+                  <span className="text-orange-400 font-bold tracking-widest flex items-center gap-1.5">
+                    <span>🚆</span>
+                    <span>VANDE BHARAT // 20608 PROJECT EXPRESS</span>
+                  </span>
+                  <span className="text-emerald-400 font-semibold bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/30">GATE LC-47</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] font-mono text-white/70 pt-0.5">
+                  <div>
+                    <span className="text-white/40 block text-[9px]">ENGINEER:</span>
+                    <span className="text-white font-semibold">SUBRAMANI</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block text-[9px]">COACH:</span>
+                    <span className="text-orange-400 font-semibold">{PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachCode} • {PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachType}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block text-[9px]">SPEED:</span>
+                    <span className="text-cyan-300 font-semibold">160 KM/H</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block text-[9px]">DESTINATION:</span>
+                    <span className="text-amber-300 font-semibold">PRODUCTION READY</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Floating Train Compartment Coach Selector */}
+              <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
+                {PROJECT_COMPARTMENTS.map((comp, idx) => {
                   const isSel = idx === selectedProjectIndex;
                   return (
                     <button
-                      key={proj.id}
+                      key={comp.id}
                       onClick={() => setSelectedProjectIndex(idx)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-2 py-1.5 rounded-lg text-[10px] font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
                         isSel
-                          ? 'bg-amber-400/20 border border-amber-400/60 text-amber-300 font-semibold shadow-sm'
+                          ? 'bg-orange-500/25 border border-orange-500/70 text-orange-200 font-bold shadow-sm'
                           : 'bg-transparent border border-transparent text-white/50 hover:text-white hover:bg-white/5'
                       }`}
                     >
-                      <span className="text-[10px] text-white/40">{String(idx + 1).padStart(2, '0')}</span>
-                      <span className="truncate max-w-[90px] sm:max-w-none">{proj.title.replace('Platform', '').replace('Portal', '').replace('Custom App', '').trim()}</span>
+                      <span className={isSel ? 'text-orange-400 font-bold' : 'text-white/35'}>{comp.coachCode}</span>
+                      <span className="tracking-wider">{comp.title}</span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Single Compact Project Information Panel for Selected Exhibit */}
-              <div className="glass p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[#10141C]/90">
+              {/* 3. Selected Compartment Information Panel */}
+              <div className="glass p-4 sm:p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-2.5 bg-[#0B1321]/95">
                 <div className="flex items-center justify-between text-[11px] font-mono border-b border-white/10 pb-2">
-                  <span className="text-amber-400 font-semibold tracking-widest uppercase">
-                    PROJECT {String(selectedProjectIndex + 1).padStart(2, '0')}
+                  <span className="text-orange-400 font-semibold tracking-widest uppercase flex items-center gap-1.5">
+                    <span>COACH {PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachCode}</span>
+                    <span className="text-white/30">•</span>
+                    <span className="text-white/70 text-[10px]">{PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachType}</span>
                   </span>
-                  <span className="text-white/40 uppercase tracking-wider text-[10px]">
-                    {selectedProject.category}
+                  <span className="text-cyan-400 uppercase tracking-wider text-[10px] bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
+                    PROJECT CATEGORY
                   </span>
                 </div>
 
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-white tracking-tight uppercase leading-snug">
-                    {selectedProject.title}
+                    {PROJECT_COMPARTMENTS[selectedProjectIndex]?.categoryName}
                   </h3>
+                  <p className="text-xs text-amber-200/90 font-medium italic pt-0.5">
+                    "{PROJECT_COMPARTMENTS[selectedProjectIndex]?.tagline}"
+                  </p>
                   <p className="text-xs text-white/70 leading-relaxed pt-1">
-                    {selectedProject.shortDescription}
+                    {PROJECT_COMPARTMENTS[selectedProjectIndex]?.description}
                   </p>
                 </div>
 
                 {/* Inline Technology Stack Tags */}
-                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-[11px] font-mono text-cyan-300/90 font-medium">
-                  {selectedProject.technologies.slice(0, 4).map((tech, i) => (
-                    <span key={tech} className="inline-flex items-center gap-1.5">
-                      <span>{tech.toUpperCase()}</span>
-                      {i < Math.min(3, selectedProject.technologies.length - 1) && (
-                        <span className="text-white/30">•</span>
-                      )}
-                    </span>
-                  ))}
+                <div className="space-y-1 pt-0.5">
+                  <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">
+                    TECHNOLOGIES
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1 text-[11px] font-mono text-cyan-300 font-medium">
+                    {PROJECT_COMPARTMENTS[selectedProjectIndex]?.technologies.map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/85 text-[10px]"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Action CTA & Live Link */}
+                {/* Action CTA & Live Demo */}
                 <div className="pt-1.5 flex items-center gap-3">
                   <button
-                    onClick={() => openProjectDetail(selectedProject.id)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] border border-white/20 hover:border-amber-400/60 text-white text-xs font-mono font-semibold tracking-wider uppercase transition-all cursor-pointer group"
+                    onClick={() => openProjectDetail(PROJECT_COMPARTMENTS[selectedProjectIndex]?.projectId || 'ecommerce')}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 hover:border-amber-400 text-amber-200 text-xs font-mono font-semibold tracking-wider uppercase transition-all cursor-pointer group shadow-sm"
                   >
-                    <span>VIEW PROJECT</span>
+                    <span>EXPLORE PROJECTS</span>
                     <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                   </button>
-                  {selectedProject.demo && (
+                  {PROJECT_COMPARTMENTS[selectedProjectIndex]?.demoUrl && (
                     <a
-                      href={selectedProject.demo}
+                      href={PROJECT_COMPARTMENTS[selectedProjectIndex].demoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs font-mono text-white/50 hover:text-white transition-colors"
@@ -413,10 +422,10 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 05: Technology Lab (Landmark on LEFT -> Overlay on RIGHT) */}
+          {/* Chapter 04: Technology Lab (Landmark on LEFT -> Overlay on RIGHT) */}
           <ChapterPanel
-            chapter={5}
-            chapterNumberText="CHAPTER 06"
+            chapter={4}
+            chapterNumberText="CHAPTER 05"
             title="TECHNOLOGY"
             tagline="Tools that power my journey."
             position="right"
@@ -477,10 +486,10 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 06: Where I Am Today (Landmark on RIGHT -> Overlay on LEFT) */}
+          {/* Chapter 05: Where I Am Today (Landmark on RIGHT -> Overlay on LEFT) */}
           <ChapterPanel
-            chapter={6}
-            chapterNumberText="CHAPTER 07"
+            chapter={5}
+            chapterNumberText="CHAPTER 06"
             title="WHERE I AM TODAY"
             tagline="Building. Learning. Exploring."
             position="left"
@@ -511,10 +520,10 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 07: The Journey Continues (Landmark on LEFT -> Overlay on RIGHT) */}
+          {/* Chapter 06: The Journey Continues (Landmark on LEFT -> Overlay on RIGHT) */}
           <ChapterPanel
-            chapter={7}
-            chapterNumberText="CHAPTER 08"
+            chapter={6}
+            chapterNumberText="CHAPTER 07"
             title="THE JOURNEY CONTINUES"
             tagline="Still learning. Still building. Still moving forward."
             description="Excited for new opportunities, bigger engineering challenges, and greater impact."
@@ -542,10 +551,10 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 08: Contact (Landing Platform) */}
+          {/* Chapter 07: Contact (Landing Platform) */}
           <ChapterPanel
-            chapter={8}
-            chapterNumberText="CHAPTER 06"
+            chapter={7}
+            chapterNumberText="CHAPTER 08"
             title="LET'S BUILD SOMETHING TOGETHER"
             tagline="Touchdown. Where one journey ends, the next project takes flight."
             position="left"

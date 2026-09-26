@@ -4,34 +4,31 @@ import * as THREE from 'three';
 import { useJourneyStore } from '../store/journeyStore';
 import { getAirplaneFlightPosition } from './JourneyPath';
 
-// 9-stage cinematic time-of-day progression matching the user's narrative:
-// 0: Golden Hour Sunset (Trailhead scenic road, warm sunset light, charcoal shadows)
-// 1: Late Morning / Afternoon (College education, bright campus)
-// 2: Mid-Afternoon / Evening start (First line of code, cozy workspace)
-// 3: Evening / Golden hour (Career boulevard, corporate towers)
-// 4: Sunset (Projects tech showroom, golden sunset fire)
-// 5: Twilight / Early Evening (Skills holographic galaxy, purple indigo)
-// 6: Night (Where I am today, corporate skyline balcony, neon city)
-// 7: Pre-Dawn / Rocket launch ascent into space
-// 8: Deep space orbital station
+// 8-stage cinematic time-of-day progression matching the 8 chapters:
+// 0: The Beginning (Golden Hour Sunset, trailhead scenic road)
+// 1: Education (Late Morning / Afternoon, bright campus)
+// 2: Career (Evening / Golden hour, corporate towers)
+// 3: Project Express (Evening railway station, warm station lighting)
+// 4: Technology Laboratory (Warm white / soft gold primary lab lighting)
+// 5: Night City (Where I am today, corporate skyline balcony)
+// 6: Space Ascent (Pre-Dawn / Rocket launch ascent into space)
+// 7: Deep space orbital station
 const TIME_STAGES = [
-  // 0: Cinematic Sunset Golden Hour (Soft sun, ambient warm fill, deep charcoal depth)
+  // 0: The Beginning
   { ambient: '#E8E3DA', dir: '#FCD34D', intensity: 2.2, dirPos: [18, 22, -30] as [number, number, number] },
-  // 1: Golden Campus Sunlight (Warm directional sun, lifted ambient fill, subtle rim light)
+  // 1: Education
   { ambient: '#F2EFEB', dir: '#FDE68A', intensity: 2.3, dirPos: [-20, 35, 15] as [number, number, number] },
-  // 2: Mid-Afternoon (Warm amber afternoon light)
-  { ambient: '#FED7AA', dir: '#FB923C', intensity: 2.0, dirPos: [25, 35, 15] as [number, number, number] },
-  // 3: Golden Hour / Evening (Deep golden hour on city towers)
+  // 2: Career
   { ambient: '#FDBA74', dir: '#EA580C', intensity: 2.2, dirPos: [-30, 22, 20] as [number, number, number] },
-  // 4: Modern Architecture Gallery (Warm gallery ambient fill, clean directional lighting)
-  { ambient: '#D1D5DB', dir: '#FFF7ED', intensity: 2.1, dirPos: [20, 28, 15] as [number, number, number] },
-  // 5: Technology Laboratory (Warm white / soft gold primary lab lighting with clean ambient fill)
+  // 3: Project Express Railway Station
+  { ambient: '#182436', dir: '#FEF3C7', intensity: 2.2, dirPos: [15, 32, -215] as [number, number, number] },
+  // 4: Technology Laboratory
   { ambient: '#CBD5E1', dir: '#FFFBEB', intensity: 2.1, dirPos: [-20, 28, 15] as [number, number, number] },
-  // 6: Night City (Crisp moonlight and neon city glow)
+  // 5: Night City
   { ambient: '#38BDF8', dir: '#60A5FA', intensity: 1.6, dirPos: [25, 35, 20] as [number, number, number] },
-  // 7: Space Ascent (Cosmic blue with rocket flame warmth)
+  // 6: Space Ascent
   { ambient: '#60A5FA', dir: '#38BDF8', intensity: 1.8, dirPos: [-20, 50, 20] as [number, number, number] },
-  // 8: Deep Space (High contrast orbital sunlight)
+  // 7: Deep Space
   { ambient: '#38BDF8', dir: '#00F0FF', intensity: 2.0, dirPos: [0, 80, 25] as [number, number, number] },
 ];
 

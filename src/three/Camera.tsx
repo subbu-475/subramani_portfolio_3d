@@ -55,6 +55,30 @@ export const Camera: React.FC = () => {
       effectiveLookY = 0.25;
       effectiveForwardDist = 5.2;
 
+      // In Chapter 04 (Projects / Project Express Railway Station):
+      // Wide establishing shot on entry, platform & train tracking, and selected compartment framing
+      if (journeyProgress >= 0.45 && journeyProgress <= 0.56) {
+        if (journeyProgress <= 0.49) {
+          // Approaching station: wide establishing view of the railway canopy
+          const t = (journeyProgress - 0.45) / 0.04;
+          effectiveCamZ = THREE.MathUtils.lerp(4.6, 5.8, t);
+          effectiveCamY = THREE.MathUtils.lerp(1.25, 1.65, t);
+          effectiveForwardDist = THREE.MathUtils.lerp(5.2, 6.2, t);
+        } else if (journeyProgress <= 0.54) {
+          // Tracking along platform: cinematic close framing on active compartment
+          const t = Math.sin(((journeyProgress - 0.49) / 0.05) * Math.PI);
+          effectiveCamZ = THREE.MathUtils.lerp(4.6, isMobile ? 4.8 : 3.9, t);
+          effectiveCamY = THREE.MathUtils.lerp(1.25, 1.15, t);
+          effectiveLookX += (isMobile ? 0.2 : 0.48); // Look towards train & platform on right
+          effectiveLookY = THREE.MathUtils.lerp(0.25, 0.22, t);
+        } else {
+          // Departing station: pulls back as airplane accelerates ahead of the train
+          const t = (journeyProgress - 0.54) / 0.02;
+          effectiveCamZ = THREE.MathUtils.lerp(4.6, 5.4, t);
+          effectiveCamY = THREE.MathUtils.lerp(1.25, 1.55, t);
+        }
+      }
+
       // In Chapter 06 (Technology Lab), smoothly sweep camera focus across active stations
       if (journeyProgress >= 0.56 && journeyProgress <= 0.68) {
         const stationShift = (selectedSkillCategoryIndex - 1.5) * 0.35;
