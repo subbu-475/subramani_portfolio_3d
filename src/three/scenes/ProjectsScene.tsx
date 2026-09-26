@@ -119,25 +119,7 @@ const CategoryProjectExhibit: React.FC<WindowScreenProps> = ({ type, active, acc
         </group>
       )}
 
-      {type === 'erp-business' && (
-        <group>
-          {/* ERP Automated Workflows & DocType Schema Nodes */}
-          <mesh position={[-1.3, 0.05, 0]}>
-            <boxGeometry args={[1.3, 0.8, 0.04]} />
-            <meshStandardMaterial color="#0F172A" emissive="#F59E0B" emissiveIntensity={intensity} />
-          </mesh>
-          <mesh position={[0.1, -0.05, 0]}>
-            <boxGeometry args={[1.1, 0.65, 0.04]} />
-            <meshStandardMaterial color="#0B132B" emissive={accent} emissiveIntensity={intensity * 0.8} />
-          </mesh>
-          <mesh position={[1.4, 0.1, 0]}>
-            <boxGeometry args={[0.9, 0.7, 0.04]} />
-            <meshStandardMaterial color="#0F172A" emissive="#E2E8F0" emissiveIntensity={intensity * 0.6} />
-          </mesh>
-        </group>
-      )}
-
-      {type === 'hrms-workforce' && (
+      {(type === 'hrms' || type === 'hrms-workforce') && (
         <group>
           {/* HRMS Employee Telemetry & Attendance Cycles */}
           <mesh position={[-1.2, 0, 0]}>
@@ -155,15 +137,33 @@ const CategoryProjectExhibit: React.FC<WindowScreenProps> = ({ type, active, acc
         </group>
       )}
 
-      {type === 'mobile-apps' && (
+      {(type === 'frappe-erp' || type === 'erp-business') && (
         <group>
-          {/* Native Smartphone Interface Displays */}
+          {/* ERP Automated Workflows & DocType Schema Nodes */}
+          <mesh position={[-1.3, 0.05, 0]}>
+            <boxGeometry args={[1.3, 0.8, 0.04]} />
+            <meshStandardMaterial color="#0F172A" emissive="#F59E0B" emissiveIntensity={intensity} />
+          </mesh>
+          <mesh position={[0.1, -0.05, 0]}>
+            <boxGeometry args={[1.1, 0.65, 0.04]} />
+            <meshStandardMaterial color="#0B132B" emissive={accent} emissiveIntensity={intensity * 0.8} />
+          </mesh>
+          <mesh position={[1.4, 0.1, 0]}>
+            <boxGeometry args={[0.9, 0.7, 0.04]} />
+            <meshStandardMaterial color="#0F172A" emissive="#E2E8F0" emissiveIntensity={intensity * 0.6} />
+          </mesh>
+        </group>
+      )}
+
+      {(type === 'service-booking') && (
+        <group>
+          {/* Service Booking Smartphone & Schedule Displays */}
           {[-1.1, 0.15, 1.4].map((px, i) => (
             <mesh key={`phone-${i}`} position={[px, 0, 0]}>
               <boxGeometry args={[0.55, 0.95, 0.04]} />
               <meshStandardMaterial
                 color="#060A14"
-                emissive="#60A5FA"
+                emissive="#38BDF8"
                 emissiveIntensity={intensity * (i === 1 ? 1.0 : 0.7)}
               />
             </mesh>
@@ -171,12 +171,12 @@ const CategoryProjectExhibit: React.FC<WindowScreenProps> = ({ type, active, acc
         </group>
       )}
 
-      {type === 'admin-analytics' && (
+      {(type === 'task-management' || type === 'admin-analytics') && (
         <group>
-          {/* Telemetry Charts & Executive KPI Gauges */}
+          {/* Task Management Telemetry & Real-Time Sync */}
           <mesh position={[-1.3, 0.05, 0]}>
             <boxGeometry args={[1.3, 0.8, 0.04]} />
-            <meshStandardMaterial color="#0B1220" emissive="#FBBF24" emissiveIntensity={intensity} />
+            <meshStandardMaterial color="#0B1220" emissive="#F59E0B" emissiveIntensity={intensity} />
           </mesh>
           <mesh position={[0.1, -0.05, 0]}>
             <boxGeometry args={[1.1, 0.65, 0.04]} />
@@ -189,9 +189,9 @@ const CategoryProjectExhibit: React.FC<WindowScreenProps> = ({ type, active, acc
         </group>
       )}
 
-      {type === 'saas-web' && (
+      {(type === 'mobile-applications' || type === 'saas-web' || type === 'mobile-apps') && (
         <group>
-          {/* Cloud Native Multi-Tenant SaaS Infrastructure */}
+          {/* Mobile Applications & Cross-Platform Suite */}
           <mesh position={[-1.2, 0, 0]}>
             <boxGeometry args={[1.4, 0.8, 0.04]} />
             <meshStandardMaterial color="#07111E" emissive="#34D399" emissiveIntensity={intensity} />

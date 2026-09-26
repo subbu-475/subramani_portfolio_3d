@@ -12,18 +12,18 @@ import { SkillDetail } from './components/SkillDetail';
 import { QualitySettings } from './components/QualitySettings';
 import { ChapterPanel } from './components/journey/ChapterPanel';
 import { ContactForm } from './components/ContactForm';
-import { Fallback2D } from './components/Fallback2D';
+import { ClassicView } from './components/ClassicView';
 import { profile } from './data/profile';
-import { education } from './data/education';
 import { experiences } from './data/experience';
 import { PROJECT_COMPARTMENTS } from './data/projectCompartments';
 import { TECHNOLOGY_CUBES, TECHNOLOGY_CATEGORIES, type TechnologyCubeData } from './data/technologyCubes';
 import { JOURNEY_CHAPTERS } from './data/journey';
 import {
-  User,
   ExternalLink,
   Sparkles,
+  Mail,
 } from 'lucide-react';
+import { Github, Linkedin } from './components/Icons';
 
 const TechBrandIcon: React.FC<{ cube: TechnologyCubeData }> = ({ cube }) => {
   if (cube.id === 'react') {
@@ -91,6 +91,8 @@ function App() {
     setSelectedSkillCategoryIndex,
     selectedTechCubeId,
     setSelectedTechCubeId,
+    viewMode,
+    jumpToChapter,
   } = useJourneyStore();
 
   const activeTechCube = useMemo(() => {
@@ -99,7 +101,7 @@ function App() {
 
   const [hasWebGL, setHasWebGL] = useState(true);
   const scrollAccum = useRef(0);
-  const maxScroll = 8000; // Virtual scroll units for 8 chapters
+  const maxScroll = 7000; // Virtual scroll units for 7 chapters
 
   // Check WebGL availability
   useEffect(() => {
@@ -210,12 +212,17 @@ function App() {
     requestAnimationFrame(animate);
   };
 
-  if (!hasWebGL) {
-    return <Fallback2D />;
+  if (!hasWebGL || viewMode === 'classic') {
+    return (
+      <div className="w-full min-h-screen bg-[#05070D]">
+        <Navbar />
+        <ClassicView />
+      </div>
+    );
   }
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-[#050505] relative select-none">
+    <div className="w-screen h-screen overflow-hidden bg-[#05070D] relative select-none">
       {/* 3D World */}
       <World />
 
@@ -228,89 +235,86 @@ function App() {
       {/* Section Content Overlays */}
       {!isLoading && (
         <div className="absolute inset-0 z-10 pointer-events-none">
-          {/* Chapter 00: Intro / Hero — The Journey Begins */}
+          {/* Chapter 00: Home / Hero — SUBRAMANI */}
           <ChapterPanel chapter={0} position="hero">
             <div className="space-y-4 sm:space-y-5">
-              {/* 1. Small uppercase label */}
-              <div className="inline-flex items-center gap-2">
-                <span className="text-[11px] sm:text-xs font-mono font-medium tracking-[0.22em] text-amber-200/80 uppercase">
-                  THE JOURNEY BEGINS
-                </span>
+              {/* Content hierarchy: NAME → ROLE → DESCRIPTION → TECH STACK → CTA */}
+              <div className="space-y-1">
+                <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.05] drop-shadow-lg">
+                  SUBRAMANI
+                </h1>
+                <p className="text-base sm:text-lg md:text-xl font-mono font-bold tracking-widest text-[#00D9FF] uppercase">
+                  FULL STACK DEVELOPER
+                </p>
               </div>
 
-              {/* 2. Large headline */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.08] drop-shadow-md">
-                I'm Subramani.
-              </h1>
-
-              {/* 3. Medium accent text */}
-              <p className="text-sm sm:text-base md:text-lg font-semibold tracking-wider text-amber-300 uppercase">
-                FULL STACK DEVELOPER
+              <p className="text-sm sm:text-base md:text-lg text-[#A7AFBF] leading-relaxed font-normal max-w-sm sm:max-w-md">
+                Building modern web, mobile and enterprise applications.
               </p>
 
-              {/* 4. Small readable text */}
-              <p className="text-xs sm:text-sm md:text-[15px] text-stone-300/85 leading-relaxed font-normal max-w-sm sm:max-w-md">
-                I build software, explore technology, and keep moving forward.
-              </p>
+              {/* Technologies */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs font-mono text-white/80">
+                {['React', 'Node.js', 'TypeScript', 'Frappe', 'Flutter', 'Python'].map((tech, idx, arr) => (
+                  <span key={tech} className="inline-flex items-center gap-1.5">
+                    <span className="text-white font-medium">{tech}</span>
+                    {idx < arr.length - 1 && <span className="text-[#00D9FF]/60">•</span>}
+                  </span>
+                ))}
+              </div>
 
-              {/* 5. Minimalist START THE JOURNEY Button */}
-              <div className="pt-2 sm:pt-3">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-3">
                 <button
                   onClick={handleStartJourney}
-                  className="group flex items-center gap-3 px-6 sm:px-7 py-3 sm:py-3.5 bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-amber-300/60 rounded-full text-white text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-300 backdrop-blur-md cursor-pointer pointer-events-auto transform hover:translate-x-1"
+                  className="px-6 py-3 rounded-full bg-[#00D9FF] hover:bg-[#00D9FF]/90 text-black text-xs font-mono font-bold tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(0,217,255,0.4)] cursor-pointer pointer-events-auto transform hover:scale-[1.02]"
                 >
-                  <span>START THE JOURNEY</span>
-                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                  EXPLORE MY JOURNEY
+                </button>
+                <button
+                  onClick={() => jumpToChapter(3)}
+                  className="px-6 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-[#F5B942]/60 text-white text-xs font-mono font-bold tracking-widest uppercase transition-all cursor-pointer pointer-events-auto"
+                >
+                  VIEW PROJECTS
                 </button>
               </div>
             </div>
           </ChapterPanel>
 
-          {/* Chapter 01: Education (Landmark on LEFT -> Overlay in negative space on RIGHT) */}
+          {/* Chapter 01: Education */}
           <ChapterPanel
             chapter={1}
-            chapterNumberText="CHAPTER 02"
+            chapterNumberText="01 EDUCATION"
             title="EDUCATION"
             tagline="Where the journey began."
             position="right"
           >
-            {education.map((edu) => (
-              <div
-                key={edu.id}
-                className="glass p-4 sm:p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[#10141C]/80 mt-2"
-              >
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
-                    Bachelor of Engineering in Computer Science
-                  </h3>
-                  <span className="text-xs font-mono font-semibold text-amber-300">
-                    (BE)
-                  </span>
-                </div>
-
-                <div className="border-t border-white/10 pt-2.5 space-y-1">
-                  <p className="text-xs sm:text-sm font-semibold text-white/90">
-                    {edu.institution}
-                  </p>
-                  <div className="flex items-center justify-between text-white/60 text-[11px] font-mono">
-                    <span className="text-amber-200/90 font-medium">2023 – 2026</span>
-                    <span>{edu.location}</span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-white/75 leading-relaxed pt-1.5 border-t border-white/5">
-                  {edu.description}
-                </p>
+            <div className="glass p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[rgba(10,15,25,0.75)] mt-2">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-white leading-snug">
+                  Bachelor of Engineering in Computer Science
+                </h3>
+                <span className="text-xs font-mono font-semibold text-[#F5B942]">
+                  Oxford Engineering College
+                </span>
               </div>
-            ))}
+
+              <div className="flex items-center justify-between text-white/70 text-xs font-mono border-t border-white/10 pt-2.5">
+                <span className="text-[#00D9FF] font-medium">2023 – 2026</span>
+                <span>Pirattiyur, Trichy</span>
+              </div>
+
+              <p className="text-xs text-white/80 leading-relaxed pt-1.5 border-t border-white/5">
+                Focused on software engineering, algorithms and web development.
+              </p>
+            </div>
           </ChapterPanel>
 
-          {/* Chapter 02: Career (Landmark on LEFT -> Overlay on RIGHT) */}
+          {/* Chapter 02: Career */}
           <ChapterPanel
             chapter={2}
-            chapterNumberText="CHAPTER 03"
-            title="CAREER"
-            tagline="Turning skills into impact."
+            chapterNumberText="02 CAREER"
+            title="CAREER & EXPERIENCE"
+            tagline="Turning skills into enterprise impact."
             description="A journey of building and contributing to enterprise products and client platforms."
             position="right"
           >
@@ -318,18 +322,18 @@ function App() {
               {experiences.map((exp) => (
                 <div
                   key={exp.id}
-                  className="glass p-4 rounded-xl border border-white/10 hover:border-cyan-400/40 transition-all space-y-2 backdrop-blur-xl"
+                  className="glass p-4 rounded-2xl border border-white/10 hover:border-[#00D9FF]/40 transition-all space-y-2 backdrop-blur-xl bg-[rgba(10,15,25,0.75)]"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="text-white font-bold text-sm">{exp.title}</h4>
-                      <p className="text-cyan-400 text-xs font-semibold">{exp.company}</p>
+                      <p className="text-[#00D9FF] text-xs font-semibold">{exp.company}</p>
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 whitespace-nowrap">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#00D9FF]/10 border border-[#00D9FF]/30 text-[#00D9FF] whitespace-nowrap">
                       {exp.period}
                     </span>
                   </div>
-                  <p className="text-white/60 text-xs leading-relaxed line-clamp-2">
+                  <p className="text-white/70 text-xs leading-relaxed line-clamp-2">
                     {exp.description}
                   </p>
                   <div className="flex flex-wrap gap-1 pt-1">
@@ -347,47 +351,17 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 03: Projects / Project Express Railway Station */}
-          {/* Chapter 03: Projects / Indian Vande Bharat Express at Railway Gate */}
+          {/* Chapter 03: Projects — Project Railway Terminal */}
           <ChapterPanel
             chapter={3}
-            chapterNumberText="CHAPTER 04"
-            title="VANDE BHARAT EXPRESS"
-            tagline="Project Express • Level Crossing"
-            description="The Indian Vande Bharat Express crosses the journey path, with each compartment highlighting built software solutions."
+            chapterNumberText="03 PROJECTS"
+            title="PROJECT RAILWAY TERMINAL"
+            tagline="High-speed journey of built software solutions."
+            description="A project express arrives at the terminal. Each train compartment represents a project category."
             position="left"
           >
             <div className="space-y-2.5 max-w-sm sm:max-w-md pt-0.5">
-              {/* 1. Indian Railways Vande Bharat Ticket UI */}
-              <div className="glass p-3 rounded-xl border border-orange-500/40 bg-[#0A1325]/90 shadow-xl space-y-1.5">
-                <div className="flex items-center justify-between border-b border-white/10 pb-1 text-[10px] font-mono">
-                  <span className="text-orange-400 font-bold tracking-widest flex items-center gap-1.5">
-                    <span>🚆</span>
-                    <span>VANDE BHARAT // 20608 PROJECT EXPRESS</span>
-                  </span>
-                  <span className="text-emerald-400 font-semibold bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/30">GATE LC-47</span>
-                </div>
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] font-mono text-white/70 pt-0.5">
-                  <div>
-                    <span className="text-white/40 block text-[9px]">ENGINEER:</span>
-                    <span className="text-white font-semibold">SUBRAMANI</span>
-                  </div>
-                  <div>
-                    <span className="text-white/40 block text-[9px]">COACH:</span>
-                    <span className="text-orange-400 font-semibold">{PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachCode} • {PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachType}</span>
-                  </div>
-                  <div>
-                    <span className="text-white/40 block text-[9px]">SPEED:</span>
-                    <span className="text-cyan-300 font-semibold">160 KM/H</span>
-                  </div>
-                  <div>
-                    <span className="text-white/40 block text-[9px]">DESTINATION:</span>
-                    <span className="text-amber-300 font-semibold">PRODUCTION READY</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. Floating Train Compartment Coach Selector */}
+              {/* Category Train Compartment Coach Selector */}
               <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
                 {PROJECT_COMPARTMENTS.map((comp, idx) => {
                   const isSel = idx === selectedProjectIndex;
@@ -397,37 +371,34 @@ function App() {
                       onClick={() => setSelectedProjectIndex(idx)}
                       className={`px-2 py-1.5 rounded-lg text-[10px] font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
                         isSel
-                          ? 'bg-orange-500/25 border border-orange-500/70 text-orange-200 font-bold shadow-sm'
+                          ? 'bg-[#00D9FF]/20 border border-[#00D9FF] text-[#00D9FF] font-bold shadow-sm'
                           : 'bg-transparent border border-transparent text-white/50 hover:text-white hover:bg-white/5'
                       }`}
                     >
-                      <span className={isSel ? 'text-orange-400 font-bold' : 'text-white/35'}>{comp.coachCode}</span>
+                      <span className={isSel ? 'text-[#00D9FF] font-bold' : 'text-white/35'}>{comp.coachCode}</span>
                       <span className="tracking-wider">{comp.title}</span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* 3. Selected Compartment Information Panel */}
-              <div className="glass p-4 sm:p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-2.5 bg-[#0B1321]/95">
+              {/* Selected Project Information Panel */}
+              <div className="glass p-4 sm:p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-2.5 bg-[rgba(10,15,25,0.85)]">
                 <div className="flex items-center justify-between text-[11px] font-mono border-b border-white/10 pb-2">
-                  <span className="text-orange-400 font-semibold tracking-widest uppercase flex items-center gap-1.5">
+                  <span className="text-[#00D9FF] font-semibold tracking-widest uppercase flex items-center gap-1.5">
                     <span>COACH {PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachCode}</span>
                     <span className="text-white/30">•</span>
                     <span className="text-white/70 text-[10px]">{PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachType}</span>
                   </span>
-                  <span className="text-cyan-400 uppercase tracking-wider text-[10px] bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
-                    PROJECT CATEGORY
+                  <span className="text-[#F5B942] uppercase tracking-wider text-[10px] bg-[#F5B942]/10 px-2 py-0.5 rounded border border-[#F5B942]/30">
+                    {PROJECT_COMPARTMENTS[selectedProjectIndex]?.categoryName}
                   </span>
                 </div>
 
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-white tracking-tight uppercase leading-snug">
-                    {PROJECT_COMPARTMENTS[selectedProjectIndex]?.categoryName}
+                    {PROJECT_COMPARTMENTS[selectedProjectIndex]?.title}
                   </h3>
-                  <p className="text-xs text-amber-200/90 font-medium italic pt-0.5">
-                    "{PROJECT_COMPARTMENTS[selectedProjectIndex]?.tagline}"
-                  </p>
                   <p className="text-xs text-white/70 leading-relaxed pt-1">
                     {PROJECT_COMPARTMENTS[selectedProjectIndex]?.description}
                   </p>
@@ -436,9 +407,9 @@ function App() {
                 {/* Inline Technology Stack Tags */}
                 <div className="space-y-1 pt-0.5">
                   <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">
-                    TECHNOLOGIES
+                    ROLE: FULL STACK DEVELOPER
                   </span>
-                  <div className="flex flex-wrap items-center gap-1 text-[11px] font-mono text-cyan-300 font-medium">
+                  <div className="flex flex-wrap items-center gap-1 text-[11px] font-mono text-[#00D9FF] font-medium">
                     {PROJECT_COMPARTMENTS[selectedProjectIndex]?.technologies.map((tech) => (
                       <span
                         key={tech}
@@ -450,23 +421,34 @@ function App() {
                   </div>
                 </div>
 
-                {/* Action CTA & Live Demo */}
-                <div className="pt-1.5 flex items-center gap-3">
+                {/* Action CTA & Links */}
+                <div className="pt-2 flex flex-wrap items-center gap-3">
                   <button
                     onClick={() => openProjectDetail(PROJECT_COMPARTMENTS[selectedProjectIndex]?.projectId || 'ecommerce')}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 hover:border-amber-400 text-amber-200 text-xs font-mono font-semibold tracking-wider uppercase transition-all cursor-pointer group shadow-sm"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00D9FF]/20 hover:bg-[#00D9FF]/30 border border-[#00D9FF]/50 hover:border-[#00D9FF] text-[#00D9FF] text-xs font-mono font-semibold tracking-wider uppercase transition-all cursor-pointer shadow-sm"
                   >
-                    <span>EXPLORE PROJECTS</span>
-                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    <span>VIEW PROJECT</span>
+                    <span>→</span>
                   </button>
                   {PROJECT_COMPARTMENTS[selectedProjectIndex]?.demoUrl && (
                     <a
                       href={PROJECT_COMPARTMENTS[selectedProjectIndex].demoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs font-mono text-white/50 hover:text-white transition-colors"
+                      className="inline-flex items-center gap-1 text-xs font-mono text-white/60 hover:text-white transition-colors"
                     >
-                      <span>Live Site</span>
+                      <span>LIVE SITE</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  )}
+                  {PROJECT_COMPARTMENTS[selectedProjectIndex]?.githubUrl && (
+                    <a
+                      href={PROJECT_COMPARTMENTS[selectedProjectIndex].githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-mono text-white/60 hover:text-white transition-colors"
+                    >
+                      <span>GITHUB</span>
                       <ExternalLink size={12} />
                     </a>
                   )}
@@ -475,13 +457,13 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 04: Technology (Landmark on LEFT -> Overlay on RIGHT) */}
+          {/* Chapter 04: Technology */}
           <ChapterPanel
             chapter={4}
-            chapterNumberText="• CHAPTER 05"
-            title="TECHNOLOGY"
+            chapterNumberText="04 TECHNOLOGY"
+            title="TECHNOLOGY CITY"
             tagline="Tools that power my journey."
-            description="A collection of modern technologies and tools I use to build scalable and impactful solutions."
+            description="A structured technology city organizing modern frontend, backend, database and devops tooling."
             position="right"
           >
             <div className="space-y-4 pt-1">
@@ -499,7 +481,7 @@ function App() {
                       }}
                       className={`px-3 py-1 rounded-lg text-[11px] font-mono font-medium tracking-wider transition-all cursor-pointer ${
                         isSel
-                          ? 'bg-cyan-500/20 border border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          ? 'bg-[#00D9FF]/20 border border-[#00D9FF] text-[#00D9FF] shadow-[0_0_12px_rgba(0,217,255,0.3)]'
                           : 'bg-transparent border border-transparent text-white/50 hover:text-white hover:bg-white/5'
                       }`}
                     >
@@ -509,8 +491,8 @@ function App() {
                 })}
               </div>
 
-              {/* Interactive Technology Detail Card matching reference image */}
-              <div className="glass p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-4 bg-[#0A101D]/90">
+              {/* Interactive Technology Detail Card */}
+              <div className="glass p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-4 bg-[rgba(10,15,25,0.85)]">
                 {/* Top Row: Icon + Title + Category Pill */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -522,7 +504,6 @@ function App() {
                         boxShadow: `0 0 16px ${activeTechCube.brandColor}40`,
                       }}
                     >
-                      {/* Brand vector icon */}
                       <TechBrandIcon cube={activeTechCube} />
                     </div>
                     <div>
@@ -544,19 +525,17 @@ function App() {
                   </span>
                 </div>
 
-                {/* Description */}
                 <p className="text-white/80 text-xs sm:text-[13px] leading-relaxed">
                   {activeTechCube.description}
                 </p>
 
-                {/* 3 Key Feature Badges with Hex Icon */}
                 <div className="flex flex-wrap gap-2 pt-1">
                   {activeTechCube.features.map((feature: string, fIdx: number) => (
                     <div
                       key={fIdx}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white/90 text-[11px] font-mono"
                     >
-                      <span className="text-cyan-400 text-[11px]">⬡</span>
+                      <span className="text-[#00D9FF] text-[11px]">⬡</span>
                       <span>{feature}</span>
                     </div>
                   ))}
@@ -565,80 +544,103 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 05: Where I Am Today (Landmark on RIGHT -> Overlay on LEFT) */}
+          {/* Chapter 05: Future — Launch Hub */}
           <ChapterPanel
             chapter={5}
-            chapterNumberText="CHAPTER 06"
-            title="WHERE I AM TODAY"
-            tagline="Building. Learning. Exploring."
+            chapterNumberText="05 FUTURE"
+            title="NEXT DESTINATION"
+            tagline="Future Launch Hub"
+            description="The airplane arrives at a futuristic launch platform preparing to launch toward the sky."
             position="left"
           >
-            <div className="glass p-5 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-3 mt-1">
-              <div className="flex items-center gap-3 text-cyan-400">
-                <div className="p-2.5 rounded-xl bg-cyan-950/60 border border-cyan-800/40">
-                  <User size={20} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Associate Software Developer</h3>
-                  <p className="text-cyan-400 text-xs">at KO Innovation Software Solutions</p>
-                </div>
+            <div className="glass p-5 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-4 mt-1 bg-[rgba(10,15,25,0.85)]">
+              <div className="flex items-center gap-2 text-[#00D9FF] text-xs font-mono tracking-widest uppercase">
+                <Sparkles size={16} />
+                <span>EXPEDITION HORIZONS</span>
               </div>
-              <p className="text-white/80 text-xs leading-relaxed">
-                {profile.bio}
-              </p>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {['React', 'Node.js', 'TypeScript', 'Frappe ERP', 'Flutter', 'MongoDB', 'AWS', 'Docker'].map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-0.5 text-[10px] font-mono bg-white/5 rounded border border-white/10 text-white/70"
+
+              {/* Visual concept: AI • SYSTEM DESIGN • CLOUD • DEVOPS • OPEN SOURCE */}
+              <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs">
+                {['AI', 'SYSTEM DESIGN', 'CLOUD', 'DEVOPS', 'OPEN SOURCE'].map((pillar, pIdx) => (
+                  <div
+                    key={pillar}
+                    className={`flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/10 ${
+                      pIdx === 0 ? 'col-span-2 border-[#00D9FF]/40 bg-[#00D9FF]/10 text-[#00D9FF] font-bold' : 'text-white/80'
+                    }`}
                   >
-                    {tag}
-                  </span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF]" />
+                    <span>{pillar}</span>
+                  </div>
                 ))}
               </div>
-            </div>
-          </ChapterPanel>
 
-          {/* Chapter 06: The Journey Continues (Landmark on LEFT -> Overlay on RIGHT) */}
-          <ChapterPanel
-            chapter={6}
-            chapterNumberText="CHAPTER 07"
-            title="THE JOURNEY CONTINUES"
-            tagline="Still learning. Still building. Still moving forward."
-            description="Excited for new opportunities, bigger engineering challenges, and greater impact."
-            position="right"
-          >
-            <div className="glass p-5 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-3 mt-1">
-              <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono">
-                <Sparkles size={16} />
-                <span>NEXT HORIZONS</span>
-              </div>
-              <div className="space-y-2 text-xs text-white/70">
+              <div className="space-y-2 text-xs text-white/70 border-t border-white/10 pt-3">
                 <div className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                  <span className="text-[#00D9FF] mt-0.5">▸</span>
                   <span>Expanding deep expertise in distributed backend systems & AI integration</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                  <span className="text-[#00D9FF] mt-0.5">▸</span>
                   <span>Creating high-reliability enterprise ERP architectures and real-time platforms</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                  <span className="text-[#00D9FF] mt-0.5">▸</span>
                   <span>Contributing to open-source developer ecosystems and global products</span>
                 </div>
               </div>
             </div>
           </ChapterPanel>
 
-          {/* Chapter 07: Contact (Landing Platform) */}
+          {/* Chapter 06: Contact — Control Room */}
           <ChapterPanel
-            chapter={7}
-            chapterNumberText="CHAPTER 08"
-            title="LET'S BUILD SOMETHING TOGETHER"
-            tagline="Touchdown. Where one journey ends, the next project takes flight."
-            position="left"
+            chapter={6}
+            chapterNumberText="06 CONTACT"
+            title="LET'S BUILD SOMETHING."
+            tagline="Have an idea, project or opportunity? Let's turn it into a working product."
+            position="center"
           >
-            <ContactForm />
+            <div className="glass p-6 sm:p-8 rounded-3xl border border-white/10 max-w-xl mx-auto shadow-2xl backdrop-blur-2xl space-y-6 bg-[rgba(10,15,25,0.85)]">
+              {/* Buttons: EMAIL ME, GITHUB, LINKEDIN, DOWNLOAD RESUME */}
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="px-4 py-2 rounded-full bg-[#00D9FF] text-black text-xs font-mono font-bold tracking-wider uppercase hover:bg-[#00D9FF]/90 transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,217,255,0.3)] cursor-pointer"
+                >
+                  <Mail size={13} />
+                  <span>EMAIL ME</span>
+                </a>
+                <a
+                  href={profile.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 text-white text-xs font-mono font-semibold tracking-wider uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Github size={13} />
+                  <span>GITHUB</span>
+                </a>
+                <a
+                  href={profile.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 text-white text-xs font-mono font-semibold tracking-wider uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Linkedin size={13} />
+                  <span>LINKEDIN</span>
+                </a>
+                <a
+                  href="/resume.pdf"
+                  download="Subramani_Resume.pdf"
+                  className="px-4 py-2 rounded-full bg-[#F5B942]/10 hover:bg-[#F5B942]/20 border border-[#F5B942]/40 text-[#F5B942] text-xs font-mono font-semibold tracking-wider uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <ExternalLink size={13} />
+                  <span>DOWNLOAD RESUME</span>
+                </a>
+              </div>
+
+              <div className="pt-2 border-t border-white/10">
+                <ContactForm />
+              </div>
+            </div>
           </ChapterPanel>
         </div>
 

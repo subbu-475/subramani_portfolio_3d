@@ -37,11 +37,11 @@ interface FlightDestination {
  */
 const FLIGHT_DESTINATIONS: FlightDestination[] = [
   { id: 1, num: '01', title: 'EDUCATION', progress: 0.17 },
-  { id: 2, num: '02', title: 'EXPERIENCE', progress: 0.40 },
+  { id: 2, num: '02', title: 'CAREER', progress: 0.38 },
   { id: 3, num: '03', title: 'PROJECTS', progress: 0.51 },
-  { id: 4, num: '04', title: 'SKILLS', progress: 0.64 },
-  { id: 6, num: '05', title: 'FUTURE', progress: 0.84 },
-  { id: 7, num: '06', title: 'CONTACT', progress: 0.96 },
+  { id: 4, num: '04', title: 'TECHNOLOGY', progress: 0.64 },
+  { id: 5, num: '05', title: 'FUTURE', progress: 0.82 },
+  { id: 6, num: '06', title: 'CONTACT', progress: 0.96 },
 ];
 
 export const VerticalTimeline: React.FC = () => {
@@ -50,9 +50,9 @@ export const VerticalTimeline: React.FC = () => {
   // Determine active flight destination index based on continuous journey progress
   const activeDestIndex = useMemo(() => {
     if (journeyProgress < 0.28) return 0; // 01 Education
-    if (journeyProgress < 0.46) return 1; // 02 Experience
+    if (journeyProgress < 0.46) return 1; // 02 Career
     if (journeyProgress < 0.58) return 2; // 03 Projects
-    if (journeyProgress < 0.72) return 3; // 04 Skills
+    if (journeyProgress < 0.72) return 3; // 04 Technology
     if (journeyProgress < 0.88) return 4; // 05 Future
     return 5;                             // 06 Contact
   }, [journeyProgress]);

@@ -9,18 +9,22 @@ export interface ChapterMeta {
 }
 
 export const CHAPTERS_DATA: ChapterMeta[] = [
-  { id: 0, num: '01', title: 'The Beginning', subtitle: 'Home' },
-  { id: 1, num: '02', title: 'Education', subtitle: 'University' },
-  { id: 2, num: '03', title: 'Career', subtitle: 'Experience' },
-  { id: 3, num: '04', title: 'Projects', subtitle: 'Vande Bharat Express' },
-  { id: 4, num: '05', title: 'Technology', subtitle: 'Technology Lab' },
-  { id: 5, num: '06', title: 'Present', subtitle: 'Current Chapter' },
-  { id: 6, num: '07', title: 'Future', subtitle: "What's Next" },
-  { id: 7, num: '08', title: 'Contact', subtitle: "Let's Connect" },
+  { id: 0, num: '00', title: 'The Beginning', subtitle: 'Home' },
+  { id: 1, num: '01', title: 'Education', subtitle: 'University Campus' },
+  { id: 2, num: '02', title: 'Career & Experience', subtitle: 'Career City' },
+  { id: 3, num: '03', title: 'Projects', subtitle: 'Railway Terminal' },
+  { id: 4, num: '04', title: 'Technology', subtitle: 'Technology City' },
+  { id: 5, num: '05', title: 'Future', subtitle: 'Launch Hub' },
+  { id: 6, num: '06', title: 'Contact', subtitle: 'Control Room' },
 ];
 
 export interface JourneyState {
-  // Current chapter (0-indexed, 0 to 7)
+  // Mode: 3D Experience or Classic Portfolio View
+  viewMode: '3d' | 'classic';
+  setViewMode: (mode: '3d' | 'classic') => void;
+  toggleViewMode: () => void;
+
+  // Current chapter (0-indexed, 0 to 6)
   currentChapter: number;
   totalChapters: number;
   chapterNames: string[];
@@ -73,6 +77,10 @@ export interface JourneyState {
 }
 
 export const useJourneyStore = create<JourneyState>((set) => ({
+  viewMode: '3d',
+  setViewMode: (mode) => set({ viewMode: mode }),
+  toggleViewMode: () => set((s) => ({ viewMode: s.viewMode === '3d' ? 'classic' : '3d' })),
+
   currentChapter: 0,
   totalChapters: CHAPTERS_DATA.length,
   chapterNames: CHAPTERS_DATA.map((c) => c.title),
