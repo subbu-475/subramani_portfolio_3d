@@ -14,13 +14,13 @@ import EducationScene from './scenes/EducationScene';
 import CareerScene from './scenes/CareerScene';
 import ProjectsScene from './scenes/ProjectsScene';
 import SkillsScene from './scenes/SkillsScene';
-import PresentScene from './scenes/PresentScene';
 import FutureScene from './scenes/FutureScene';
 import ContactScene from './scenes/ContactScene';
 
 const World: React.FC = () => {
   const qualityLevel = useJourneyStore((state) => state.qualityLevel);
   const isMobile = useJourneyStore((state) => state.isMobile);
+  const journeyProgress = useJourneyStore((state) => state.journeyProgress);
 
   const getDpr = (): [number, number] => {
     if (isMobile) return [1, 1];
@@ -49,14 +49,14 @@ const World: React.FC = () => {
           <Road />
 
           <group>
-            <IntroScene />
-            <EducationScene />
-            <CareerScene />
-            <ProjectsScene />
-            <SkillsScene />
-            <PresentScene />
-            <FutureScene />
-            <ContactScene />
+            {/* Lazy-load and cull distant scenes based on journey progression for 60 FPS performance */}
+            {journeyProgress <= 0.16 && <IntroScene />}
+            {journeyProgress <= 0.35 && <EducationScene />}
+            {journeyProgress >= 0.16 && journeyProgress <= 0.50 && <CareerScene />}
+            {journeyProgress >= 0.36 && journeyProgress <= 0.60 && <ProjectsScene />}
+            {journeyProgress >= 0.48 && journeyProgress <= 0.78 && <SkillsScene />}
+            {journeyProgress >= 0.62 && journeyProgress <= 0.92 && <FutureScene />}
+            {journeyProgress >= 0.76 && <ContactScene />}
           </group>
 
           <Effects />

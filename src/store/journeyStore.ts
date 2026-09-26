@@ -42,6 +42,7 @@ export interface JourneyState {
   isProjectDetailOpen: boolean;
   activeProjectId: string | null;
   selectedProjectIndex: number;
+  selectedExperienceIndex: number;
   selectedSkillCategoryIndex: number;
   selectedTechCubeId: string;
   isSkillDetailOpen: boolean;
@@ -66,6 +67,7 @@ export interface JourneyState {
   openProjectDetail: (projectId: string) => void;
   closeProjectDetail: () => void;
   setSelectedProjectIndex: (index: number) => void;
+  setSelectedExperienceIndex: (index: number) => void;
   setSelectedSkillCategoryIndex: (index: number) => void;
   setSelectedTechCubeId: (id: string) => void;
   openSkillDetail: (skillName: string) => void;
@@ -95,6 +97,7 @@ export const useJourneyStore = create<JourneyState>((set) => ({
   isProjectDetailOpen: false,
   activeProjectId: null,
   selectedProjectIndex: 0,
+  selectedExperienceIndex: 0,
   selectedSkillCategoryIndex: 0,
   selectedTechCubeId: 'react',
   isSkillDetailOpen: false,
@@ -130,6 +133,7 @@ export const useJourneyStore = create<JourneyState>((set) => ({
   closeProjectDetail: () =>
     set({ isProjectDetailOpen: false, activeProjectId: null }),
   setSelectedProjectIndex: (index) => set({ selectedProjectIndex: index }),
+  setSelectedExperienceIndex: (index) => set({ selectedExperienceIndex: index }),
   setSelectedSkillCategoryIndex: (index) => set({ selectedSkillCategoryIndex: index }),
   setSelectedTechCubeId: (id) => set({ selectedTechCubeId: id }),
   openSkillDetail: (skillName) =>

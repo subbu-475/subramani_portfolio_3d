@@ -20,9 +20,9 @@ export const ClassicView: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#05070D] text-white selection:bg-[#00D9FF]/20 selection:text-[#00D9FF]">
+    <main className="min-h-screen bg-[#050816] text-white selection:bg-[#00D9FF]/20 selection:text-[#00D9FF]">
       {/* Secondary Sub-Navbar for Fast Jumps */}
-      <nav aria-label="Section Quick Jump" className="sticky top-[64px] z-30 bg-[#05070D]/85 backdrop-blur-xl border-b border-white/10 px-4 py-2.5">
+      <nav aria-label="Section Quick Jump" className="sticky top-[64px] z-30 bg-[#050816]/90 backdrop-blur-xl border-b border-white/10 px-4 py-2.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1 sm:gap-2 text-[11px] font-mono tracking-wider text-white/70 uppercase">
             {[
@@ -96,9 +96,10 @@ export const ClassicView: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('3d')}
-              className="px-6 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/20 hover:border-[#F5B942]/60 text-white text-xs font-mono font-bold tracking-widest uppercase transition-all cursor-pointer flex items-center gap-2"
+              aria-label="Switch to 3D Experience"
+              className="px-6 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/20 hover:border-[#FFC857]/60 text-white text-xs font-mono font-bold tracking-widest uppercase transition-all cursor-pointer flex items-center gap-2"
             >
-              <Sparkles size={14} className="text-[#F5B942]" />
+              <Sparkles size={14} className="text-[#FFC857]" />
               <span>LAUNCH 3D EXPERIENCE</span>
             </button>
           </div>
@@ -124,8 +125,8 @@ export const ClassicView: React.FC = () => {
                 <p className="text-xs font-mono text-[#A7AFBF] uppercase tracking-wider pt-1">Projects Delivered</p>
               </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-extrabold text-[#F5B942]">{profile.location}</p>
-                <p className="text-xs font-mono text-[#A7AFBF] uppercase tracking-wider pt-1">Based in Tamil Nadu</p>
+                <p className="text-3xl sm:text-4xl font-extrabold text-[#FFC857]">{profile.location}</p>
+                <p className="text-xs font-mono text-[#94A3B8] uppercase tracking-wider pt-1">Based in Tamil Nadu</p>
               </div>
             </div>
 
@@ -207,11 +208,11 @@ export const ClassicView: React.FC = () => {
             {projects.map((proj) => (
               <div
                 key={proj.id}
-                className="glass p-6 sm:p-7 rounded-3xl border border-white/10 hover:border-[#F5B942]/40 transition-all space-y-4 bg-[rgba(10,15,25,0.75)] backdrop-blur-xl flex flex-col justify-between"
+                className="glass p-6 sm:p-7 rounded-3xl border border-white/10 hover:border-[#FFC857]/40 transition-all space-y-4 bg-[rgba(5,8,22,0.85)] backdrop-blur-xl flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#F5B942] bg-[#F5B942]/10 border border-[#F5B942]/30 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#FFC857] bg-[#FFC857]/10 border border-[#FFC857]/30 px-2.5 py-0.5 rounded-full">
                       {proj.category}
                     </span>
                   </div>
@@ -321,10 +322,10 @@ export const ClassicView: React.FC = () => {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <h3 className="text-xl font-bold text-white">{edu.degree}</h3>
-                  <p className="text-sm font-semibold text-[#F5B942] pt-0.5">{edu.institution}</p>
+                  <p className="text-sm font-semibold text-[#FFC857] pt-0.5">{edu.institution}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-mono px-3 py-1 rounded-full bg-[#F5B942]/10 border border-[#F5B942]/30 text-[#F5B942]">
+                  <span className="text-xs font-mono px-3 py-1 rounded-full bg-[#FFC857]/10 border border-[#FFC857]/30 text-[#FFC857]">
                     {edu.period}
                   </span>
                   <p className="text-[11px] font-mono text-white/50 pt-1">{edu.location}</p>
@@ -393,7 +394,8 @@ export const ClassicView: React.FC = () => {
                 <a
                   href="/resume.pdf"
                   download="Subramani_Resume.pdf"
-                  className="px-4 py-2 rounded-full bg-[#F5B942]/10 hover:bg-[#F5B942]/20 border border-[#F5B942]/40 text-[#F5B942] text-xs font-mono font-semibold tracking-wider uppercase transition-all flex items-center gap-1.5"
+                  aria-label="Download Subramani's Resume PDF"
+                  className="px-4 py-2 rounded-full bg-[#FFC857]/10 hover:bg-[#FFC857]/20 border border-[#FFC857]/40 text-[#FFC857] text-xs font-mono font-semibold tracking-wider uppercase transition-all flex items-center gap-1.5"
                 >
                   <ExternalLink size={13} />
                   <span>DOWNLOAD RESUME</span>

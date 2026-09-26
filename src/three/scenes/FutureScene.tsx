@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Float, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 /**
@@ -137,31 +136,6 @@ export const FutureScene: React.FC = () => {
         </mesh>
       </group>
 
-      {/* Future Horizons Signboard */}
-      <group position={[-6, 1.5, 0]}>
-        <Float speed={2} rotationIntensity={0.1} floatIntensity={0.3}>
-          <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[6.8, 1.8, 0.2]} />
-            <meshStandardMaterial color="#0284C7" emissive="#0284C7" emissiveIntensity={0.5} />
-          </mesh>
-          <Text
-            position={[0, 0.35, 0.15]}
-            fontSize={0.36}
-            color="#FFFFFF"
-            letterSpacing={0.12}
-          >
-            NEXT HORIZONS
-          </Text>
-          <Text
-            position={[0, -0.2, 0.15]}
-            fontSize={0.22}
-            color="#FEF08A"
-            letterSpacing={0.06}
-          >
-            ASCENDING TO THE STARS
-          </Text>
-        </Float>
-      </group>
     </group>
   );
 };

@@ -99,9 +99,9 @@ export const ChapterPanel: React.FC<ChapterPanelProps> = ({
         {!isHero && title && (
           <div className="space-y-1">
             {chapterNumberText && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-950/40 border border-amber-500/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.2em] text-amber-300 uppercase font-semibold">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#00D9FF]/10 border border-[#00D9FF]/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF]" />
+                <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.2em] text-[#00D9FF] uppercase font-semibold">
                   {chapterNumberText}
                 </span>
               </div>
@@ -112,7 +112,7 @@ export const ChapterPanel: React.FC<ChapterPanelProps> = ({
             </h2>
 
             {tagline && (
-              <p className="text-xs sm:text-sm font-semibold text-amber-200/90 tracking-wide">
+              <p className="text-xs sm:text-sm font-semibold text-[#FFC857] tracking-wide">
                 {tagline}
               </p>
             )}

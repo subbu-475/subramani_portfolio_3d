@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Float, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 /**
@@ -152,44 +151,6 @@ export const ContactScene: React.FC = () => {
         />
       </group>
 
-      {/* Floating Contact Terminal Display */}
-      <group position={[0, 2.8, -4.5]}>
-        <Float speed={1.2} rotationIntensity={0.05} floatIntensity={0.2}>
-          <mesh position={[0, 0, -0.1]}>
-            <boxGeometry args={[9.5, 2.6, 0.25]} />
-            <meshStandardMaterial color="#0B132B" metalness={0.9} roughness={0.2} />
-          </mesh>
-          <mesh position={[0, 0, 0.05]} rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[4.2, 4.3, 32]} />
-            <meshBasicMaterial color="#38BDF8" />
-          </mesh>
-          <Text
-            position={[0, 0.55, 0.1]}
-            fontSize={0.46}
-            color="#38BDF8"
-            letterSpacing={0.16}
-          >
-            LET'S BUILD SOMETHING TOGETHER
-          </Text>
-          <Text
-            position={[0, -0.05, 0.1]}
-            fontSize={0.26}
-            color="#FEF08A"
-            letterSpacing={0.08}
-          >
-            THE FLIGHT CONTINUES
-          </Text>
-          <Text
-            position={[0, -0.6, 0.1]}
-            fontSize={0.20}
-            color="#94A3B8"
-            letterSpacing={0.06}
-          >
-            Subramani • Full Stack Developer • Ready for New Horizons
-          </Text>
-          <pointLight position={[0, 0, 1.2]} color="#38BDF8" intensity={2.0} distance={12} />
-        </Float>
-      </group>
     </group>
   );
 };

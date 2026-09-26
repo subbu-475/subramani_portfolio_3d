@@ -319,20 +319,19 @@ export const SkillsScene: React.FC = () => {
   const setSelectedTechCubeId = useJourneyStore((state) => state.setSelectedTechCubeId);
   const journeyProgress = useJourneyStore((state) => state.journeyProgress);
 
-  // Stepped keyboard riser settings for 5 rows:
-  // Row 4 (Tools, bottom / front) -> Row 0 (Frontend, top / back)
+  // Stepped keyboard riser settings for 4 ordered category tiers:
+  // Row 3 (DevOps, bottom / front) -> Row 0 (Frontend, top / back)
   const tierConfigs = useMemo(() => [
-    { row: 0, y: 5.65, z: -4.0 }, // Row 0: FRONTEND (Top & furthest back)
-    { row: 1, y: 4.35, z: -3.0 }, // Row 1: BACKEND
-    { row: 2, y: 3.05, z: -2.0 }, // Row 2: DATABASE (Middle)
-    { row: 3, y: 1.75, z: -1.0 }, // Row 3: DEVOPS
-    { row: 4, y: 0.45, z:  0.0 }, // Row 4: TOOLS (Bottom & closest)
+    { row: 0, y: 4.5, z: -3.0 }, // Row 0: FRONTEND (Top & furthest back)
+    { row: 1, y: 3.1, z: -2.0 }, // Row 1: BACKEND
+    { row: 2, y: 1.7, z: -1.0 }, // Row 2: DATABASE
+    { row: 3, y: 0.3, z:  0.0 }, // Row 3: DEVOPS (Bottom & closest)
   ], []);
 
-  // Group cubes by row (0 to 4)
+  // Group cubes by row (0 to 3)
   const cubesByRow = useMemo(() => {
     const map = new Map<number, TechnologyCubeData[]>();
-    for (let r = 0; r < 5; r++) {
+    for (let r = 0; r < 4; r++) {
       map.set(
         r,
         TECHNOLOGY_CUBES.filter((c) => c.row === r).sort((a, b) => a.col - b.col)
@@ -341,11 +340,11 @@ export const SkillsScene: React.FC = () => {
     return map;
   }, []);
 
-  // Smoothly sync category tab when scrolling through Chapter 05
+  // Smoothly sync category tab when scrolling through Chapter 04
   useFrame(() => {
     if (journeyProgress >= 0.56 && journeyProgress <= 0.68) {
       const t = (journeyProgress - 0.56) / (0.68 - 0.56);
-      const step = Math.min(4, Math.max(0, Math.floor(t * 5)));
+      const step = Math.min(3, Math.max(0, Math.floor(t * 4)));
       if (step !== selectedSkillCategoryIndex) {
         setSelectedSkillCategoryIndex(step);
       }
@@ -376,22 +375,22 @@ export const SkillsScene: React.FC = () => {
     // ══════════════════════════════════════════════════════════════════════════
     <group position={[-45.5, 0.2, -259.5]} rotation={[0, 1.426, 0]}>
       {/* ── 1. Expansive High-Gloss Dark Base Platform with Chamfer ── */}
-      <mesh position={[0, -0.22, -2.0]} receiveShadow>
-        <boxGeometry args={[16.2, 0.44, 7.8]} />
+      <mesh position={[0, -0.22, -1.5]} receiveShadow>
+        <boxGeometry args={[16.2, 0.44, 6.6]} />
         <meshStandardMaterial color="#050811" roughness={0.15} metalness={0.6} />
       </mesh>
 
       {/* Surrounding Neon Cyber Edge Accent Lines on Ground */}
-      <mesh position={[0, 0.01, 1.85]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0.01, 1.75]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[16.0, 0.08]} />
         <meshStandardMaterial color="#00D8FF" emissive="#00D8FF" emissiveIntensity={2.0} />
       </mesh>
-      <mesh position={[-7.95, 0.01, -2.0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-        <planeGeometry args={[7.6, 0.08]} />
+      <mesh position={[-7.95, 0.01, -1.5]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+        <planeGeometry args={[6.5, 0.08]} />
         <meshStandardMaterial color="#00D8FF" emissive="#00D8FF" emissiveIntensity={2.0} />
       </mesh>
-      <mesh position={[7.95, 0.01, -2.0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-        <planeGeometry args={[7.6, 0.08]} />
+      <mesh position={[7.95, 0.01, -1.5]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+        <planeGeometry args={[6.5, 0.08]} />
         <meshStandardMaterial color="#00D8FF" emissive="#00D8FF" emissiveIntensity={2.0} />
       </mesh>
 
@@ -402,8 +401,8 @@ export const SkillsScene: React.FC = () => {
       </mesh>
 
       {/* ── 2. Back Wall Solid Riser Frame (Black Backdrop for Contrast) ── */}
-      <mesh position={[0, 3.1, -4.6]} receiveShadow>
-        <boxGeometry args={[15.6, 6.6, 0.5]} />
+      <mesh position={[0, 2.5, -3.6]} receiveShadow>
+        <boxGeometry args={[15.6, 5.4, 0.5]} />
         <meshStandardMaterial color="#060A14" roughness={0.8} />
       </mesh>
 

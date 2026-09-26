@@ -13,18 +13,17 @@ export interface TechnologyCubeData {
 }
 
 export interface TechnologyCategoryMeta {
-  id: 'frontend' | 'backend' | 'database' | 'devops' | 'tools';
+  id: 'frontend' | 'backend' | 'database' | 'devops';
   name: string;
   row: number;
   glowColor: string;
 }
 
 export const TECHNOLOGY_CATEGORIES: TechnologyCategoryMeta[] = [
-  { id: 'frontend', name: 'FRONTEND', row: 0, glowColor: '#00D8FF' },
+  { id: 'frontend', name: 'FRONTEND', row: 0, glowColor: '#00D9FF' },
   { id: 'backend',  name: 'BACKEND',  row: 1, glowColor: '#10B981' },
-  { id: 'database', name: 'DATABASE', row: 2, glowColor: '#F59E0B' },
-  { id: 'devops',   name: 'DEVOPS',   row: 3, glowColor: '#A855F7' },
-  { id: 'tools',    name: 'TOOLS',    row: 4, glowColor: '#38BDF8' },
+  { id: 'database', name: 'DATABASE', row: 2, glowColor: '#FFC857' },
+  { id: 'devops',   name: 'DEVOPS',   row: 3, glowColor: '#38BDF8' },
 ];
 
 export const TECHNOLOGY_CUBES: TechnologyCubeData[] = [

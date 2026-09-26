@@ -87,6 +87,8 @@ function App() {
     openProjectDetail,
     selectedProjectIndex,
     setSelectedProjectIndex,
+    selectedExperienceIndex,
+    setSelectedExperienceIndex,
     selectedSkillCategoryIndex,
     setSelectedSkillCategoryIndex,
     selectedTechCubeId,
@@ -94,6 +96,10 @@ function App() {
     viewMode,
     jumpToChapter,
   } = useJourneyStore();
+
+  const activeExp = useMemo(() => {
+    return experiences[selectedExperienceIndex] || experiences[0];
+  }, [selectedExperienceIndex]);
 
   const activeTechCube = useMemo(() => {
     return TECHNOLOGY_CUBES.find((c) => c.id === selectedTechCubeId) || TECHNOLOGY_CUBES[0];
@@ -193,6 +199,39 @@ function App() {
     scrollAccum.current = journeyProgress * maxScroll;
   }, [journeyProgress]);
 
+  // Keyboard navigation support (Arrow keys, PageUp/Down, Space, Home, End, 1-7)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in form inputs or textareas
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+      }
+
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        scrollAccum.current = Math.min(maxScroll, scrollAccum.current + 360);
+        setJourneyProgress(scrollAccum.current / maxScroll);
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        scrollAccum.current = Math.max(0, scrollAccum.current - 360);
+        setJourneyProgress(scrollAccum.current / maxScroll);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        jumpToChapter(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        jumpToChapter(6);
+      } else if (e.key >= '1' && e.key <= '7') {
+        const chapterIdx = parseInt(e.key, 10) - 1;
+        jumpToChapter(chapterIdx);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [jumpToChapter, setJourneyProgress]);
+
   const handleStartJourney = () => {
     const startVal = scrollAccum.current;
     const targetProgress = JOURNEY_CHAPTERS[1]?.landmarkProgress ?? 0.16;
@@ -214,7 +253,7 @@ function App() {
 
   if (!hasWebGL || viewMode === 'classic') {
     return (
-      <div className="w-full min-h-screen bg-[#05070D]">
+      <div className="w-full min-h-screen bg-[#050816]">
         <Navbar />
         <ClassicView />
       </div>
@@ -222,7 +261,7 @@ function App() {
   }
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-[#05070D] relative select-none">
+    <div className="w-screen h-screen overflow-hidden bg-[#050816] relative select-none">
       {/* 3D World */}
       <World />
 
@@ -248,16 +287,18 @@ function App() {
                 </p>
               </div>
 
-              <p className="text-sm sm:text-base md:text-lg text-[#A7AFBF] leading-relaxed font-normal max-w-sm sm:max-w-md">
-                Building modern web, mobile and enterprise applications.
+              <p className="text-sm sm:text-base md:text-lg text-[#94A3B8] leading-relaxed font-normal max-w-sm sm:max-w-md">
+                "Building modern web, mobile & enterprise applications."
               </p>
 
-              {/* Technologies */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs font-mono text-white/80">
-                {['React', 'Node.js', 'TypeScript', 'Frappe', 'Flutter', 'Python'].map((tech, idx, arr) => (
-                  <span key={tech} className="inline-flex items-center gap-1.5">
-                    <span className="text-white font-medium">{tech}</span>
-                    {idx < arr.length - 1 && <span className="text-[#00D9FF]/60">•</span>}
+              {/* Technology Badges */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {['React', 'Node.js', 'TypeScript', 'Frappe', 'Flutter', 'Python'].map((tech) => (
+                  <span
+                    key={tech}
+                    className="px-2.5 py-1 rounded-md bg-white/[0.05] border border-white/10 text-white/90 text-xs font-mono font-medium backdrop-blur-sm shadow-sm"
+                  >
+                    {tech}
                   </span>
                 ))}
               </div>
@@ -272,7 +313,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => jumpToChapter(3)}
-                  className="px-6 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-[#F5B942]/60 text-white text-xs font-mono font-bold tracking-widest uppercase transition-all cursor-pointer pointer-events-auto"
+                  className="px-6 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.09] border border-white/20 hover:border-[#FFC857]/60 text-white text-xs font-mono font-bold tracking-widest uppercase transition-all cursor-pointer pointer-events-auto"
                 >
                   VIEW PROJECTS
                 </button>
@@ -288,12 +329,12 @@ function App() {
             tagline="Where the journey began."
             position="right"
           >
-            <div className="glass p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[rgba(10,15,25,0.75)] mt-2">
+            <div className="glass p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[rgba(5,8,22,0.85)] mt-2">
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-white leading-snug">
                   Bachelor of Engineering in Computer Science
                 </h3>
-                <span className="text-xs font-mono font-semibold text-[#F5B942]">
+                <span className="text-xs font-mono font-semibold text-[#FFC857]">
                   Oxford Engineering College
                 </span>
               </div>
@@ -313,41 +354,84 @@ function App() {
           <ChapterPanel
             chapter={2}
             chapterNumberText="02 CAREER"
-            title="CAREER & EXPERIENCE"
-            tagline="Turning skills into enterprise impact."
-            description="A journey of building and contributing to enterprise products and client platforms."
+            title="DEVELOPER CITY"
+            tagline="Career Milestones & Corporate Towers"
+            description="Each building represents a stage in my professional journey. Click a building to inspect details."
             position="right"
           >
-            <div className="space-y-3 max-w-lg max-h-[46vh] sm:max-h-[50vh] overflow-y-auto pr-1">
-              {experiences.map((exp) => (
-                <div
-                  key={exp.id}
-                  className="glass p-4 rounded-2xl border border-white/10 hover:border-[#00D9FF]/40 transition-all space-y-2 backdrop-blur-xl bg-[rgba(10,15,25,0.75)]"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h4 className="text-white font-bold text-sm">{exp.title}</h4>
-                      <p className="text-[#00D9FF] text-xs font-semibold">{exp.company}</p>
-                    </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#00D9FF]/10 border border-[#00D9FF]/30 text-[#00D9FF] whitespace-nowrap">
-                      {exp.period}
-                    </span>
+            <div className="space-y-3 max-w-lg max-h-[50vh] sm:max-h-[54vh] overflow-y-auto pr-1">
+              {/* Milestone Selector Tabs */}
+              <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
+                {experiences.map((exp, idx) => {
+                  const isSel = idx === selectedExperienceIndex;
+                  return (
+                    <button
+                      key={exp.id}
+                      onClick={() => setSelectedExperienceIndex(idx)}
+                      className={`px-2.5 py-1.5 rounded-lg text-[10px] font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isSel
+                          ? 'bg-[#00D9FF]/20 border border-[#00D9FF] text-[#00D9FF] font-bold shadow-sm'
+                          : 'bg-transparent border border-transparent text-white/50 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <span className={isSel ? 'text-[#00D9FF] font-bold' : 'text-white/35'}>0{idx + 1}</span>
+                      <span className="tracking-wider">{exp.company.split(' ')[0]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Active Milestone Card */}
+              <div className="glass p-5 rounded-2xl border border-white/10 hover:border-[#00D9FF]/40 transition-all space-y-3 backdrop-blur-xl bg-[rgba(5,8,22,0.88)] shadow-2xl">
+                <div className="flex items-start justify-between gap-2 border-b border-white/10 pb-2">
+                  <div>
+                    <h4 className="text-white font-bold text-base tracking-tight">{activeExp.title}</h4>
+                    <p className="text-[#00D9FF] text-xs font-semibold pt-0.5">{activeExp.company}</p>
                   </div>
-                  <p className="text-white/70 text-xs leading-relaxed line-clamp-2">
-                    {exp.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {exp.technologies.slice(0, 5).map((tech) => (
+                  <div className="text-right">
+                    <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#00D9FF]/10 border border-[#00D9FF]/30 text-[#00D9FF] whitespace-nowrap">
+                      {activeExp.period}
+                    </span>
+                    <p className="text-[10px] font-mono text-white/40 pt-0.5">{activeExp.location}</p>
+                  </div>
+                </div>
+
+                <p className="text-[#94A3B8] text-xs leading-relaxed">
+                  {activeExp.description}
+                </p>
+
+                {/* Key Responsibilities & Achievements */}
+                <div className="space-y-1.5 pt-1 border-t border-white/5">
+                  <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest block">
+                    RESPONSIBILITIES & ACHIEVEMENTS
+                  </span>
+                  <div className="space-y-1">
+                    {activeExp.achievements.map((ach, i) => (
+                      <div key={i} className="flex items-start gap-2 text-[11px] text-white/80">
+                        <span className="text-[#00D9FF] mt-0.5">▸</span>
+                        <span className="leading-snug">{ach}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Technologies */}
+                <div className="pt-1.5 border-t border-white/5 space-y-1">
+                  <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest block">
+                    TECHNOLOGIES
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {activeExp.technologies.map((tech) => (
                       <span
                         key={tech}
-                        className="px-2 py-0.5 text-[10px] font-mono rounded bg-white/5 border border-white/10 text-white/70"
+                        className="px-2 py-0.5 text-[10px] font-mono rounded bg-white/[0.04] border border-white/10 text-white/80"
                       >
                         {tech}
                       </span>
                     ))}
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </ChapterPanel>
 
@@ -390,7 +474,7 @@ function App() {
                     <span className="text-white/30">•</span>
                     <span className="text-white/70 text-[10px]">{PROJECT_COMPARTMENTS[selectedProjectIndex]?.coachType}</span>
                   </span>
-                  <span className="text-[#F5B942] uppercase tracking-wider text-[10px] bg-[#F5B942]/10 px-2 py-0.5 rounded border border-[#F5B942]/30">
+                  <span className="text-[#FFC857] uppercase tracking-wider text-[10px] bg-[#FFC857]/10 px-2 py-0.5 rounded border border-[#FFC857]/30">
                     {PROJECT_COMPARTMENTS[selectedProjectIndex]?.categoryName}
                   </span>
                 </div>
@@ -630,7 +714,8 @@ function App() {
                 <a
                   href="/resume.pdf"
                   download="Subramani_Resume.pdf"
-                  className="px-4 py-2 rounded-full bg-[#F5B942]/10 hover:bg-[#F5B942]/20 border border-[#F5B942]/40 text-[#F5B942] text-xs font-mono font-semibold tracking-wider uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                  aria-label="Download Subramani's Resume PDF"
+                  className="px-4 py-2 rounded-full bg-[#FFC857]/10 hover:bg-[#FFC857]/20 border border-[#FFC857]/40 text-[#FFC857] text-xs font-mono font-semibold tracking-wider uppercase transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <ExternalLink size={13} />
                   <span>DOWNLOAD RESUME</span>

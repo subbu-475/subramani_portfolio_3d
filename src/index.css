@@ -2,20 +2,20 @@
 
 /* === Global Design System Tokens === */
 :root {
-  --color-bg-navy: #05070D;
+  --color-bg-navy: #050816;
   --color-accent-cyan: #00D9FF;
-  --color-accent-gold: #F5B942;
+  --color-accent-gold: #FFC857;
   --color-text-primary: #FFFFFF;
-  --color-text-secondary: #A7AFBF;
-  --color-card-bg: rgba(10, 15, 25, 0.75);
+  --color-text-secondary: #94A3B8;
+  --color-card-bg: rgba(5, 8, 22, 0.82);
   --color-card-border: rgba(255, 255, 255, 0.12);
   
   /* Backward-compatible aliases */
-  --color-base-darkest: #05070D;
-  --color-base-dark: #0A0F19;
-  --color-base: #111827;
-  --color-sunset-warmth: #F5B942;
-  --color-gold: #F5B942;
+  --color-base-darkest: #050816;
+  --color-base-dark: #090E26;
+  --color-base: #0E1638;
+  --color-sunset-warmth: #FFC857;
+  --color-gold: #FFC857;
 }
 
 /* === Base Styles === */
@@ -29,12 +29,12 @@
   html {
     scroll-behavior: smooth;
     overflow: hidden;
-    background-color: #05070D;
+    background-color: #050816;
   }
 
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #05070D;
+    background-color: #050816;
     color: #FFFFFF;
     overflow: hidden;
     cursor: none;
@@ -54,6 +54,15 @@
     color: white;
   }
 
+  /* Accessible focus states */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid #00D9FF;
+    outline-offset: 2px;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar {
     width: 0;
@@ -64,25 +73,25 @@
 /* === Glassmorphism === */
 @layer components {
   .glass {
-    background: rgba(10, 15, 25, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: linear-gradient(135deg, rgba(5, 8, 22, 0.88) 0%, rgba(10, 16, 38, 0.78) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .glass-card {
-    background: rgba(10, 15, 25, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: linear-gradient(135deg, rgba(5, 8, 22, 0.90) 0%, rgba(10, 16, 40, 0.82) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .glass-strong {
-    background: rgba(10, 15, 25, 0.88);
+    background: linear-gradient(135deg, rgba(5, 8, 22, 0.96) 0%, rgba(10, 16, 40, 0.90) 100%);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
   .btn-primary {

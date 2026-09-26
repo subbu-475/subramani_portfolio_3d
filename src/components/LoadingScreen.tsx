@@ -35,12 +35,12 @@ export const LoadingScreen: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex flex-col justify-between p-8 sm:p-12 bg-[#050505] text-white overflow-hidden select-none"
+      className="fixed inset-0 z-50 flex flex-col justify-between p-8 sm:p-12 bg-[#050816] text-white overflow-hidden select-none"
     >
       {/* Subtle Star / Nebula Aura in background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-950/20 via-black to-[#050505] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-950/20 via-[#050816]/80 to-[#050816] pointer-events-none" />
 
-      {/* Top Header Row (Matching Reference Panel 1) */}
+      {/* Top Header Row */}
       <div className="flex justify-between items-center text-xs tracking-[0.25em] text-white/50 uppercase font-mono z-10">
         <span>SUBRAMANI</span>
         <span>A DEVELOPER'S JOURNEY</span>
@@ -50,18 +50,18 @@ export const LoadingScreen: React.FC = () => {
       <div className="flex flex-col items-center justify-center text-center z-10 max-w-xl mx-auto w-full">
         <h1
           ref={textRef}
-          className="text-4xl sm:text-6xl md:text-7xl font-bold uppercase tracking-[0.35em] text-white mb-3"
+          className="text-4xl sm:text-6xl md:text-7xl font-extrabold uppercase tracking-[0.35em] text-white mb-3"
         >
           SUBRAMANI
         </h1>
-        <p className="text-white/60 tracking-[0.25em] text-xs sm:text-sm uppercase font-mono mb-12">
-          A Developer's Journey
+        <p className="text-white/60 tracking-[0.25em] text-xs sm:text-sm uppercase font-mono mb-10">
+          Full Stack Developer
         </p>
 
         {/* Loading Progress Box */}
         <div className="w-full max-w-md space-y-3">
-          <p className="text-xs font-mono tracking-widest text-cyan-400 uppercase animate-pulse">
-            Loading World...
+          <p className="text-xs font-mono tracking-widest text-[#00D9FF] uppercase animate-pulse">
+            INITIALIZING JOURNEY...
           </p>
 
           <div className="flex items-center gap-4">

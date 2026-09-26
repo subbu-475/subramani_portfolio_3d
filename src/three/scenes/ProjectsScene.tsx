@@ -189,9 +189,9 @@ const CategoryProjectExhibit: React.FC<WindowScreenProps> = ({ type, active, acc
         </group>
       )}
 
-      {(type === 'mobile-applications' || type === 'saas-web' || type === 'mobile-apps') && (
+      {(type === 'business-platform' || type === 'mobile-applications' || type === 'saas-web' || type === 'mobile-apps') && (
         <group>
-          {/* Mobile Applications & Cross-Platform Suite */}
+          {/* Business / Web Platform & Enterprise Suite */}
           <mesh position={[-1.2, 0, 0]}>
             <boxGeometry args={[1.4, 0.8, 0.04]} />
             <meshStandardMaterial color="#07111E" emissive="#34D399" emissiveIntensity={intensity} />

@@ -71,7 +71,7 @@ export const VerticalTimeline: React.FC = () => {
     >
       <nav
         aria-label="Flight Route"
-        className="pointer-events-auto flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full glass border border-white/10 shadow-2xl backdrop-blur-xl bg-[#090D18]/85"
+        className="pointer-events-auto flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full glass border border-white/10 shadow-2xl backdrop-blur-xl bg-[#050816]/90"
       >
         {FLIGHT_DESTINATIONS.map((dest, idx) => {
           const isActive = idx === activeDestIndex;
@@ -81,24 +81,25 @@ export const VerticalTimeline: React.FC = () => {
             <React.Fragment key={dest.num}>
               <button
                 onClick={() => handleDestinationClick(dest)}
+                aria-label={`Jump to Chapter ${dest.num} ${dest.title}`}
                 className={`group relative flex items-center gap-1 sm:gap-1.5 py-1 px-1.5 sm:px-2 rounded-full transition-all duration-300 cursor-pointer focus:outline-none ${
                   isActive
-                    ? 'text-amber-300 bg-amber-400/10 font-bold shadow-sm'
+                    ? 'text-[#FFC857] bg-[#FFC857]/15 font-bold border border-[#FFC857]/40 shadow-[0_0_12px_rgba(255,200,87,0.25)]'
                     : isPassed
-                    ? 'text-white/65 hover:text-white hover:bg-white/5'
-                    : 'text-white/30 hover:text-white/60 hover:bg-white/5'
+                    ? 'text-white/70 hover:text-white hover:bg-white/5'
+                    : 'text-white/35 hover:text-white/60 hover:bg-white/5'
                 }`}
                 title={`${dest.num} ${dest.title}`}
               >
                 {/* Paper Airplane Indicator on Active Chapter */}
                 {isActive ? (
-                  <span className="text-amber-300 animate-pulse drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]">
+                  <span className="text-[#FFC857] animate-pulse drop-shadow-[0_0_8px_rgba(255,200,87,0.7)]">
                     <OrigamiAirplaneIcon className="w-3.5 h-3.5 transform -rotate-12" />
                   </span>
                 ) : (
                   <span
                     className={`w-1 h-1 rounded-full transition-colors ${
-                      isPassed ? 'bg-amber-400/60' : 'bg-white/20'
+                      isPassed ? 'bg-[#00D9FF]/70' : 'bg-white/20'
                     }`}
                   />
                 )}
@@ -127,7 +128,7 @@ export const VerticalTimeline: React.FC = () => {
               {idx < FLIGHT_DESTINATIONS.length - 1 && (
                 <span
                   className={`text-[9px] font-mono select-none px-0.5 transition-colors ${
-                    isPassed ? 'text-amber-400/40' : 'text-white/15'
+                    isPassed ? 'text-[#00D9FF]/50' : 'text-white/15'
                   }`}
                 >
                   ⇢
