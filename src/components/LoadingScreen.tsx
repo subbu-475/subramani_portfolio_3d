@@ -21,8 +21,8 @@ export const LoadingScreen: React.FC = () => {
     if (isWorldReady && containerRef.current) {
       gsap.to(containerRef.current, {
         opacity: 0,
-        duration: 1.2,
-        ease: 'power2.inOut',
+        duration: 0.5,
+        ease: 'power2.out',
         onComplete: () => {
           if (containerRef.current) {
             containerRef.current.style.display = 'none';

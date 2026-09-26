@@ -7,6 +7,7 @@ import Camera from './Camera';
 import Character from './Character';
 import Lighting from './Lighting';
 import Effects from './Effects';
+import Road from './Road';
 
 import IntroScene from './scenes/IntroScene';
 import EducationScene from './scenes/EducationScene';
@@ -41,12 +42,12 @@ const World: React.FC = () => {
         }}
         camera={{ fov: 55, near: 0.1, far: 800 }}
       >
-        <color attach="background" args={['#050505']} />
         <Suspense fallback={null}>
           <Camera />
           <Character />
           <Lighting />
           <Environment />
+          <Road />
 
           <group>
             <IntroScene />

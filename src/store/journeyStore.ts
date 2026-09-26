@@ -1,23 +1,23 @@
 import { create } from 'zustand';
+import { JOURNEY_CHAPTERS, getChapterIndexByProgress } from '../data/journey';
 
 export interface ChapterMeta {
   id: number;
   num: string;
   title: string;
   subtitle: string;
-  zPos: number;
 }
 
 export const CHAPTERS_DATA: ChapterMeta[] = [
-  { id: 0, num: '01', title: 'The Beginning', subtitle: 'Home', zPos: 0 },
-  { id: 1, num: '02', title: 'Education', subtitle: 'University', zPos: -45 },
-  { id: 2, num: '03', title: 'First Code', subtitle: 'Learning', zPos: -90 },
-  { id: 3, num: '04', title: 'Career', subtitle: 'Experience', zPos: -135 },
-  { id: 4, num: '05', title: 'Projects', subtitle: 'My Work', zPos: -180 },
-  { id: 5, num: '06', title: 'Skills', subtitle: 'Technologies', zPos: -225 },
-  { id: 6, num: '07', title: 'Present', subtitle: 'Current Chapter', zPos: -270 },
-  { id: 7, num: '08', title: 'Future', subtitle: "What's Next", zPos: -315 },
-  { id: 8, num: '09', title: 'Contact', subtitle: "Let's Connect", zPos: -360 },
+  { id: 0, num: '01', title: 'The Beginning', subtitle: 'Home' },
+  { id: 1, num: '02', title: 'Education', subtitle: 'University' },
+  { id: 2, num: '03', title: 'First Code', subtitle: 'Learning' },
+  { id: 3, num: '04', title: 'Career', subtitle: 'Experience' },
+  { id: 4, num: '05', title: 'Projects', subtitle: 'My Work' },
+  { id: 5, num: '06', title: 'Skills', subtitle: 'Technologies' },
+  { id: 6, num: '07', title: 'Present', subtitle: 'Current Chapter' },
+  { id: 7, num: '08', title: 'Future', subtitle: "What's Next" },
+  { id: 8, num: '09', title: 'Contact', subtitle: "Let's Connect" },
 ];
 
 export interface JourneyState {
@@ -98,16 +98,13 @@ export const useJourneyStore = create<JourneyState>((set) => ({
 
   setJourneyProgress: (progress) => {
     const clamped = Math.max(0, Math.min(1, progress));
-    const count = CHAPTERS_DATA.length;
-    // Map progress to chapter index
-    const chapter = Math.min(Math.floor(clamped * count), count - 1);
+    const chapter = getChapterIndexByProgress(clamped);
     set({ journeyProgress: clamped, currentChapter: chapter });
   },
 
   jumpToChapter: (chapterId: number) => {
-    const total = CHAPTERS_DATA.length;
-    const progress = Math.min(0.999, chapterId / (total - 1));
-    set({ journeyProgress: progress, currentChapter: chapterId, isMenuOpen: false });
+    const targetProgress = JOURNEY_CHAPTERS[chapterId]?.landmarkProgress ?? Math.min(0.999, chapterId / (CHAPTERS_DATA.length - 1));
+    set({ journeyProgress: targetProgress, currentChapter: chapterId, isMenuOpen: false });
   },
 
   toggleMenu: () => set((s) => ({ isMenuOpen: !s.isMenuOpen })),

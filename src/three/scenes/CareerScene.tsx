@@ -4,6 +4,12 @@ import { Float, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { experiences } from '../../data/experience';
 
+/**
+ * CH 03 — CAREER: Tech City Boulevard & Corporate Towers
+ * Positioned along the LEFT turn segment at WP7 (-42, 0, -170).
+ * The office towers are placed on the LEFT side of the road (negative X),
+ * facing +X towards the traveler walking along the boulevard.
+ */
 export const CareerScene: React.FC = () => {
   const beacon1Ref = useRef<THREE.Group>(null);
   const beacon2Ref = useRef<THREE.Group>(null);
@@ -17,39 +23,18 @@ export const CareerScene: React.FC = () => {
   });
 
   return (
-    <group position={[0, 0, -135]}>
-      {/* City Boulevard Road & Sidewalk */}
-      <mesh position={[0, 0.01, -12]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[14, 34]} />
-        <meshStandardMaterial color="#0A0E17" roughness={0.5} metalness={0.2} />
-      </mesh>
-      {/* Center Road Markings */}
-      {[...Array(6)].map((_, i) => (
-        <mesh
-          key={`stripe-${i}`}
-          position={[0, 0.03, -3 - i * 5]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <planeGeometry args={[0.3, 2.5]} />
-          <meshBasicMaterial color="#FDE047" />
-        </mesh>
-      ))}
-
-      {/* Sidewalks */}
-      <mesh position={[-8, 0.1, -12]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[5, 34]} />
-        <meshStandardMaterial color="#1E293B" roughness={0.8} />
-      </mesh>
-      <mesh position={[8, 0.1, -12]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[5, 34]} />
+    <group position={[-42, 0, -170]}>
+      {/* City Boulevard Sidewalk on the Right side */}
+      <mesh position={[7.5, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[4.5, 36]} />
         <meshStandardMaterial color="#1E293B" roughness={0.8} />
       </mesh>
 
-      {/* Modern Streetlamps along Boulevard */}
-      {[-6, 6].map((sx, sideIdx) => (
-        <group key={`side-lamps-${sideIdx}`}>
-          {[-4, -12, -20, -28].map((sz, lampIdx) => (
-            <group key={`lamp-${sideIdx}-${lampIdx}`} position={[sx, 0, sz]}>
+      {/* Modern Streetlamps along Boulevard (both sides) */}
+      {[-5.5, 5.5].map((sx, sideIdx) => (
+        <group key={`career-lamps-${sideIdx}`}>
+          {[-12, -4, 4, 12].map((sz, lampIdx) => (
+            <group key={`c-lamp-${sideIdx}-${lampIdx}`} position={[sx, 0, sz]}>
               <mesh position={[0, 2.8, 0]}>
                 <cylinderGeometry args={[0.08, 0.12, 5.6, 8]} />
                 <meshStandardMaterial color="#1E293B" metalness={0.9} />
@@ -69,161 +54,171 @@ export const CareerScene: React.FC = () => {
         </group>
       ))}
 
-      {/* Tower 1 (Left - KO Innovation Software Solutions) */}
-      <group position={[-12, 0, -18]}>
-        {/* Main Skyscraper Body */}
-        <mesh position={[0, 11, 0]}>
-          <boxGeometry args={[7, 22, 7]} />
-          <meshStandardMaterial color="#0B131E" metalness={0.8} roughness={0.2} />
-        </mesh>
-        {/* Illuminated Window Matrix */}
-        {[...Array(9)].map((_, r) => (
-          <mesh key={`ko-win-${r}`} position={[0, 3 + r * 1.8, 3.52]}>
-            <planeGeometry args={[5.8, 0.9]} />
-            <meshStandardMaterial
-              color="#0284C7"
-              emissive="#06B6D4"
-              emissiveIntensity={0.8}
-            />
+      {/* ========================================================= */}
+      {/* 3D CORPORATE OFFICE TOWERS (LEFT SIDE, FACING ROAD)       */}
+      {/* ========================================================= */}
+      <group position={[-18, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+        {/* Tower 1 (Center-Left: KO Innovation Software Solutions) */}
+        <group position={[-8, 0, 0]}>
+          {/* Main Skyscraper Body */}
+          <mesh position={[0, 12, 0]}>
+            <boxGeometry args={[8, 24, 8]} />
+            <meshStandardMaterial color="#0B131E" metalness={0.8} roughness={0.2} />
           </mesh>
-        ))}
-        {/* Rooftop Antenna Spire with blinking beacon */}
-        <mesh position={[0, 24, 0]}>
-          <cylinderGeometry args={[0.06, 0.15, 4, 8]} />
-          <meshStandardMaterial color="#64748B" metalness={0.9} />
-        </mesh>
-        <mesh position={[0, 26, 0]}>
-          <sphereGeometry args={[0.2, 8, 8]} />
-          <meshBasicMaterial color="#EF4444" />
-        </mesh>
+          {/* Illuminated Window Matrix */}
+          {[...Array(10)].map((_, r) => (
+            <mesh key={`ko-win-${r}`} position={[0, 3 + r * 1.9, 4.02]}>
+              <planeGeometry args={[6.8, 1.0]} />
+              <meshStandardMaterial
+                color="#0284C7"
+                emissive="#06B6D4"
+                emissiveIntensity={0.8}
+              />
+            </mesh>
+          ))}
+          {/* Rooftop Antenna Spire */}
+          <mesh position={[0, 26, 0]}>
+            <cylinderGeometry args={[0.06, 0.15, 4.5, 8]} />
+            <meshStandardMaterial color="#64748B" metalness={0.9} />
+          </mesh>
+          <mesh position={[0, 28.2, 0]}>
+            <sphereGeometry args={[0.22, 8, 8]} />
+            <meshBasicMaterial color="#EF4444" />
+          </mesh>
 
-        {/* 3D Floating Beacon Pin (Matching Reference Panel 6) */}
-        <group ref={beacon1Ref} position={[4, 11.5, 2]}>
-          <Float speed={2} floatIntensity={0.5}>
-            {/* Holographic Glowing Pin */}
-            <mesh position={[0, 0, 0]}>
-              <sphereGeometry args={[0.35, 16, 16]} />
-              <meshStandardMaterial color="#06B6D4" emissive="#06B6D4" emissiveIntensity={2} />
-            </mesh>
-            <mesh position={[0, -0.6, 0]}>
-              <coneGeometry args={[0.25, 0.8, 8]} rotation={[Math.PI, 0, 0]} />
-              <meshStandardMaterial color="#06B6D4" emissive="#06B6D4" emissiveIntensity={1.5} />
-            </mesh>
-            {/* Info Badge */}
-            <group position={[0, 0.9, 0]}>
-              <mesh>
-                <boxGeometry args={[4.2, 1.1, 0.1]} />
-                <meshStandardMaterial color="#030712" transparent opacity={0.85} roughness={0.3} />
+          {/* 3D Floating Beacon Pin */}
+          <group ref={beacon1Ref} position={[0, 11.5, 5.2]}>
+            <Float speed={2.5} rotationIntensity={0.2} floatIntensity={0.3}>
+              <mesh position={[0, 0, 0]}>
+                <boxGeometry args={[4.8, 1.8, 0.25]} />
+                <meshStandardMaterial color="#0284C7" emissive="#0284C7" emissiveIntensity={0.6} />
               </mesh>
-              <Text position={[0, 0.22, 0.08]} fontSize={0.22} color="#38BDF8" font={undefined}>
-                {experiences[0]?.company || 'KO Innovation Software'}
+              <Text
+                position={[0, 0.35, 0.18]}
+                fontSize={0.28}
+                color="#FFFFFF"
+                letterSpacing={0.06}
+              >
+                {experiences[0]?.company || 'KO Innovation'}
               </Text>
-              <Text position={[0, -0.18, 0.08]} fontSize={0.16} color="#94A3B8" font={undefined}>
-                Associate Software Developer (2025 - Present)
+              <Text
+                position={[0, -0.15, 0.18]}
+                fontSize={0.22}
+                color="#FEF08A"
+                letterSpacing={0.04}
+              >
+                {experiences[0]?.title || 'Associate Software Developer'}
               </Text>
-            </group>
-          </Float>
+              <Text
+                position={[0, -0.55, 0.18]}
+                fontSize={0.18}
+                color="#94A3B8"
+              >
+                {experiences[0]?.period || '02/2025 - Present'}
+              </Text>
+            </Float>
+          </group>
         </group>
-      </group>
 
-      {/* Tower 2 (Right Center - Freelance & Frappe Enterprise) */}
-      <group position={[13, 0, -22]}>
-        <mesh position={[0, 9, 0]}>
-          <boxGeometry args={[6.5, 18, 6.5]} />
-          <meshStandardMaterial color="#0E1726" metalness={0.7} roughness={0.3} />
-        </mesh>
-        {/* Windows */}
-        {[...Array(7)].map((_, r) => (
-          <mesh key={`fr-win-${r}`} position={[0, 3 + r * 2.0, 3.28]}>
-            <planeGeometry args={[5.2, 1.0]} />
-            <meshStandardMaterial
-              color="#D97706"
-              emissive="#F59E0B"
-              emissiveIntensity={0.7}
-            />
+        {/* Tower 2 (Center: Freelance / Self-Employed Tower) */}
+        <group position={[4, 0, -2]}>
+          <mesh position={[0, 9.5, 0]}>
+            <boxGeometry args={[7, 19, 7]} />
+            <meshStandardMaterial color="#1E1B18" metalness={0.7} roughness={0.3} />
           </mesh>
-        ))}
-
-        {/* 3D Floating Beacon Pin */}
-        <group ref={beacon2Ref} position={[-3.5, 9.5, 2]}>
-          <Float speed={2.2} floatIntensity={0.5}>
-            <mesh position={[0, 0, 0]}>
-              <sphereGeometry args={[0.35, 16, 16]} />
-              <meshStandardMaterial color="#F97316" emissive="#F97316" emissiveIntensity={2} />
+          {/* Amber Window Matrix */}
+          {[...Array(8)].map((_, r) => (
+            <mesh key={`free-win-${r}`} position={[0, 2.5 + r * 1.8, 3.52]}>
+              <planeGeometry args={[5.8, 0.9]} />
+              <meshStandardMaterial
+                color="#D97706"
+                emissive="#F59E0B"
+                emissiveIntensity={0.7}
+              />
             </mesh>
-            <mesh position={[0, -0.6, 0]}>
-              <coneGeometry args={[0.25, 0.8, 8]} rotation={[Math.PI, 0, 0]} />
-              <meshStandardMaterial color="#F97316" emissive="#F97316" emissiveIntensity={1.5} />
-            </mesh>
-            <group position={[0, 0.9, 0]}>
-              <mesh>
-                <boxGeometry args={[4.2, 1.1, 0.1]} />
-                <meshStandardMaterial color="#030712" transparent opacity={0.85} roughness={0.3} />
+          ))}
+          {/* Beacon */}
+          <group ref={beacon2Ref} position={[0, 9.5, 4.6]}>
+            <Float speed={2} rotationIntensity={0.2} floatIntensity={0.3}>
+              <mesh position={[0, 0, 0]}>
+                <boxGeometry args={[4.4, 1.6, 0.25]} />
+                <meshStandardMaterial color="#D97706" emissive="#D97706" emissiveIntensity={0.5} />
               </mesh>
-              <Text position={[0, 0.22, 0.08]} fontSize={0.22} color="#FDBA74" font={undefined}>
-                {experiences[1]?.company || 'Freelance / Self-Employed'}
+              <Text
+                position={[0, 0.3, 0.18]}
+                fontSize={0.26}
+                color="#FFFFFF"
+                letterSpacing={0.05}
+              >
+                {experiences[1]?.company || 'Freelance'}
               </Text>
-              <Text position={[0, -0.18, 0.08]} fontSize={0.16} color="#94A3B8" font={undefined}>
-                App & Frappe Developer (2024 - Present)
+              <Text
+                position={[0, -0.15, 0.18]}
+                fontSize={0.20}
+                color="#FDE047"
+              >
+                {experiences[1]?.title || 'Full Stack Developer'}
               </Text>
-            </group>
-          </Float>
+              <Text
+                position={[0, -0.5, 0.18]}
+                fontSize={0.17}
+                color="#E2E8F0"
+              >
+                {experiences[1]?.period || '06/2024 - 01/2025'}
+              </Text>
+            </Float>
+          </group>
         </group>
-      </group>
 
-      {/* Tower 3 (Left Midground - Hilife.Ai) */}
-      <group position={[-9, 0, -32]}>
-        <mesh position={[0, 7.5, 0]}>
-          <boxGeometry args={[6, 15, 6]} />
-          <meshStandardMaterial color="#0F172A" metalness={0.8} />
-        </mesh>
-        {[...Array(6)].map((_, r) => (
-          <mesh key={`hi-win-${r}`} position={[0, 2.5 + r * 1.8, 3.02]}>
-            <planeGeometry args={[4.8, 0.8]} />
-            <meshStandardMaterial
-              color="#2563EB"
-              emissive="#3B82F6"
-              emissiveIntensity={0.6}
-            />
+        {/* Tower 3 (Right: Hilife.Ai Pvt Ltd) */}
+        <group position={[14, 0, -4]}>
+          <mesh position={[0, 8, 0]}>
+            <boxGeometry args={[6.5, 16, 6.5]} />
+            <meshStandardMaterial color="#0E1726" metalness={0.8} roughness={0.2} />
           </mesh>
-        ))}
-
-        {/* 3D Floating Beacon Pin */}
-        <group ref={beacon3Ref} position={[3, 8.5, 2]}>
-          <Float speed={1.9} floatIntensity={0.5}>
-            <mesh position={[0, 0, 0]}>
-              <sphereGeometry args={[0.3, 16, 16]} />
-              <meshStandardMaterial color="#3B82F6" emissive="#3B82F6" emissiveIntensity={2} />
+          {[...Array(7)].map((_, r) => (
+            <mesh key={`hilife-win-${r}`} position={[0, 2.5 + r * 1.7, 3.28]}>
+              <planeGeometry args={[5.4, 0.85]} />
+              <meshStandardMaterial
+                color="#0284C7"
+                emissive="#38BDF8"
+                emissiveIntensity={0.6}
+              />
             </mesh>
-            <group position={[0, 0.8, 0]}>
-              <mesh>
-                <boxGeometry args={[3.8, 0.9, 0.1]} />
-                <meshStandardMaterial color="#030712" transparent opacity={0.85} roughness={0.3} />
+          ))}
+          {/* Beacon */}
+          <group ref={beacon3Ref} position={[0, 8.5, 4.2]}>
+            <Float speed={2.2} rotationIntensity={0.2} floatIntensity={0.3}>
+              <mesh position={[0, 0, 0]}>
+                <boxGeometry args={[4.2, 1.6, 0.25]} />
+                <meshStandardMaterial color="#0284C7" emissive="#0284C7" emissiveIntensity={0.5} />
               </mesh>
-              <Text position={[0, 0.18, 0.08]} fontSize={0.2} color="#93C5FD" font={undefined}>
+              <Text
+                position={[0, 0.3, 0.18]}
+                fontSize={0.26}
+                color="#FFFFFF"
+                letterSpacing={0.05}
+              >
                 {experiences[2]?.company || 'Hilife.Ai Pvt Ltd'}
               </Text>
-              <Text position={[0, -0.16, 0.08]} fontSize={0.15} color="#94A3B8" font={undefined}>
-                Junior Full Stack Developer
+              <Text
+                position={[0, -0.15, 0.18]}
+                fontSize={0.20}
+                color="#7DD3FC"
+              >
+                {experiences[2]?.title || 'Python Intern'}
               </Text>
-            </group>
-          </Float>
+              <Text
+                position={[0, -0.5, 0.18]}
+                fontSize={0.17}
+                color="#CBD5E1"
+              >
+                {experiences[2]?.period || '11/2023 - 04/2024'}
+              </Text>
+            </Float>
+          </group>
         </group>
       </group>
-
-      {/* Distant City Skyline Silhouettes */}
-      {[
-        [-22, 14, -40, 8, 28, 8],
-        [-15, 16, -46, 7, 32, 7],
-        [0, 18, -48, 8, 36, 8],
-        [16, 15, -44, 8, 30, 8],
-        [24, 12, -38, 7, 24, 7],
-      ].map(([x, y, z, w, h, d], i) => (
-        <mesh key={`distant-sky-${i}`} position={[x, y, z]}>
-          <boxGeometry args={[w, h, d]} />
-          <meshStandardMaterial color="#020617" roughness={0.9} />
-        </mesh>
-      ))}
     </group>
   );
 };

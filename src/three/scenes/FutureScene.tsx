@@ -1,111 +1,167 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Float, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
+/**
+ * CH 07 — THE JOURNEY CONTINUES: Rocket Launch & Space Ascent
+ * Positioned along the ascending LEFT turn segment at WP15 (-28, 15, -365).
+ * Features a high-tech rocket launch pad, gantry tower, ascending spacecraft,
+ * glowing propulsion particles, and transition into cosmic orbit.
+ */
 export const FutureScene: React.FC = () => {
+  const rocketFlameRef = useRef<THREE.PointLight>(null);
   const planetRingRef = useRef<THREE.Mesh>(null);
-  const roadLightRef = useRef<THREE.Mesh>(null);
 
   useFrame((state, delta) => {
+    if (rocketFlameRef.current) {
+      rocketFlameRef.current.intensity = 3.5 + Math.sin(state.clock.elapsedTime * 12) * 1.0;
+    }
     if (planetRingRef.current) {
       planetRingRef.current.rotation.z += delta * 0.05;
-    }
-    if (roadLightRef.current) {
-      const mat = roadLightRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = 0.7 + Math.sin(state.clock.elapsedTime * 2.5) * 0.25;
     }
   });
 
   return (
-    <group position={[0, 0, -315]}>
-      {/* Colossal Ringed Celestial Planet in Cosmic Sky (Matching Reference Panel 10) */}
-      <group position={[-16, 20, -50]}>
+    <group position={[-28, 15, -365]}>
+      {/* ========================================================= */}
+      {/* GROUND LAUNCH PAD COMPLEX (Below the ascending path)      */}
+      {/* ========================================================= */}
+      <group position={[14, -15, 20]}>
+        {/* Launch Pad Hexagonal Concrete Base */}
+        <mesh position={[0, 0.5, 0]}>
+          <cylinderGeometry args={[14, 16, 1.0, 6]} />
+          <meshStandardMaterial color="#1E293B" roughness={0.8} />
+        </mesh>
+        {/* Flame Trench Blast Deflector */}
+        <mesh position={[0, 0.2, 0]}>
+          <cylinderGeometry args={[6, 7, 0.5, 16]} />
+          <meshStandardMaterial color="#0F172A" roughness={0.9} />
+        </mesh>
+
+        {/* Tall Launch Gantry Tower Structure */}
+        <group position={[-8, 0, 0]}>
+          {/* Main Tower Mast */}
+          <mesh position={[0, 16, 0]}>
+            <boxGeometry args={[3.2, 32, 3.2]} />
+            <meshStandardMaterial color="#DC2626" metalness={0.7} roughness={0.3} wireframe={false} />
+          </mesh>
+          {/* Tower Cross Bracing Visual Simulation */}
+          {[...Array(6)].map((_, i) => (
+            <mesh key={`gantry-ring-${i}`} position={[0, 5 + i * 5, 0]}>
+              <boxGeometry args={[3.6, 0.6, 3.6]} />
+              <meshStandardMaterial color="#991B1B" metalness={0.8} />
+            </mesh>
+          ))}
+          {/* Top Crane Arm */}
+          <mesh position={[3.5, 31, 0]}>
+            <boxGeometry args={[7.0, 1.2, 1.4]} />
+            <meshStandardMaterial color="#DC2626" metalness={0.8} />
+          </mesh>
+          {/* Red Aviation Warning Beacon on top */}
+          <mesh position={[0, 32.5, 0]}>
+            <sphereGeometry args={[0.35, 8, 8]} />
+            <meshBasicMaterial color="#EF4444" />
+          </mesh>
+          <pointLight position={[0, 32.5, 0]} color="#EF4444" intensity={2.5} distance={25} />
+        </group>
+
+        {/* High-Powered Launch Pad Floodlights */}
+        {[-8, 8].map((fx, i) => (
+          <group key={`flood-${i}`} position={[fx, 1.0, 9]}>
+            <mesh position={[0, 3, 0]}>
+              <cylinderGeometry args={[0.1, 0.15, 6, 8]} />
+              <meshStandardMaterial color="#64748B" metalness={0.9} />
+            </mesh>
+            <mesh position={[0, 6.2, 0]} rotation={[0.4, 0, 0]}>
+              <boxGeometry args={[1.2, 0.8, 0.6]} />
+              <meshStandardMaterial color="#0284C7" emissive="#38BDF8" emissiveIntensity={1.5} />
+            </mesh>
+            <pointLight position={[0, 6.2, 0]} color="#38BDF8" intensity={3.0} distance={30} />
+          </group>
+        ))}
+      </group>
+
+      {/* ========================================================= */}
+      {/* ASCENDING ROCKET / SPACECRAFT IN FLIGHT                   */}
+      {/* ========================================================= */}
+      <group position={[0, 2, -10]} rotation={[0.3, 0, 0]}>
+        {/* Rocket Main Fuselage */}
+        <mesh position={[0, 6, 0]}>
+          <cylinderGeometry args={[1.4, 1.6, 12, 24]} />
+          <meshStandardMaterial color="#F8FAFC" metalness={0.6} roughness={0.3} />
+        </mesh>
+        {/* Aerodynamic Nose Cone */}
+        <mesh position={[0, 13.5, 0]}>
+          <coneGeometry args={[1.4, 3.2, 24]} />
+          <meshStandardMaterial color="#0284C7" metalness={0.7} roughness={0.3} />
+        </mesh>
+        {/* Delta Wings / Aerodynamic Fins */}
+        {[0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2].map((finAngle, idx) => (
+          <mesh key={`fin-${idx}`} position={[0, 1.5, 0]} rotation={[0, finAngle, 0]}>
+            <boxGeometry args={[0.15, 3.2, 4.2]} />
+            <meshStandardMaterial color="#0284C7" metalness={0.8} />
+          </mesh>
+        ))}
+        {/* Engine Nozzles */}
+        <mesh position={[0, -0.6, 0]}>
+          <cylinderGeometry args={[1.2, 0.8, 1.2, 16]} />
+          <meshStandardMaterial color="#1E293B" metalness={0.9} />
+        </mesh>
+        {/* Rocket Thruster Flame & Plasma Glow */}
+        <mesh position={[0, -3.2, 0]}>
+          <coneGeometry args={[1.0, 4.2, 16]} />
+          <meshBasicMaterial color="#FF6600" />
+        </mesh>
+        <pointLight ref={rocketFlameRef} position={[0, -2, 0]} color="#FF6600" intensity={4.0} distance={25} />
+      </group>
+
+      {/* ========================================================= */}
+      {/* RINGED CELESTIAL PLANET IN THE SPACE SKY                  */}
+      {/* ========================================================= */}
+      <group position={[28, 20, -50]}>
         {/* Planet Sphere */}
         <mesh>
-          <sphereGeometry args={[11, 48, 48]} />
+          <sphereGeometry args={[12, 48, 48]} />
           <meshStandardMaterial
             color="#C7D2FE"
             emissive="#4338CA"
-            emissiveIntensity={0.5}
-            roughness={0.7}
+            emissiveIntensity={0.6}
+            roughness={0.6}
           />
         </mesh>
-        {/* Planetary Rings */}
+        {/* Planet Rings */}
         <mesh ref={planetRingRef} rotation={[1.1, 0.4, 0]}>
-          <ringGeometry args={[14, 24, 64]} />
+          <ringGeometry args={[15, 26, 64]} />
           <meshBasicMaterial color="#E0E7FF" transparent opacity={0.65} side={THREE.DoubleSide} />
         </mesh>
       </group>
 
-      {/* Futuristic Highway Bridge extending towards horizon */}
-      <group position={[0, 0, -15]}>
-        {/* Bridge Road Deck */}
-        <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[12, 38]} />
-          <meshStandardMaterial color="#0F172A" roughness={0.3} metalness={0.8} />
-        </mesh>
-
-        {/* Center Glowing Neon Road Guide Strip */}
-        <mesh ref={roadLightRef} position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[0.5, 38]} />
-          <meshBasicMaterial color="#F97316" transparent opacity={0.9} />
-        </mesh>
-
-        {/* Bridge Side Railings with Glowing Edges */}
-        {[-6, 6].map((rx, idx) => (
-          <group key={`bridge-rail-${idx}`} position={[rx, 0, 0]}>
-            <mesh position={[0, 0.9, 0]}>
-              <boxGeometry args={[0.3, 1.8, 38]} />
-              <meshStandardMaterial color="#1E293B" metalness={0.9} />
-            </mesh>
-            {/* Top Glowing Edge Strip */}
-            <mesh position={[0, 1.82, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={[0.25, 38]} />
-              <meshBasicMaterial color="#00F0FF" />
-            </mesh>
-          </group>
-        ))}
-
-        {/* Bridge Suspension Towers */}
-        {[-6.2, 6.2].map((tx, idx) => (
-          <group key={`tower-pylon-${idx}`} position={[tx, 0, -12]}>
-            <mesh position={[0, 9, 0]}>
-              <cylinderGeometry args={[0.3, 0.6, 18, 12]} />
-              <meshStandardMaterial color="#334155" metalness={0.9} />
-            </mesh>
-            <mesh position={[0, 18.2, 0]}>
-              <sphereGeometry args={[0.3, 8, 8]} />
-              <meshBasicMaterial color="#00F0FF" />
-            </mesh>
-          </group>
-        ))}
-      </group>
-
-      {/* Futuristic Utopia Crystalline City Spires on Horizon */}
-      {[
-        [-12, 14, -42, 3.5, 28],
-        [-6, 18, -46, 3, 36],
-        [0, 22, -48, 4, 44],
-        [6, 17, -45, 3.2, 34],
-        [14, 13, -40, 4, 26],
-      ].map(([x, y, z, r, h], i) => (
-        <group key={`fut-spire-${i}`} position={[x as number, y as number, z as number]}>
-          <mesh>
-            <coneGeometry args={[r as number, h as number, 6]} />
-            <meshStandardMaterial
-              color="#0284C7"
-              emissive="#0369A1"
-              emissiveIntensity={0.6}
-              metalness={0.9}
-              roughness={0.1}
-            />
+      {/* Future Horizons Signboard */}
+      <group position={[-6, 1.5, 0]}>
+        <Float speed={2} rotationIntensity={0.1} floatIntensity={0.3}>
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[6.8, 1.8, 0.2]} />
+            <meshStandardMaterial color="#0284C7" emissive="#0284C7" emissiveIntensity={0.5} />
           </mesh>
-        </group>
-      ))}
-
-      {/* Dawn Horizon Lighting */}
-      <pointLight position={[0, 8, -40]} color="#F97316" intensity={3} distance={50} />
-      <directionalLight position={[0, 15, -30]} color="#38BDF8" intensity={1.5} />
+          <Text
+            position={[0, 0.35, 0.15]}
+            fontSize={0.36}
+            color="#FFFFFF"
+            letterSpacing={0.12}
+          >
+            NEXT HORIZONS
+          </Text>
+          <Text
+            position={[0, -0.2, 0.15]}
+            fontSize={0.22}
+            color="#FEF08A"
+            letterSpacing={0.06}
+          >
+            ASCENDING TO THE STARS
+          </Text>
+        </Float>
+      </group>
     </group>
   );
 };

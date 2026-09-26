@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useJourneyStore, CHAPTERS_DATA } from './store/journeyStore';
+import { useJourneyStore } from './store/journeyStore';
 import World from './three/World';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
@@ -10,14 +10,23 @@ import { CustomCursor } from './components/CustomCursor';
 import { ProjectDetail } from './components/ProjectDetail';
 import { SkillDetail } from './components/SkillDetail';
 import { QualitySettings } from './components/QualitySettings';
-import { SectionOverlay } from './components/SectionOverlay';
+import { ChapterPanel } from './components/journey/ChapterPanel';
 import { ContactForm } from './components/ContactForm';
 import { Fallback2D } from './components/Fallback2D';
 import { profile } from './data/profile';
 import { education } from './data/education';
 import { experiences } from './data/experience';
 import { projects } from './data/projects';
-import { GraduationCap, User, ArrowRight, ExternalLink } from 'lucide-react';
+import { skillCategories } from './data/skills';
+import { JOURNEY_CHAPTERS } from './data/journey';
+import {
+  GraduationCap,
+  User,
+  ArrowRight,
+  ExternalLink,
+  Terminal,
+  Sparkles,
+} from 'lucide-react';
 
 function App() {
   const {
@@ -29,7 +38,7 @@ function App() {
     journeyProgress,
     isLoading,
     openProjectDetail,
-    jumpToChapter,
+    openSkillDetail,
   } = useJourneyStore();
 
   const [hasWebGL, setHasWebGL] = useState(true);
@@ -128,7 +137,8 @@ function App() {
 
   const handleStartJourney = () => {
     const startVal = scrollAccum.current;
-    const targetVal = maxScroll * (1 / (CHAPTERS_DATA.length - 1));
+    const targetProgress = JOURNEY_CHAPTERS[1]?.landmarkProgress ?? 0.16;
+    const targetVal = maxScroll * targetProgress;
     const duration = 1200;
     const startTime = performance.now();
 
@@ -153,17 +163,17 @@ function App() {
       {/* 3D World */}
       <World />
 
-      {/* Loading Screen (Matching Reference Panel 1) */}
+      {/* Loading Screen */}
       <LoadingScreen />
 
-      {/* Vertical Chapter Progression Timeline (Matching Reference Panels 4, 6, 7, 8, 9, 10) */}
+      {/* Vertical Chapter Progression Timeline */}
       <VerticalTimeline />
 
       {/* Section Content Overlays */}
       {!isLoading && (
         <div className="absolute inset-0 z-10 pointer-events-none">
-          {/* Chapter 00: Intro / Hero (Matching Reference Panel 2) */}
-          <SectionOverlay chapter={0} title={profile.name} position="hero">
+          {/* Chapter 00: Intro / Hero */}
+          <ChapterPanel chapter={0} title={profile.name} position="hero">
             <div className="space-y-4">
               <span className="text-white/80 text-xl font-medium tracking-wide block">
                 Hi, I'm
@@ -172,157 +182,252 @@ function App() {
                 {profile.shortTitle}
               </p>
               <p className="text-white/70 max-w-md text-sm leading-relaxed">
-                I build digital experiences, solve real world problems and continuously learn.
+                {profile.bio}
               </p>
               <div className="pt-2">
                 <button
                   onClick={handleStartJourney}
-                  className="flex items-center gap-3 px-7 py-3.5 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-400/50 hover:border-cyan-400 text-white font-semibold text-xs tracking-[0.2em] uppercase rounded-full shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all transform hover:scale-105 pointer-events-auto cursor-pointer"
+                  className="flex items-center gap-3 px-7 py-3.5 bg-cyan-950/50 hover:bg-cyan-900/70 border border-cyan-400/50 hover:border-cyan-400 text-white font-semibold text-xs tracking-[0.2em] uppercase rounded-full shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all transform hover:scale-105 pointer-events-auto cursor-pointer"
                 >
                   START JOURNEY <ArrowRight size={15} />
                 </button>
               </div>
             </div>
-          </SectionOverlay>
+          </ChapterPanel>
 
-          {/* Chapter 01: Education (Matching Reference Panel 4) */}
-          <SectionOverlay
+          {/* Chapter 01: Education (Landmark on LEFT -> Overlay on RIGHT) */}
+          <ChapterPanel
             chapter={1}
             chapterNumberText="CHAPTER 01"
             title="EDUCATION"
             tagline="Where the journey began."
             description="The foundation, the learning, and the curiosity that started it all."
-            position="left"
+            position="right"
           >
             {education.map((edu) => (
               <div
                 key={edu.id}
-                className="glass p-6 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-2 mt-2"
+                className="glass p-5 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-2 mt-2"
               >
                 <div className="flex items-center gap-3 text-cyan-400 mb-1">
                   <GraduationCap size={22} />
                   <h3 className="text-base font-bold text-white">{edu.degree}</h3>
                 </div>
                 <p className="text-cyan-400/90 text-xs font-semibold">{edu.institution}</p>
-                <p className="text-white/40 text-[11px] font-mono">{edu.period}</p>
+                <div className="flex items-center justify-between text-white/50 text-[11px] font-mono">
+                  <span>{edu.period}</span>
+                  <span>{edu.location}</span>
+                </div>
                 <p className="text-white/60 text-xs pt-1 leading-relaxed">
-                  Relevant coursework, skills and learning experience.
+                  {edu.description}
                 </p>
               </div>
             ))}
-          </SectionOverlay>
+          </ChapterPanel>
 
-          {/* Chapter 02: First Line of Code (Matching Reference Panel 5) */}
-          <SectionOverlay
+          {/* Chapter 02: First Line of Code (Landmark on RIGHT -> Overlay on LEFT) */}
+          <ChapterPanel
             chapter={2}
             chapterNumberText="CHAPTER 02"
             title="FIRST LINE OF CODE"
             tagline="Curiosity became code."
+            description="The pivotal moment when logic and problem solving clicked into place."
             position="left"
-          />
-          {/* Right-side quote card for Chapter 02 (Matching Reference Panel 5) */}
-          <SectionOverlay chapter={2} title="" position="right">
-            <div className="glass p-6 rounded-2xl border border-white/10 max-w-sm shadow-2xl backdrop-blur-xl">
-              <p className="text-white/80 text-sm leading-relaxed italic">
+          >
+            <div className="glass p-5 sm:p-6 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-3">
+              <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono">
+                <Terminal size={16} />
+                <span>DEVELOPER ROOTS</span>
+              </div>
+              <p className="text-white/80 text-sm leading-relaxed italic border-l-2 border-cyan-400/60 pl-3">
                 "The moment I realized I can build, create and solve problems through code."
               </p>
+              <div className="space-y-1.5 pt-1 text-xs text-white/60">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  <span>Explored algorithms, data structures & modern full-stack web</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  <span>Transitioned from curious student to product builder</span>
+                </div>
+              </div>
             </div>
-          </SectionOverlay>
+          </ChapterPanel>
 
-          {/* Chapter 03: Career (Matching Reference Panel 6) */}
-          <SectionOverlay
+          {/* Chapter 03: Career (Landmark on LEFT -> Overlay on RIGHT) */}
+          <ChapterPanel
             chapter={3}
             chapterNumberText="CHAPTER 03"
             title="CAREER"
             tagline="Turning skills into impact."
-            description="A journey of learning, building and contributing to real world products."
-            position="left"
-          />
+            description="A journey of building and contributing to enterprise products and client platforms."
+            position="right"
+          >
+            <div className="space-y-3 max-w-lg max-h-[46vh] sm:max-h-[50vh] overflow-y-auto pr-1">
+              {experiences.map((exp) => (
+                <div
+                  key={exp.id}
+                  className="glass p-4 rounded-xl border border-white/10 hover:border-cyan-400/40 transition-all space-y-2 backdrop-blur-xl"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="text-white font-bold text-sm">{exp.title}</h4>
+                      <p className="text-cyan-400 text-xs font-semibold">{exp.company}</p>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 whitespace-nowrap">
+                      {exp.period}
+                    </span>
+                  </div>
+                  <p className="text-white/60 text-xs leading-relaxed line-clamp-2">
+                    {exp.description}
+                  </p>
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {exp.technologies.slice(0, 5).map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-2 py-0.5 text-[10px] font-mono rounded bg-white/5 border border-white/10 text-white/70"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ChapterPanel>
 
-          {/* Chapter 04: Projects (Matching Reference Panel 7) */}
-          <SectionOverlay
+          {/* Chapter 04: Projects (Landmark on RIGHT -> Overlay on LEFT) */}
+          <ChapterPanel
             chapter={4}
             chapterNumberText="CHAPTER 04"
             title="PROJECTS"
             tagline="Ideas into real products."
-            description="A collection of projects that solve real problems."
+            description="Selected enterprise, mobile, and web applications built from scratch."
             position="left"
           >
-            {/* Horizontal Project Thumbnail Cards Strip (Matching Reference Panel 7) */}
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-4 overflow-x-auto max-w-lg">
-              {projects.slice(0, 3).map((proj) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 max-w-lg">
+              {projects.map((proj) => (
                 <button
                   key={proj.id}
                   onClick={() => openProjectDetail(proj.id)}
-                  className="glass p-3.5 rounded-xl border border-white/10 hover:border-cyan-400/50 flex-1 min-w-[140px] text-left transition-all hover:scale-105 group"
+                  className="glass p-3.5 rounded-xl border border-white/10 hover:border-cyan-400/50 text-left transition-all hover:scale-[1.02] group cursor-pointer"
                 >
-                  <p className="text-white font-semibold text-xs truncate group-hover:text-cyan-400 transition-colors">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-mono text-cyan-400 uppercase">
+                      {proj.category}
+                    </span>
+                    <ExternalLink size={12} className="text-white/40 group-hover:text-cyan-400 transition-colors" />
+                  </div>
+                  <h4 className="text-white font-bold text-xs truncate group-hover:text-cyan-400 transition-colors">
                     {proj.title}
+                  </h4>
+                  <p className="text-white/50 text-[11px] line-clamp-2 mt-1 leading-snug">
+                    {proj.shortDescription}
                   </p>
-                  <span className="text-[10px] text-white/50 capitalize font-mono block mt-0.5">
-                    {proj.category} Solution
-                  </span>
                 </button>
               ))}
             </div>
-          </SectionOverlay>
+          </ChapterPanel>
 
-          {/* Chapter 05: Skills (Matching Reference Panel 8) */}
-          <SectionOverlay
+          {/* Chapter 05: Technology Galaxy (Landmark on LEFT -> Overlay on RIGHT) */}
+          <ChapterPanel
             chapter={5}
             chapterNumberText="CHAPTER 05"
-            title="SKILLS"
+            title="TECHNOLOGY GALAXY"
             tagline="Tools that power my journey."
-            description="Technologies I work with and continuously explore."
-            position="left"
-          />
+            description="Core technologies, frameworks, and database architectures."
+            position="right"
+          >
+            <div className="space-y-2.5 max-w-lg max-h-[46vh] overflow-y-auto pr-1">
+              {skillCategories.map((cat) => (
+                <div key={cat.id} className="glass p-3 rounded-xl border border-white/10 space-y-1.5">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold block">
+                    {cat.name}
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {cat.skills.map((s) => (
+                      <button
+                        key={s.name}
+                        onClick={() => openSkillDetail(s.name)}
+                        className="px-2.5 py-1 text-xs font-mono rounded-lg bg-white/5 hover:bg-cyan-950/60 border border-white/10 hover:border-cyan-400 text-white/80 hover:text-cyan-300 transition-all cursor-pointer"
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ChapterPanel>
 
-          {/* Chapter 06: Where I Am Today / Present (Matching Reference Panel 9) */}
-          <SectionOverlay
+          {/* Chapter 06: Where I Am Today (Landmark on RIGHT -> Overlay on LEFT) */}
+          <ChapterPanel
             chapter={6}
             chapterNumberText="CHAPTER 06"
             title="WHERE I AM TODAY"
             tagline="Building. Learning. Exploring."
             position="left"
           >
-            <div className="glass p-6 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-3 mt-2">
+            <div className="glass p-5 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-3 mt-1">
               <div className="flex items-center gap-3 text-cyan-400">
-                <div className="p-2 rounded-xl bg-cyan-950/60 border border-cyan-800/40">
-                  <User size={18} />
+                <div className="p-2.5 rounded-xl bg-cyan-950/60 border border-cyan-800/40">
+                  <User size={20} />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white">Associate Software Developer</h3>
                   <p className="text-cyan-400 text-xs">at KO Innovation Software Solutions</p>
                 </div>
               </div>
-              <p className="text-white/60 text-xs leading-relaxed">
-                Working on meaningful products, collaborating with great people and continuously improving.
+              <p className="text-white/70 text-xs leading-relaxed">
+                Building high-performance full-stack applications, scalable backend microservices, and custom Frappe ERP solutions.
               </p>
               <div className="flex flex-wrap gap-1.5 pt-1">
-                {['React', 'Node.js', 'Frappe', 'Flutter', 'MongoDB', 'AWS'].map((tag) => (
+                {['React', 'Node.js', 'TypeScript', 'Frappe ERP', 'Flutter', 'MongoDB', 'AWS', 'Docker'].map((tag) => (
                   <span
                     key={tag}
-                    className="px-2 py-0.5 text-[10px] bg-white/5 rounded border border-white/10 text-white/70"
+                    className="px-2 py-0.5 text-[10px] font-mono bg-white/5 rounded border border-white/10 text-white/70"
                   >
                     {tag}
                   </span>
                 ))}
               </div>
             </div>
-          </SectionOverlay>
+          </ChapterPanel>
 
-          {/* Chapter 07: The Journey Continues (Matching Reference Panel 10) */}
-          <SectionOverlay
+          {/* Chapter 07: The Journey Continues (Landmark on LEFT -> Overlay on RIGHT) */}
+          <ChapterPanel
             chapter={7}
             chapterNumberText="CHAPTER 07"
             title="THE JOURNEY CONTINUES"
             tagline="Still learning. Still building. Still moving forward."
-            description="Excited for new opportunities, bigger challenges and greater impact."
-            position="left"
-          />
+            description="Excited for new opportunities, bigger engineering challenges, and greater impact."
+            position="right"
+          >
+            <div className="glass p-5 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-3 mt-1">
+              <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono">
+                <Sparkles size={16} />
+                <span>NEXT HORIZONS</span>
+              </div>
+              <div className="space-y-2 text-xs text-white/70">
+                <div className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                  <span>Expanding deep expertise in distributed backend systems & AI integration</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                  <span>Creating high-reliability enterprise ERP architectures and real-time platforms</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                  <span>Contributing to open-source developer ecosystems and global products</span>
+                </div>
+              </div>
+            </div>
+          </ChapterPanel>
 
-          {/* Chapter 08: Next Destination / Contact (Matching Reference Panel 11) */}
-          <SectionOverlay
+          {/* Chapter 08: Next Destination / Contact (In Deep Space) */}
+          <ChapterPanel
             chapter={8}
             chapterNumberText="CHAPTER 08"
             title="NEXT DESTINATION"
@@ -330,8 +435,9 @@ function App() {
             position="left"
           >
             <ContactForm />
-          </SectionOverlay>
+          </ChapterPanel>
         </div>
+
       )}
 
       {/* Global UI Overlays */}
