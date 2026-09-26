@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { useJourneyStore } from './store/journeyStore';
 import World from './three/World';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -17,13 +17,63 @@ import { profile } from './data/profile';
 import { education } from './data/education';
 import { experiences } from './data/experience';
 import { PROJECT_COMPARTMENTS } from './data/projectCompartments';
-import { skillCategories } from './data/skills';
+import { TECHNOLOGY_CUBES, TECHNOLOGY_CATEGORIES, type TechnologyCubeData } from './data/technologyCubes';
 import { JOURNEY_CHAPTERS } from './data/journey';
 import {
   User,
   ExternalLink,
   Sparkles,
 } from 'lucide-react';
+
+const TechBrandIcon: React.FC<{ cube: TechnologyCubeData }> = ({ cube }) => {
+  if (cube.id === 'react') {
+    return (
+      <svg viewBox="0 0 100 100" className="w-6 h-6" fill="none">
+        <circle cx="50" cy="50" r="10" fill="#00D8FF" />
+        <ellipse cx="50" cy="50" rx="42" ry="16" stroke="#00D8FF" strokeWidth="5" />
+        <ellipse cx="50" cy="50" rx="42" ry="16" stroke="#00D8FF" strokeWidth="5" transform="rotate(60 50 50)" />
+        <ellipse cx="50" cy="50" rx="42" ry="16" stroke="#00D8FF" strokeWidth="5" transform="rotate(120 50 50)" />
+      </svg>
+    );
+  }
+  if (cube.id === 'typescript') {
+    return <span className="font-extrabold text-sm text-[#3178C6]">TS</span>;
+  }
+  if (cube.id === 'javascript') {
+    return <span className="font-extrabold text-sm text-[#F7DF1E]">JS</span>;
+  }
+  if (cube.id === 'nodejs') {
+    return (
+      <svg viewBox="0 0 100 100" className="w-6 h-6" fill="none">
+        <polygon points="50,12 86,33 86,74 50,95 14,74 14,33" stroke="#339933" strokeWidth="6" fill="#33993325" />
+        <text x="50" y="59" textAnchor="middle" fill="#339933" fontSize="26" fontWeight="bold">JS</text>
+      </svg>
+    );
+  }
+  if (cube.id === 'python') {
+    return (
+      <svg viewBox="0 0 100 100" className="w-6 h-6" fill="none">
+        <path d="M48,16 C30,16 30,26 30,26 L30,34 L48,34 L48,38 L22,38 C14,38 10,48 10,58 C10,68 18,72 26,72 L32,72 L32,64 C32,54 40,54 48,54 L62,54 C70,54 74,48 74,38 C74,28 70,16 48,16 Z" fill="#3776AB" />
+        <path d="M52,84 C70,84 70,74 70,74 L70,66 L52,66 L52,62 L78,62 C86,62 90,52 90,42 C90,32 82,28 74,28 L68,28 L68,36 C68,46 60,46 52,46 L38,46 C30,46 26,52 26,62 C26,72 30,84 52,84 Z" fill="#FFD43B" />
+      </svg>
+    );
+  }
+  if (cube.id === 'docker') {
+    return (
+      <svg viewBox="0 0 100 100" className="w-6 h-6" fill="none">
+        <path d="M10,55 C12,45 28,45 42,48 C50,45 68,45 80,55 C92,65 85,78 68,78 C42,78 20,75 10,55 Z" fill="#2496ED" />
+        <rect x="30" y="38" width="10" height="8" fill="#2496ED" />
+        <rect x="44" y="38" width="10" height="8" fill="#2496ED" />
+        <rect x="44" y="28" width="10" height="8" fill="#2496ED" />
+      </svg>
+    );
+  }
+  return (
+    <span className="text-sm font-extrabold" style={{ color: cube.brandColor }}>
+      {cube.name.slice(0, 2).toUpperCase()}
+    </span>
+  );
+};
 
 function App() {
   const {
@@ -35,14 +85,17 @@ function App() {
     journeyProgress,
     isLoading,
     openProjectDetail,
-    openSkillDetail,
     selectedProjectIndex,
     setSelectedProjectIndex,
     selectedSkillCategoryIndex,
     setSelectedSkillCategoryIndex,
+    selectedTechCubeId,
+    setSelectedTechCubeId,
   } = useJourneyStore();
 
-  const selectedSkillCategory = skillCategories[selectedSkillCategoryIndex] || skillCategories[0];
+  const activeTechCube = useMemo(() => {
+    return TECHNOLOGY_CUBES.find((c) => c.id === selectedTechCubeId) || TECHNOLOGY_CUBES[0];
+  }, [selectedTechCubeId]);
 
   const [hasWebGL, setHasWebGL] = useState(true);
   const scrollAccum = useRef(0);
@@ -422,65 +475,91 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 04: Technology Lab (Landmark on LEFT -> Overlay on RIGHT) */}
+          {/* Chapter 04: Technology (Landmark on LEFT -> Overlay on RIGHT) */}
           <ChapterPanel
             chapter={4}
-            chapterNumberText="CHAPTER 05"
+            chapterNumberText="• CHAPTER 05"
             title="TECHNOLOGY"
             tagline="Tools that power my journey."
+            description="A collection of modern technologies and tools I use to build scalable and impactful solutions."
             position="right"
           >
-            <div className="space-y-3 max-w-sm pt-1">
-              {/* Compact Category Navigation Chips */}
-              <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
-                {skillCategories.slice(0, 4).map((cat, idx) => {
-                  const isSel = idx === selectedSkillCategoryIndex;
+            <div className="space-y-4 pt-1">
+              {/* Category Pill Navigation Chips */}
+              <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-black/50 border border-white/10 backdrop-blur-md">
+                {TECHNOLOGY_CATEGORIES.map((cat) => {
+                  const isSel = cat.row === selectedSkillCategoryIndex;
                   return (
                     <button
                       key={cat.id}
-                      onClick={() => setSelectedSkillCategoryIndex(idx)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                      onClick={() => {
+                        setSelectedSkillCategoryIndex(cat.row);
+                        const firstCube = TECHNOLOGY_CUBES.find((c) => c.row === cat.row);
+                        if (firstCube) setSelectedTechCubeId(firstCube.id);
+                      }}
+                      className={`px-3 py-1 rounded-lg text-[11px] font-mono font-medium tracking-wider transition-all cursor-pointer ${
                         isSel
-                          ? 'bg-cyan-500/20 border border-cyan-400/70 text-cyan-300 font-semibold shadow-sm'
+                          ? 'bg-cyan-500/20 border border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
                           : 'bg-transparent border border-transparent text-white/50 hover:text-white hover:bg-white/5'
                       }`}
                     >
-                      <span className="text-[10px] text-white/40">{String(idx + 1).padStart(2, '0')}</span>
-                      <span>{cat.name.split(' ')[0].toUpperCase()}</span>
+                      {cat.name}
                     </button>
                   );
                 })}
               </div>
 
-              {/* Station Info & Skill Chips Card */}
-              <div className="glass p-4 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-3 bg-[#0C1220]/90">
-                <div className="flex items-center justify-between text-[11px] font-mono border-b border-white/10 pb-2">
-                  <span className="text-cyan-400 font-semibold tracking-widest uppercase flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                    STATION {String(selectedSkillCategoryIndex + 1).padStart(2, '0')}
-                  </span>
-                  <span className="text-white/40 uppercase tracking-wider text-[10px]">
-                    {selectedSkillCategory.name}
-                  </span>
-                </div>
-
-                {/* Compact Skills Chips */}
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {selectedSkillCategory.skills.map((skill) => (
-                    <button
-                      key={skill.name}
-                      onClick={() => openSkillDetail(skill.name)}
-                      className="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-white/[0.06] hover:bg-cyan-950/70 border border-white/10 hover:border-cyan-400 text-white/85 hover:text-cyan-200 transition-all cursor-pointer flex items-center gap-1.5 group"
+              {/* Interactive Technology Detail Card matching reference image */}
+              <div className="glass p-5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl space-y-4 bg-[#0A101D]/90">
+                {/* Top Row: Icon + Title + Category Pill */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center border shadow-lg"
+                      style={{
+                        backgroundColor: activeTechCube.bgColor,
+                        borderColor: activeTechCube.brandColor,
+                        boxShadow: `0 0 16px ${activeTechCube.brandColor}40`,
+                      }}
                     >
-                      <span className="w-1 h-1 rounded-full bg-cyan-400/60 group-hover:bg-cyan-300" />
-                      <span>{skill.name}</span>
-                    </button>
-                  ))}
+                      {/* Brand vector icon */}
+                      <TechBrandIcon cube={activeTechCube} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white tracking-tight">
+                        {activeTechCube.name}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <span
+                    className="px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-wider font-semibold border"
+                    style={{
+                      color: activeTechCube.brandColor,
+                      borderColor: `${activeTechCube.brandColor}60`,
+                      backgroundColor: `${activeTechCube.brandColor}18`,
+                    }}
+                  >
+                    {activeTechCube.shortTag}
+                  </span>
                 </div>
 
-                <div className="text-[10px] font-mono text-white/40 pt-1 flex items-center justify-between">
-                  <span>Interactive 3D Station</span>
-                  <span className="text-cyan-400/80">Click skill for details</span>
+                {/* Description */}
+                <p className="text-white/80 text-xs sm:text-[13px] leading-relaxed">
+                  {activeTechCube.description}
+                </p>
+
+                {/* 3 Key Feature Badges with Hex Icon */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {activeTechCube.features.map((feature: string, fIdx: number) => (
+                    <div
+                      key={fIdx}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white/90 text-[11px] font-mono"
+                    >
+                      <span className="text-cyan-400 text-[11px]">⬡</span>
+                      <span>{feature}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

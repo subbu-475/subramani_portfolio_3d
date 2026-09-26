@@ -89,7 +89,7 @@ export const ChapterPanel: React.FC<ChapterPanelProps> = ({
             : isRight
             ? isMobile
               ? 'w-full max-w-xl glass p-5 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-2xl max-h-[52vh] overflow-y-auto'
-              : 'w-[28vw] max-w-[410px] min-w-[320px]'
+              : 'w-[32vw] max-w-[460px] min-w-[340px]'
             : isMobile
             ? 'w-full max-w-xl glass p-5 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-2xl max-h-[52vh] overflow-y-auto'
             : 'w-full max-w-xl'

@@ -1139,6 +1139,9 @@ export const ProjectsScene: React.FC = () => {
   ], []);
 
   useFrame((_, delta) => {
+    // When past the railway crossing into Technology chapter or beyond, stop updating train
+    if (journeyProgress >= 0.55) return;
+
     // 1. Alternating Level Crossing Warning Lights
     flasherTimerRef.current += delta;
     if (flasherTimerRef.current > 0.38) {
@@ -1209,6 +1212,12 @@ export const ProjectsScene: React.FC = () => {
     lastSelectedIndexRef.current = idx;
     userHoldTimerRef.current = 4.2;
   };
+
+  // When departing towards the Technology chapter, completely hide the Projects train and crossing
+  // so it does NOT block or overlap the Technology section
+  if (journeyProgress >= 0.55) {
+    return null;
+  }
 
   return (
     // ══════════════════════════════════════════════════════════════════════════

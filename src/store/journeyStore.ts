@@ -39,6 +39,7 @@ export interface JourneyState {
   activeProjectId: string | null;
   selectedProjectIndex: number;
   selectedSkillCategoryIndex: number;
+  selectedTechCubeId: string;
   isSkillDetailOpen: boolean;
   activeSkillName: string | null;
 
@@ -62,6 +63,7 @@ export interface JourneyState {
   closeProjectDetail: () => void;
   setSelectedProjectIndex: (index: number) => void;
   setSelectedSkillCategoryIndex: (index: number) => void;
+  setSelectedTechCubeId: (id: string) => void;
   openSkillDetail: (skillName: string) => void;
   closeSkillDetail: () => void;
   setQualityLevel: (level: 'auto' | 'low' | 'high') => void;
@@ -86,6 +88,7 @@ export const useJourneyStore = create<JourneyState>((set) => ({
   activeProjectId: null,
   selectedProjectIndex: 0,
   selectedSkillCategoryIndex: 0,
+  selectedTechCubeId: 'react',
   isSkillDetailOpen: false,
   activeSkillName: null,
 
@@ -120,6 +123,7 @@ export const useJourneyStore = create<JourneyState>((set) => ({
     set({ isProjectDetailOpen: false, activeProjectId: null }),
   setSelectedProjectIndex: (index) => set({ selectedProjectIndex: index }),
   setSelectedSkillCategoryIndex: (index) => set({ selectedSkillCategoryIndex: index }),
+  setSelectedTechCubeId: (id) => set({ selectedTechCubeId: id }),
   openSkillDetail: (skillName) =>
     set({ isSkillDetailOpen: true, activeSkillName: skillName }),
   closeSkillDetail: () =>

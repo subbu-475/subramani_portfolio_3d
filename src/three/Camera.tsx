@@ -10,7 +10,6 @@ export const Camera: React.FC = () => {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const journeyProgress = useJourneyStore((state) => state.journeyProgress);
   const isMobile = useJourneyStore((state) => state.isMobile);
-  const selectedSkillCategoryIndex = useJourneyStore((state) => state.selectedSkillCategoryIndex);
 
   const currentCamPos = useRef(new THREE.Vector3(0, 1.3, 3.8));
   const currentLookTarget = useRef(new THREE.Vector3(0, 1.1, -12));
@@ -80,11 +79,11 @@ export const Camera: React.FC = () => {
         }
       }
 
-      // In Chapter 06 (Technology Lab), smoothly sweep camera focus across active stations
+      // In Chapter 05 (Technology Multi-Tier Cubes)
       if (journeyProgress >= 0.56 && journeyProgress <= 0.68) {
-        const stationShift = (selectedSkillCategoryIndex - 1.5) * 0.35;
-        effectiveLookX += stationShift;
-        effectiveCamX += stationShift * 0.18;
+        effectiveCamZ = 4.8;
+        effectiveCamY = 1.35;
+        effectiveForwardDist = 5.2;
       }
     }
 
@@ -107,6 +106,39 @@ export const Camera: React.FC = () => {
       .addScaledVector(up, effectiveLookY)
       .addScaledVector(tangent, effectiveForwardDist);
 
+    // In Chapter 05 (Technology Showcase):
+    // Dedicated straight-on framing directly facing the skills rack,
+    // with the road curving in front and the paper airplane visibly flying along the path:
+    if (journeyProgress >= 0.58 && journeyProgress <= 0.68) {
+      const rackPos = new THREE.Vector3(-45.5, 0.2, -259.5);
+      const rackYaw = 1.426;
+      const forward = new THREE.Vector3(Math.sin(rackYaw), 0, Math.cos(rackYaw));
+      const right = new THREE.Vector3(Math.cos(rackYaw), 0, -Math.sin(rackYaw));
+
+      // Camera position: in front of rack (forward * 15.2), shifted right (right * 3.4) so rack sits straight-on in left 60%, elevated (up * 3.2)
+      const showcaseCamPos = rackPos.clone()
+        .addScaledVector(forward, isMobile ? 22.0 : 15.2)
+        .addScaledVector(right, isMobile ? 0.8 : 3.4)
+        .addScaledVector(up, isMobile ? 3.8 : 3.2);
+
+      const showcaseLookTarget = rackPos.clone()
+        .addScaledVector(right, isMobile ? 0.0 : 3.4)
+        .addScaledVector(up, 2.7);
+
+      // Smoothly blend in as plane approaches the curve (0.60 -> 0.63) and blend out as it leaves (0.655 -> 0.675)
+      let blendFactor = 1.0;
+      if (journeyProgress < 0.63) {
+        blendFactor = (journeyProgress - 0.60) / 0.03;
+      } else if (journeyProgress > 0.655) {
+        blendFactor = (0.675 - journeyProgress) / 0.02;
+      }
+      blendFactor = THREE.MathUtils.clamp(blendFactor, 0, 1);
+      const smoothBlend = THREE.MathUtils.smoothstep(blendFactor, 0, 1);
+
+      targetCamPos.lerp(showcaseCamPos, smoothBlend);
+      targetLook.lerp(showcaseLookTarget, smoothBlend);
+    }
+
     // Smooth cinematic lerp (damping)
     const lerpSpeed = Math.min(1, delta * 3.6);
     currentCamPos.current.lerp(targetCamPos, lerpSpeed);
@@ -115,8 +147,9 @@ export const Camera: React.FC = () => {
     cameraRef.current.position.copy(currentCamPos.current);
     cameraRef.current.lookAt(currentLookTarget.current);
 
-    // Subtle cinematic camera banking into turns matching airplane roll
-    const targetRoll = airplaneTransform.roll * 0.22;
+    // Keep camera horizon perfectly flat and level in Chapter 05 showcase for straight-on viewing
+    const inSkillsShowcase = journeyProgress >= 0.60 && journeyProgress <= 0.665;
+    const targetRoll = inSkillsShowcase ? 0 : airplaneTransform.roll * 0.22;
     currentRoll.current = THREE.MathUtils.lerp(currentRoll.current, targetRoll, delta * 4.0);
     cameraRef.current.rotateZ(currentRoll.current);
   });

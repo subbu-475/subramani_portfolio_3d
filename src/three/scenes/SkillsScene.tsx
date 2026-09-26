@@ -1,64 +1,180 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useJourneyStore } from '../../store/journeyStore';
-import { skillCategories, type Skill } from '../../data/skills';
+import {
+  TECHNOLOGY_CUBES,
+  TECHNOLOGY_CATEGORIES,
+  type TechnologyCubeData,
+  type TechnologyCategoryMeta,
+} from '../../data/technologyCubes';
+import { getCubeFrontTexture } from '../utils/createCubeTexture';
 
 /**
- * Single Physical Technology Lab Station in Chapter 06
+ * CHAPTER 05 — TECHNOLOGY: 3D MULTI-TIERED SKILL CUBES WALL
+ * 
+ * - Placed to the SIDE of the road on an elevated modern plaza platform
+ * - The main road path is 100% open and unobstructed
+ * - 5 Stepped tiers: FRONTEND, BACKEND, DATABASE, DEVOPS, TOOLS
+ * - Left-side dark category indicator blocks with glowing neon strips
+ * - 40 authentic 3D technology cubes (8 per row) with brand logos & illuminated top plates
+ * - Clean rectangular bevel edges with ZERO diagonal cross lines
+ * - Continuous horizontal neon shelf underglow lines
+ * - Interactive hover, selection lift, and dynamic sync with the HUD card
  */
-const LabStation: React.FC<{
-  categoryIndex: number;
-  title: string;
-  subtitle: string;
-  skills: Skill[];
-  isSelected: boolean;
-  onSelect: () => void;
-  onSkillClick: (skillName: string) => void;
-  position: [number, number, number];
-}> = ({
-  categoryIndex,
-  title,
-  subtitle,
-  skills,
-  isSelected,
-  onSelect,
-  onSkillClick,
-  position,
-}) => {
-  const [hovered, setHovered] = useState(false);
-  const spotlightRef = useRef<THREE.SpotLight>(null);
-  const primaryScreenRef = useRef<THREE.Mesh>(null);
-  const pulseRef = useRef<THREE.PointLight>(null);
 
-  useFrame((state, delta) => {
-    if (spotlightRef.current) {
-      const targetIntensity = isSelected ? 3.4 : hovered ? 1.8 : 0.6;
-      spotlightRef.current.intensity = THREE.MathUtils.lerp(
-        spotlightRef.current.intensity,
+// Shared reusable geometries with EdgesGeometry (guarantees NO diagonal cross lines!)
+const CUBE_EDGES_GEO = new THREE.EdgesGeometry(new THREE.BoxGeometry(1.102, 1.102, 0.852));
+const CAT_EDGES_GEO = new THREE.EdgesGeometry(new THREE.BoxGeometry(2.302, 1.102, 0.852));
+
+// ─── 1. INDIVIDUAL 3D TECH CUBE ──────────────────────────────────────────────
+interface TechCubeProps {
+  cube: TechnologyCubeData;
+  isSelected: boolean;
+  onSelect: (id: string, categoryRow: number) => void;
+}
+
+const TechCube: React.FC<TechCubeProps> = ({ cube, isSelected, onSelect }) => {
+  const [hovered, setHovered] = useState(false);
+  const cubeGroupRef = useRef<THREE.Group>(null);
+  const lightRef = useRef<THREE.PointLight>(null);
+
+  // Load the 512x512 crisp vector CanvasTexture for the front face
+  const frontTexture = useMemo(() => getCubeFrontTexture(cube), [cube]);
+
+  // Create 6 face materials:
+  // [0: +X, 1: -X, 2: +Y (Top), 3: -Y, 4: +Z (Front), 5: -Z]
+  const materials = useMemo(() => {
+    // Side and back material (sleek dark housing)
+    const sideMat = new THREE.MeshStandardMaterial({
+      color: cube.bgColor,
+      roughness: 0.35,
+      metalness: 0.3,
+    });
+
+    // Top illuminated plate (glossy brand color acrylic)
+    const topMat = new THREE.MeshStandardMaterial({
+      color: cube.brandColor,
+      emissive: cube.brandColor,
+      emissiveIntensity: 0.85,
+      roughness: 0.1,
+      metalness: 0.2,
+    });
+
+    // Bottom plate
+    const bottomMat = new THREE.MeshStandardMaterial({
+      color: '#080D1A',
+      roughness: 0.8,
+    });
+
+    // Front face with crisp logo & text texture (zero white emissive to preserve rich colors)
+    const frontMat = new THREE.MeshStandardMaterial({
+      map: frontTexture,
+      roughness: 0.15,
+      metalness: 0.1,
+      emissive: '#000000',
+    });
+
+    return [sideMat, sideMat, topMat, bottomMat, frontMat, sideMat];
+  }, [cube, frontTexture]);
+
+  useFrame((_, delta) => {
+    if (!cubeGroupRef.current) return;
+
+    // Smooth forward lift when hovered or selected
+    const targetZ = hovered ? 0.28 : isSelected ? 0.22 : 0;
+    const targetY = hovered ? 0.14 : isSelected ? 0.08 : 0;
+
+    cubeGroupRef.current.position.z = THREE.MathUtils.lerp(
+      cubeGroupRef.current.position.z,
+      targetZ,
+      delta * 8.0
+    );
+    cubeGroupRef.current.position.y = THREE.MathUtils.lerp(
+      cubeGroupRef.current.position.y,
+      targetY,
+      delta * 8.0
+    );
+
+    if (lightRef.current) {
+      const targetIntensity = hovered ? 2.8 : isSelected ? 2.0 : 0.45;
+      lightRef.current.intensity = THREE.MathUtils.lerp(
+        lightRef.current.intensity,
         targetIntensity,
-        delta * 4.0
+        delta * 6.0
       );
-    }
-    if (primaryScreenRef.current) {
-      const mat = primaryScreenRef.current.material as THREE.MeshStandardMaterial;
-      if (mat) {
-        const targetEmissive = isSelected ? 0.35 : hovered ? 0.2 : 0.08;
-        mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, targetEmissive, delta * 4.0);
-      }
-    }
-    if (pulseRef.current) {
-      const t = state.clock.elapsedTime;
-      pulseRef.current.intensity = isSelected
-        ? 1.8 + Math.sin(t * 3.0) * 0.4
-        : 0.4;
     }
   });
 
   return (
     <group
-      position={position}
+      ref={cubeGroupRef}
+      position={[0, 0, 0]}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(cube.id, cube.row);
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = 'auto';
+      }}
+    >
+      {/* Main Cube Body (1.1m width x 1.1m height x 0.85m depth) */}
+      <mesh material={materials} castShadow receiveShadow>
+        <boxGeometry args={[1.1, 1.1, 0.85]} />
+      </mesh>
+
+      {/* Clean Rectangular Outer Bevel Edges (NO diagonal cross lines!) */}
+      <lineSegments geometry={CUBE_EDGES_GEO}>
+        <lineBasicMaterial
+          color={cube.brandColor}
+          transparent
+          opacity={hovered ? 1.0 : isSelected ? 0.85 : 0.25}
+        />
+      </lineSegments>
+
+      {/* Front Face Glass Gloss Highlight Edge */}
+      <mesh position={[0, 0.54, 0.43]}>
+        <boxGeometry args={[1.08, 0.03, 0.02]} />
+        <meshStandardMaterial
+          color="#FFFFFF"
+          emissive="#FFFFFF"
+          emissiveIntensity={hovered ? 1.2 : isSelected ? 0.8 : 0.2}
+        />
+      </mesh>
+
+      {/* Forward/Downward Ambient Point Light */}
+      <pointLight
+        ref={lightRef}
+        position={[0, 0.4, 0.7]}
+        color={cube.brandColor}
+        distance={2.8}
+        decay={2}
+        intensity={0.5}
+      />
+    </group>
+  );
+};
+
+// ─── 2. CATEGORY INDICATOR BLOCK (LEFT SIDE OF EACH ROW) ─────────────────────
+interface CategoryBlockProps {
+  category: TechnologyCategoryMeta;
+  isSelected: boolean;
+  onSelect: () => void;
+}
+
+const CategoryBlock: React.FC<CategoryBlockProps> = ({ category, isSelected, onSelect }) => {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <group
+      position={[-5.6, 0, 0]}
       onClick={(e) => {
         e.stopPropagation();
         onSelect();
@@ -73,566 +189,249 @@ const LabStation: React.FC<{
         document.body.style.cursor = 'auto';
       }}
     >
-      {/* Ceiling Architectural Spotlight above Station */}
-      <spotLight
-        ref={spotlightRef}
-        position={[0, 6.2, 1.6]}
-        color={isSelected ? '#FFFBEB' : '#E2E8F0'}
-        intensity={isSelected ? 3.4 : 0.6}
-        distance={10.5}
-        angle={0.42}
-        penumbra={0.7}
+      {/* Matte Dark Beveled Indicator Housing Block */}
+      <mesh position={[0, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2.3, 1.1, 0.85]} />
+        <meshStandardMaterial color="#0A101D" roughness={0.35} metalness={0.5} />
+      </mesh>
+
+      {/* Clean Rectangular Outer Bevel Edges (NO diagonal cross lines!) */}
+      <lineSegments geometry={CAT_EDGES_GEO}>
+        <lineBasicMaterial
+          color={category.glowColor}
+          transparent
+          opacity={isSelected ? 1.0 : hovered ? 0.8 : 0.35}
+        />
+      </lineSegments>
+
+      {/* Front Face Text Label */}
+      <Text
+        position={[0, 0, 0.44]}
+        fontSize={0.24}
+        color={isSelected ? '#FFFFFF' : '#E2E8F0'}
+        letterSpacing={0.16}
+        fontWeight="bold"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {category.name}
+      </Text>
+
+      {/* Bottom Glowing Neon Indicator Strip */}
+      <mesh position={[0, -0.52, 0.44]}>
+        <boxGeometry args={[2.1, 0.08, 0.04]} />
+        <meshStandardMaterial
+          color={category.glowColor}
+          emissive={category.glowColor}
+          emissiveIntensity={isSelected ? 3.5 : hovered ? 2.5 : 1.4}
+        />
+      </mesh>
+    </group>
+  );
+};
+
+// ─── 3. SINGLE TIER SHELF ROW WITH 8 CUBES ────────────────────────────────────
+interface TierRowProps {
+  category: TechnologyCategoryMeta;
+  cubes: TechnologyCubeData[];
+  shelfY: number;
+  shelfZ: number;
+  selectedCubeId: string;
+  isCategorySelected: boolean;
+  onSelectCube: (id: string, categoryRow: number) => void;
+  onSelectCategory: (row: number) => void;
+}
+
+const TierRow: React.FC<TierRowProps> = ({
+  category,
+  cubes,
+  shelfY,
+  shelfZ,
+  selectedCubeId,
+  isCategorySelected,
+  onSelectCube,
+  onSelectCategory,
+}) => {
+  // 8 cubes horizontally distributed: pitch = 1.31m
+  // Start X = -3.85m, End X = +5.32m
+  const cubeStartX = -3.85;
+  const cubePitch = 1.31;
+
+  return (
+    <group position={[0, shelfY, shelfZ]}>
+      {/* ── 1. Category Indicator Block on Left ── */}
+      <CategoryBlock
+        category={category}
+        isSelected={isCategorySelected}
+        onSelect={() => onSelectCategory(category.row)}
       />
 
-      {/* ========================================================= */}
-      {/* SOLID ARCHITECTURAL CONSOLE BASE                          */}
-      {/* ========================================================= */}
-      <group position={[0, 0, 0]}>
-        {/* Recessed Dark Bronze Reveal */}
-        <mesh position={[0, 0.05, 0]}>
-          <boxGeometry args={[3.0, 0.1, 1.7]} />
-          <meshStandardMaterial color="#4A3B2C" metalness={0.8} roughness={0.3} />
-        </mesh>
+      {/* ── 2. Shelf Structure Underneath Cubes ── */}
+      {/* Dark Structural Shelf Step Base */}
+      <mesh position={[0.2, -0.62, -0.05]} receiveShadow>
+        <boxGeometry args={[14.2, 0.16, 1.2]} />
+        <meshStandardMaterial color="#070C16" roughness={0.7} metalness={0.3} />
+      </mesh>
 
-        {/* Main Dark Slate Console Plinth */}
-        <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
-          <boxGeometry args={[3.2, 0.72, 1.9]} />
-          <meshStandardMaterial
-            color={isSelected ? '#1A202C' : hovered ? '#171B24' : '#12151D'}
-            roughness={0.8}
-            metalness={0.2}
-          />
-        </mesh>
-
-        {/* Top Trim Accent Inlay */}
-        <mesh position={[0, 0.815, 0]}>
-          <boxGeometry args={[3.22, 0.02, 1.92]} />
-          <meshStandardMaterial
-            color={isSelected ? '#38BDF8' : hovered ? '#0284C7' : '#2A303C'}
-            metalness={0.8}
-            roughness={0.2}
-          />
-        </mesh>
-
-        {/* Station Front Placard */}
-        <group position={[0, 0.45, 0.97]}>
-          <Text
-            position={[-1.2, 0.14, 0]}
-            fontSize={0.16}
-            color={isSelected ? '#38BDF8' : '#94A3B8'}
-            letterSpacing={0.1}
-            anchorX="left"
-          >
-            {`0${categoryIndex + 1}`}
-          </Text>
-          <Text
-            position={[-0.8, 0.14, 0]}
-            fontSize={0.15}
-            color="#F8FAFC"
-            letterSpacing={0.06}
-            anchorX="left"
-            maxWidth={2.0}
-          >
-            {title.toUpperCase()}
-          </Text>
-          <Text
-            position={[-0.8, -0.10, 0]}
-            fontSize={0.10}
-            color={isSelected ? '#38BDF8' : '#64748B'}
-            letterSpacing={0.08}
-            anchorX="left"
-          >
-            {subtitle.toUpperCase()}
-          </Text>
-        </group>
-      </group>
-
-      {/* ========================================================= */}
-      {/* 3D PHYSICAL LABORATORY WORKSTATION / HARDWARE             */}
-      {/* ========================================================= */}
-      <group position={[0, 0.82, 0]}>
-        {/* ========================================================= */}
-        {/* 1. FRONTEND WORKSTATION: Curved Panoramic Display         */}
-        {/* ========================================================= */}
-        {categoryIndex === 0 && (
-          <group position={[0, 0, 0]}>
-            {/* Monitor Mount Bracket */}
-            <mesh position={[0, 0.35, -0.2]}>
-              <boxGeometry args={[0.3, 0.7, 0.15]} />
-              <meshStandardMaterial color="#2B303C" metalness={0.9} />
-            </mesh>
-            {/* Curved Primary Panoramic Glass Monitor */}
-            <mesh position={[0, 1.15, 0]}>
-              <boxGeometry args={[2.8, 1.6, 0.06]} />
-              <meshStandardMaterial color="#0A0C10" metalness={0.9} roughness={0.2} />
-            </mesh>
-            <mesh ref={primaryScreenRef} position={[0, 1.15, 0.035]}>
-              <planeGeometry args={[2.68, 1.48]} />
-              <meshStandardMaterial
-                color="#0F172A"
-                emissive="#0284C7"
-                emissiveIntensity={0.2}
-                roughness={0.2}
-              />
-            </mesh>
-            {/* UI Component Layout Lines */}
-            <group position={[0, 1.15, 0.04]}>
-              <mesh position={[0, 0.58, 0]}>
-                <planeGeometry args={[2.5, 0.1]} />
-                <meshBasicMaterial color="#1E293B" />
-              </mesh>
-              <mesh position={[-0.7, 0.12, 0]}>
-                <planeGeometry args={[1.0, 0.68]} />
-                <meshBasicMaterial color="#142033" />
-              </mesh>
-              <mesh position={[0.6, 0.12, 0]}>
-                <planeGeometry args={[1.2, 0.68]} />
-                <meshBasicMaterial color="#1E293B" />
-              </mesh>
-              {/* Active React / TS Code Highlight Pill */}
-              <mesh position={[-0.8, -0.42, 0]}>
-                <planeGeometry args={[0.75, 0.22]} />
-                <meshBasicMaterial color="#0284C7" />
-              </mesh>
-            </group>
-            {/* Articulated Portrait Tablet on Right Arm */}
-            <group position={[1.65, 0.85, 0.1]} rotation={[0, -0.3, 0]}>
-              <mesh>
-                <boxGeometry args={[0.65, 1.1, 0.04]} />
-                <meshStandardMaterial color="#1E232E" metalness={0.8} />
-              </mesh>
-              <mesh position={[0, 0, 0.024]}>
-                <planeGeometry args={[0.58, 1.02]} />
-                <meshStandardMaterial color="#090D16" emissive="#38BDF8" emissiveIntensity={0.15} />
-              </mesh>
-            </group>
-          </group>
-        )}
-
-        {/* ========================================================= */}
-        {/* 2. BACKEND WORKSTATION: Dual Terminal & Telemetry Rack   */}
-        {/* ========================================================= */}
-        {categoryIndex === 1 && (
-          <group position={[0, 0, 0]}>
-            {/* Server Rack Tower (Behind Console) */}
-            <group position={[0, 1.25, -0.6]}>
-              <mesh>
-                <boxGeometry args={[1.3, 2.5, 0.8]} />
-                <meshStandardMaterial color="#0B0E14" metalness={0.8} roughness={0.3} />
-              </mesh>
-              {/* Server Blade Slots & Status LEDs */}
-              {[-0.8, -0.4, 0, 0.4, 0.8].map((sy, i) => (
-                <group key={`blade-${i}`} position={[0, sy, 0.41]}>
-                  <mesh>
-                    <planeGeometry args={[1.15, 0.26]} />
-                    <meshBasicMaterial color="#1E232E" />
-                  </mesh>
-                  <mesh position={[-0.45, 0, 0.005]}>
-                    <circleGeometry args={[0.025, 8]} />
-                    <meshBasicMaterial color={i % 2 === 0 ? '#10B981' : '#38BDF8'} />
-                  </mesh>
-                </group>
-              ))}
-            </group>
-
-            {/* Dual Terminal Monitors */}
-            {/* Left Screen: Python & Frappe Logic */}
-            <group position={[-0.78, 1.0, -0.05]} rotation={[0, 0.16, 0]}>
-              <mesh>
-                <boxGeometry args={[1.35, 0.95, 0.05]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh ref={primaryScreenRef} position={[0, 0, 0.028]}>
-                <planeGeometry args={[1.28, 0.88]} />
-                <meshStandardMaterial
-                  color="#0F172A"
-                  emissive="#0284C7"
-                  emissiveIntensity={0.2}
-                />
-              </mesh>
-              {/* Terminal code lines */}
-              {[-0.25, -0.12, 0.01, 0.14, 0.26].map((cy, i) => (
-                <mesh key={`b-code-${i}`} position={[-0.15 + (i % 2) * 0.1, cy, 0.032]}>
-                  <planeGeometry args={[0.7 + (i % 3) * 0.2, 0.045]} />
-                  <meshBasicMaterial color={i === 0 ? '#F59E0B' : '#38BDF8'} />
-                </mesh>
-              ))}
-            </group>
-
-            {/* Right Screen: REST APIs & Microservices */}
-            <group position={[0.78, 1.0, -0.05]} rotation={[0, -0.16, 0]}>
-              <mesh>
-                <boxGeometry args={[1.35, 0.95, 0.05]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh position={[0, 0, 0.028]}>
-                <planeGeometry args={[1.28, 0.88]} />
-                <meshStandardMaterial color="#090D16" emissive="#10B981" emissiveIntensity={0.15} />
-              </mesh>
-              {/* Endpoint Status Blocks */}
-              {[-0.22, 0.02, 0.24].map((ey, i) => (
-                <mesh key={`b-api-${i}`} position={[0, ey, 0.032]}>
-                  <planeGeometry args={[1.1, 0.14]} />
-                  <meshBasicMaterial color="#1E293B" />
-                </mesh>
-              ))}
-            </group>
-          </group>
-        )}
-
-        {/* ========================================================= */}
-        {/* 3. DATABASE STATION: Modular Storage Tower & Metrics      */}
-        {/* ========================================================= */}
-        {categoryIndex === 2 && (
-          <group position={[0, 0, 0]}>
-            {/* Sleek Central Storage Column */}
-            <mesh position={[0, 1.05, -0.2]}>
-              <cylinderGeometry args={[0.55, 0.65, 2.1, 24]} />
-              <meshStandardMaterial color="#1E232E" metalness={0.8} roughness={0.3} />
-            </mesh>
-            {/* Tiered Database Storage Rings */}
-            {[-0.6, -0.2, 0.2, 0.6].map((ry, i) => (
-              <mesh key={`db-ring-${i}`} position={[0, 1.05 + ry, -0.2]}>
-                <cylinderGeometry args={[0.58, 0.58, 0.12, 24]} />
-                <meshStandardMaterial
-                  color={i === 1 ? '#0284C7' : '#2A303C'}
-                  metalness={0.9}
-                  emissive={i === 1 ? '#0284C7' : '#000000'}
-                  emissiveIntensity={0.3}
-                />
-              </mesh>
-            ))}
-
-            {/* Left Schema Screen */}
-            <group position={[-1.0, 0.95, 0.1]} rotation={[0, 0.25, 0]}>
-              <mesh>
-                <boxGeometry args={[1.2, 0.8, 0.04]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh ref={primaryScreenRef} position={[0, 0, 0.024]}>
-                <planeGeometry args={[1.12, 0.72]} />
-                <meshStandardMaterial color="#0B132B" emissive="#06B6D4" emissiveIntensity={0.2} />
-              </mesh>
-              {/* Table / Collection schema rows */}
-              {[-0.2, 0, 0.2].map((dy, i) => (
-                <mesh key={`db-row-${i}`} position={[0, dy, 0.028]}>
-                  <planeGeometry args={[0.95, 0.11]} />
-                  <meshBasicMaterial color="#1E293B" />
-                </mesh>
-              ))}
-            </group>
-
-            {/* Right Cache / Throughput Gauge Screen */}
-            <group position={[1.0, 0.95, 0.1]} rotation={[0, -0.25, 0]}>
-              <mesh>
-                <boxGeometry args={[1.2, 0.8, 0.04]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh position={[0, 0, 0.024]}>
-                <planeGeometry args={[1.12, 0.72]} />
-                <meshStandardMaterial color="#090D16" emissive="#10B981" emissiveIntensity={0.2} />
-              </mesh>
-              {/* Redis throughput bars */}
-              {[-0.2, 0, 0.2].map((my, i) => (
-                <mesh key={`db-metric-${i}`} position={[0, my, 0.028]}>
-                  <planeGeometry args={[0.95, 0.09]} />
-                  <meshBasicMaterial color="#15803D" />
-                </mesh>
-              ))}
-            </group>
-          </group>
-        )}
-
-        {/* ========================================================= */}
-        {/* 4. DEVOPS STATION: Cloud Telemetry & Container Console    */}
-        {/* ========================================================= */}
-        {categoryIndex === 3 && (
-          <group position={[0, 0, 0]}>
-            {/* Cloud Server Tower (Right Side) */}
-            <group position={[1.0, 1.25, -0.4]}>
-              <mesh>
-                <boxGeometry args={[0.85, 2.5, 0.85]} />
-                <meshStandardMaterial color="#0B0E14" metalness={0.9} roughness={0.2} />
-              </mesh>
-              {/* Container stack lights */}
-              {[-0.8, -0.3, 0.2, 0.7].map((cy, i) => (
-                <mesh key={`c-light-${i}`} position={[0, cy, 0.435]}>
-                  <planeGeometry args={[0.65, 0.28]} />
-                  <meshBasicMaterial color="#0284C7" />
-                </mesh>
-              ))}
-            </group>
-
-            {/* CI/CD Pipeline & Deployment Console (Center-Left) */}
-            <group position={[-0.45, 1.05, 0]}>
-              <mesh>
-                <boxGeometry args={[1.9, 1.2, 0.05]} />
-                <meshStandardMaterial color="#0A0C10" metalness={0.9} />
-              </mesh>
-              <mesh ref={primaryScreenRef} position={[0, 0, 0.028]}>
-                <planeGeometry args={[1.82, 1.12]} />
-                <meshStandardMaterial color="#0B132B" emissive="#0284C7" emissiveIntensity={0.22} />
-              </mesh>
-              {/* 5-Stage Pipeline Tracker */}
-              <group position={[0, 0, 0.034]}>
-                <mesh position={[0, 0.38, 0]}>
-                  <planeGeometry args={[1.65, 0.1]} />
-                  <meshBasicMaterial color="#1E293B" />
-                </mesh>
-                {/* 5 pipeline step badges */}
-                {[-0.6, -0.3, 0, 0.3, 0.6].map((px, i) => (
-                  <mesh key={`pipe-step-${i}`} position={[px, 0.08, 0]}>
-                    <planeGeometry args={[0.22, 0.22]} />
-                    <meshBasicMaterial color="#10B981" />
-                  </mesh>
-                ))}
-                {/* Deployment Log Console */}
-                <mesh position={[0, -0.32, 0]}>
-                  <planeGeometry args={[1.65, 0.38]} />
-                  <meshBasicMaterial color="#0F172A" />
-                </mesh>
-              </group>
-            </group>
-          </group>
-        )}
-
-        {/* Ambient Station Workstation Glow */}
-        <pointLight
-          ref={pulseRef}
-          position={[0, 0.6, 0.5]}
-          color={isSelected ? '#38BDF8' : '#FEF08A'}
-          intensity={isSelected ? 1.8 : 0.4}
-          distance={6}
+      {/* Continuous Glowing Horizontal Neon Shelf Underglow Line */}
+      <mesh position={[0.2, -0.56, 0.52]}>
+        <boxGeometry args={[13.9, 0.05, 0.04]} />
+        <meshStandardMaterial
+          color={category.glowColor}
+          emissive={category.glowColor}
+          emissiveIntensity={isCategorySelected ? 3.2 : 1.5}
         />
-      </group>
-
-      {/* ========================================================= */}
-      {/* COMPACT INTERACTIVE TECH CHIPS DISPLAYED AT STATION       */}
-      {/* ========================================================= */}
-      <group position={[0, 0.03, 1.35]}>
-        {skills.slice(0, 6).map((skill, si) => {
-          const col = si % 3;
-          const row = Math.floor(si / 3);
-          const cx = (col - 1) * 0.95;
-          const cz = row * 0.35;
-
-          return (
-            <group
-              key={skill.name}
-              position={[cx, 0.02, cz]}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSkillClick(skill.name);
-              }}
-              onPointerOver={(e) => {
-                e.stopPropagation();
-                document.body.style.cursor = 'pointer';
-              }}
-              onPointerOut={() => {
-                document.body.style.cursor = 'auto';
-              }}
-            >
-              {/* Chip Plaque */}
-              <mesh position={[0, 0.02, 0]}>
-                <boxGeometry args={[0.85, 0.04, 0.26]} />
-                <meshStandardMaterial
-                  color={isSelected ? '#1E293B' : '#141822'}
-                  metalness={0.7}
-                  roughness={0.4}
-                />
-              </mesh>
-              <Text
-                position={[0, 0.045, 0]}
-                rotation={[-Math.PI / 2, 0, 0]}
-                fontSize={0.075}
-                color={isSelected ? '#38BDF8' : '#94A3B8'}
-                letterSpacing={0.06}
-                anchorX="center"
-              >
-                {skill.name}
-              </Text>
-            </group>
-          );
-        })}
-      </group>
-    </group>
-  );
-};
-
-/**
- * Modern Laboratory Botanical Planter
- */
-const LabBotanical: React.FC<{ position: [number, number, number] }> = ({ position }) => {
-  return (
-    <group position={position}>
-      {/* Dark Slate Ceramic Pot */}
-      <mesh position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.38, 0.32, 1.0, 16]} />
-        <meshStandardMaterial color="#1E232E" roughness={0.7} />
       </mesh>
-      {/* Soil */}
-      <mesh position={[0, 0.98, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.35, 16]} />
-        <meshStandardMaterial color="#151210" roughness={0.95} />
-      </mesh>
-      {/* Sculpted Architectural Foliage */}
-      {[-0.12, 0, 0.12].map((ox, i) =>
-        [-0.1, 0.1].map((oz, j) => (
-          <mesh
-            key={`l-leaf-${i}-${j}`}
-            position={[ox, 1.5 + (i % 2) * 0.2, oz]}
-            rotation={[0, (i * 2 + j) * 0.7, (ox * 0.25)]}
-          >
-            <planeGeometry args={[0.2, 1.2]} />
-            <meshStandardMaterial
-              color="#1B382B"
-              roughness={0.7}
-              side={THREE.DoubleSide}
+
+      {/* Shelf Downward Line Point Light */}
+      <pointLight
+        position={[0, -0.7, 0.8]}
+        color={category.glowColor}
+        distance={6}
+        decay={2}
+        intensity={isCategorySelected ? 2.2 : 1.0}
+      />
+
+      {/* ── 3. The 8 Ordered 3D Technology Cubes ── */}
+      {cubes.map((cube, colIdx) => {
+        const posX = cubeStartX + colIdx * cubePitch;
+        const isSelected = cube.id === selectedCubeId;
+
+        return (
+          <group key={cube.id} position={[posX, 0, 0]}>
+            <TechCube
+              cube={cube}
+              isSelected={isSelected}
+              onSelect={onSelectCube}
             />
-          </mesh>
-        ))
-      )}
+          </group>
+        );
+      })}
     </group>
   );
 };
 
-/**
- * CH 05 / CHAPTER 06 — TECHNOLOGY LABORATORY
- * 
- * Futuristic yet realistic technology laboratory featuring:
- * - Dark architectural stone composite floor with illuminated runner line
- * - 4 dedicated physical 3D stations: Frontend, Backend, Database, DevOps
- * - Coordinated museum/lab ceiling spotlights focusing on active station
- * - Glass partition fins and titanium column structures
- * - Smooth scroll-driven station activation
- */
+// ─── 4. MAIN TECHNOLOGY SCENE COMPONENT ──────────────────────────────────────
 export const SkillsScene: React.FC = () => {
   const selectedSkillCategoryIndex = useJourneyStore((state) => state.selectedSkillCategoryIndex);
   const setSelectedSkillCategoryIndex = useJourneyStore((state) => state.setSelectedSkillCategoryIndex);
-  const openSkillDetail = useJourneyStore((state) => state.openSkillDetail);
+  const selectedTechCubeId = useJourneyStore((state) => state.selectedTechCubeId);
+  const setSelectedTechCubeId = useJourneyStore((state) => state.setSelectedTechCubeId);
   const journeyProgress = useJourneyStore((state) => state.journeyProgress);
 
-  // Sync scroll progress through Chapter 06 (0.56 to 0.68) to automatically activate stations on scroll
+  // Stepped keyboard riser settings for 5 rows:
+  // Row 4 (Tools, bottom / front) -> Row 0 (Frontend, top / back)
+  const tierConfigs = useMemo(() => [
+    { row: 0, y: 5.65, z: -4.0 }, // Row 0: FRONTEND (Top & furthest back)
+    { row: 1, y: 4.35, z: -3.0 }, // Row 1: BACKEND
+    { row: 2, y: 3.05, z: -2.0 }, // Row 2: DATABASE (Middle)
+    { row: 3, y: 1.75, z: -1.0 }, // Row 3: DEVOPS
+    { row: 4, y: 0.45, z:  0.0 }, // Row 4: TOOLS (Bottom & closest)
+  ], []);
+
+  // Group cubes by row (0 to 4)
+  const cubesByRow = useMemo(() => {
+    const map = new Map<number, TechnologyCubeData[]>();
+    for (let r = 0; r < 5; r++) {
+      map.set(
+        r,
+        TECHNOLOGY_CUBES.filter((c) => c.row === r).sort((a, b) => a.col - b.col)
+      );
+    }
+    return map;
+  }, []);
+
+  // Smoothly sync category tab when scrolling through Chapter 05
   useFrame(() => {
     if (journeyProgress >= 0.56 && journeyProgress <= 0.68) {
-      const step = Math.min(3, Math.max(0, Math.floor(((journeyProgress - 0.56) / 0.12) * 4)));
+      const t = (journeyProgress - 0.56) / (0.68 - 0.56);
+      const step = Math.min(4, Math.max(0, Math.floor(t * 5)));
       if (step !== selectedSkillCategoryIndex) {
         setSelectedSkillCategoryIndex(step);
       }
     }
   });
 
-  // Coordinates for the 4 physical stations along lab promenade
-  const stationPositions: [number, number, number][] = [
-    [-11.5, 0, -3.2],
-    [-3.8, 0, -4.2],
-    [3.8, 0, -4.2],
-    [11.5, 0, -3.2],
-  ];
+  const handleSelectCube = (id: string, row: number) => {
+    setSelectedTechCubeId(id);
+    setSelectedSkillCategoryIndex(row);
+  };
 
-  const stationSubtitles = [
-    'UI & Web Engineering',
-    'APIs & Business Logic',
-    'Clusters & Schemas',
-    'Cloud & Pipelines',
-  ];
+  const handleSelectCategory = (row: number) => {
+    setSelectedSkillCategoryIndex(row);
+    // Auto-select the first cube in that category
+    const rowCubes = cubesByRow.get(row);
+    if (rowCubes && rowCubes.length > 0) {
+      setSelectedTechCubeId(rowCubes[0].id);
+    }
+  };
 
   return (
-    <group position={[-42, 0.2, -265]}>
-      {/* Laboratory Pavilion Enclosure (Left side of road, facing +X towards road/traveler) */}
-      <group position={[-16, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-        {/* ========================================================= */}
-        {/* ARCHITECTURAL LABORATORY ENCLOSURE                        */}
-        {/* ========================================================= */}
+    // ══════════════════════════════════════════════════════════════════════════
+    // WORLD POSITION & ORIENTATION:
+    // Placed on the side of the road at the apex of the road curve:
+    // Position: [-45.5, 0.2, -259.5], Yaw: 1.426 rad (81.7 deg).
+    // Directly faces the road curve and the oncoming paper airplane!
+    // The road curves gracefully right in front of the skills section!
+    // ══════════════════════════════════════════════════════════════════════════
+    <group position={[-45.5, 0.2, -259.5]} rotation={[0, 1.426, 0]}>
+      {/* ── 1. Expansive High-Gloss Dark Base Platform with Chamfer ── */}
+      <mesh position={[0, -0.22, -2.0]} receiveShadow>
+        <boxGeometry args={[16.2, 0.44, 7.8]} />
+        <meshStandardMaterial color="#050811" roughness={0.15} metalness={0.6} />
+      </mesh>
 
-        {/* Polished Dark Laboratory Floor */}
-        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[38, 28]} />
-          <meshStandardMaterial
-            color="#0C1019"
-            roughness={0.38}
-            metalness={0.2}
-          />
-        </mesh>
+      {/* Surrounding Neon Cyber Edge Accent Lines on Ground */}
+      <mesh position={[0, 0.01, 1.85]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[16.0, 0.08]} />
+        <meshStandardMaterial color="#00D8FF" emissive="#00D8FF" emissiveIntensity={2.0} />
+      </mesh>
+      <mesh position={[-7.95, 0.01, -2.0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+        <planeGeometry args={[7.6, 0.08]} />
+        <meshStandardMaterial color="#00D8FF" emissive="#00D8FF" emissiveIntensity={2.0} />
+      </mesh>
+      <mesh position={[7.95, 0.01, -2.0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+        <planeGeometry args={[7.6, 0.08]} />
+        <meshStandardMaterial color="#00D8FF" emissive="#00D8FF" emissiveIntensity={2.0} />
+      </mesh>
 
-        {/* Subtle Illuminated Pathway Runner (Embedded LED runner) */}
-        <mesh position={[0, 0.025, 0.5]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[36, 0.08]} />
-          <meshBasicMaterial color="#38BDF8" transparent opacity={0.5} />
-        </mesh>
+      {/* Connecting Illuminated Promenade from Plaza Platform to Road */}
+      <mesh position={[0, 0.005, 3.8]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[14.0, 4.0]} />
+        <meshStandardMaterial color="#0A0E18" roughness={0.6} />
+      </mesh>
 
-        {/* Minimalist Matte Exhibition Back Wall */}
-        <mesh position={[0, 4.5, -7.5]}>
-          <boxGeometry args={[38, 9.0, 0.4]} />
-          <meshStandardMaterial color="#141822" roughness={0.9} />
-        </mesh>
+      {/* ── 2. Back Wall Solid Riser Frame (Black Backdrop for Contrast) ── */}
+      <mesh position={[0, 3.1, -4.6]} receiveShadow>
+        <boxGeometry args={[15.6, 6.6, 0.5]} />
+        <meshStandardMaterial color="#060A14" roughness={0.8} />
+      </mesh>
 
-        {/* Dark Coffer Ceiling with Recessed Beams */}
-        <mesh position={[0, 8.8, 0]}>
-          <boxGeometry args={[38, 0.4, 28]} />
-          <meshStandardMaterial color="#0A0D14" roughness={0.85} />
-        </mesh>
+      {/* ── 3. The 5 Stepped Shelf Tiers of 3D Cubes ── */}
+      {TECHNOLOGY_CATEGORIES.map((cat) => {
+        const config = tierConfigs[cat.row];
+        const rowCubes = cubesByRow.get(cat.row) || [];
+        const isCatSelected = cat.row === selectedSkillCategoryIndex;
 
-        {/* Subtle Ceiling Track Light Rails */}
-        {[-4.5, 4.5].map((rz, i) => (
-          <mesh key={`lab-rail-${i}`} position={[0, 8.55, rz]}>
-            <boxGeometry args={[36, 0.12, 0.18]} />
-            <meshStandardMaterial color="#1E232E" metalness={0.9} />
-          </mesh>
-        ))}
-
-        {/* Tempered Glass Divider Fins between Station Bays */}
-        {[-7.6, 0, 7.6].map((gx, i) => (
-          <mesh key={`lab-glass-${i}`} position={[gx, 3.2, -3.8]}>
-            <boxGeometry args={[0.06, 5.5, 4.6]} />
-            <meshPhysicalMaterial
-              color="#CBD5E1"
-              transparent
-              opacity={0.3}
-              roughness={0.08}
-              transmission={0.88}
-              thickness={0.4}
-            />
-          </mesh>
-        ))}
-
-        {/* Structural Titanium Columns */}
-        {[-16.5, -7.6, 0, 7.6, 16.5].map((cx, i) => (
-          <mesh key={`lab-col-${i}`} position={[cx, 4.5, 9.5]}>
-            <boxGeometry args={[0.35, 9.0, 0.35]} />
-            <meshStandardMaterial color="#1B202C" metalness={0.8} roughness={0.2} />
-          </mesh>
-        ))}
-
-        {/* Minimalist Modern Laboratory Botanicals */}
-        <LabBotanical position={[-16.5, 0, 6.5]} />
-        <LabBotanical position={[16.5, 0, 6.5]} />
-        <LabBotanical position={[-16.5, 0, -5.5]} />
-        <LabBotanical position={[16.5, 0, -5.5]} />
-
-        {/* ========================================================= */}
-        {/* 4 DEDICATED PHYSICAL TECHNOLOGY STATIONS                  */}
-        {/* ========================================================= */}
-        {skillCategories.slice(0, 4).map((cat, idx) => (
-          <LabStation
+        return (
+          <TierRow
             key={cat.id}
-            categoryIndex={idx}
-            title={cat.name}
-            subtitle={stationSubtitles[idx]}
-            skills={cat.skills}
-            isSelected={idx === selectedSkillCategoryIndex}
-            onSelect={() => setSelectedSkillCategoryIndex(idx)}
-            onSkillClick={(skillName) => openSkillDetail(skillName)}
-            position={stationPositions[idx]}
+            category={cat}
+            cubes={rowCubes}
+            shelfY={config.y}
+            shelfZ={config.z}
+            selectedCubeId={selectedTechCubeId}
+            isCategorySelected={isCatSelected}
+            onSelectCube={handleSelectCube}
+            onSelectCategory={handleSelectCategory}
           />
-        ))}
+        );
+      })}
 
-        {/* Illuminated Paved Entrance Linking to Road Corridor */}
-        <mesh position={[0, 0.015, 13.5]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[14, 8]} />
-          <meshStandardMaterial color="#1A202C" roughness={0.5} />
-        </mesh>
-      </group>
+      {/* ── 4. Overhead Cinematic Stage Lights ── */}
+      <pointLight position={[0, 9.0, -1.0]} color="#E2E8F0" intensity={1.8} distance={25} />
+      <pointLight position={[-6.0, 7.0, 2.0]} color="#00D8FF" intensity={1.4} distance={18} />
+      <pointLight position={[6.0, 7.0, 2.0]} color="#38BDF8" intensity={1.4} distance={18} />
     </group>
   );
 };
