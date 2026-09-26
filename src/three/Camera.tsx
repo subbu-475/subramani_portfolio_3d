@@ -55,27 +55,28 @@ export const Camera: React.FC = () => {
       effectiveLookY = 0.25;
       effectiveForwardDist = 5.2;
 
-      // In Chapter 04 (Projects / Project Express Railway Station):
-      // Wide establishing shot on entry, platform & train tracking, and selected compartment framing
+      // In Chapter 04 (Projects / Vande Bharat Express at Railway Gate):
+      // Fly-over framing: elevated camera showing the paper airplane climbing up and crossing cleanly above the moving train
       if (journeyProgress >= 0.45 && journeyProgress <= 0.56) {
         if (journeyProgress <= 0.49) {
-          // Approaching station: wide establishing view of the railway canopy
+          // Approaching railway gate: wide establishing view of the crossing and approaching train
           const t = (journeyProgress - 0.45) / 0.04;
-          effectiveCamZ = THREE.MathUtils.lerp(4.6, 5.8, t);
-          effectiveCamY = THREE.MathUtils.lerp(1.25, 1.65, t);
+          effectiveCamZ = THREE.MathUtils.lerp(4.6, 5.5, t);
+          effectiveCamY = THREE.MathUtils.lerp(1.25, 1.75, t);
           effectiveForwardDist = THREE.MathUtils.lerp(5.2, 6.2, t);
-        } else if (journeyProgress <= 0.54) {
-          // Tracking along platform: cinematic close framing on active compartment
-          const t = Math.sin(((journeyProgress - 0.49) / 0.05) * Math.PI);
-          effectiveCamZ = THREE.MathUtils.lerp(4.6, isMobile ? 4.8 : 3.9, t);
-          effectiveCamY = THREE.MathUtils.lerp(1.25, 1.15, t);
-          effectiveLookX += (isMobile ? 0.2 : 0.48); // Look towards train & platform on right
-          effectiveLookY = THREE.MathUtils.lerp(0.25, 0.22, t);
+        } else if (journeyProgress <= 0.535) {
+          // High fly-over: camera follows slightly elevated, looking slightly down over the airplane and the passing train
+          const t = Math.sin(((journeyProgress - 0.49) / 0.045) * Math.PI);
+          effectiveCamZ = THREE.MathUtils.lerp(4.6, isMobile ? 5.0 : 4.4, t);
+          effectiveCamY = THREE.MathUtils.lerp(1.25, 1.85, t);
+          effectiveLookX += (isMobile ? 0.15 : 0.35); // Look towards train passing across
+          effectiveLookY = THREE.MathUtils.lerp(0.25, -0.15, t); // Look slightly downward at train & tracks
+          effectiveForwardDist = 5.6;
         } else {
-          // Departing station: pulls back as airplane accelerates ahead of the train
-          const t = (journeyProgress - 0.54) / 0.02;
-          effectiveCamZ = THREE.MathUtils.lerp(4.6, 5.4, t);
-          effectiveCamY = THREE.MathUtils.lerp(1.25, 1.55, t);
+          // Gliding down past exit gate: smoothly restores standard chase camera
+          const t = (journeyProgress - 0.535) / 0.025;
+          effectiveCamZ = THREE.MathUtils.lerp(5.0, 4.6, t);
+          effectiveCamY = THREE.MathUtils.lerp(1.75, 1.25, t);
         }
       }
 

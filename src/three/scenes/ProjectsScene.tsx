@@ -1113,47 +1113,102 @@ export const ProjectsScene: React.FC = () => {
   const selectedProjectIndex = useJourneyStore((state) => state.selectedProjectIndex);
   const setSelectedProjectIndex = useJourneyStore((state) => state.setSelectedProjectIndex);
 
-  // Train Movement State along Track X axis
+  // Train Movement State along Track X axis (Right to Left continuous cruising)
   const trainPosRef = useRef(0);
-  const trainVelRef = useRef(0);
   const wheelRotRef = useRef(0);
   const [wheelRotation, setWheelRotation] = useState(0);
+
+  // User manual hold timer (when a user clicks a coach, hold it steady for 4s before resuming cruise)
+  const userHoldTimerRef = useRef(0);
+  const lastSelectedIndexRef = useRef(selectedProjectIndex);
 
   // Alternating red warning flasher state (1.5 Hz)
   const [flasherState, setFlasherState] = useState(false);
   const flasherTimerRef = useRef(0);
 
-  // Defined coach offsets along train X (Train moves from Right to Left!):
-  // Locomotive Nose Cab is at front (towards -X): -18.6m
-  // Coach 01 (EC1: E-Commerce)  -> -10.8m
-  // Coach 02 (C1:  ERP)         -> -3.0m
-  // Coach 03 (C2:  HRMS)        -> +4.8m
-  // Coach 04 (C3:  Mobile)      -> +12.6m
-  // Coach 05 (C4:  Analytics)   -> +20.4m
-  // Coach 06 (C5:  SaaS)        -> +28.2m
-  // When Coach k is selected, trainPos targets -compartmentOffsets[k],
-  // positioning Coach k front-and-center right at the level crossing (X = 0)!
-  const compartmentOffsets = useMemo(() => [-10.8, -3.0, 4.8, 12.6, 20.4, 28.2], []);
+  // 6 Coach base offsets along train X (Pitch = 7.8m, Total Cycle = 46.8m):
+  // When coach k is at center (X = 0), trainPos equals -coachOffsets[k]
+  const CYCLE_LENGTH = 46.8; // 6 * 7.8m
+  const compartmentOffsets = useMemo(() => [
+    -19.5, // Coach 01: EC1 (E-Commerce)
+    -11.7, // Coach 02: C1  (ERP & Business)
+     -3.9, // Coach 03: C2  (HRMS & Workforce)
+      3.9, // Coach 04: C3  (Mobile Apps)
+     11.7, // Coach 05: C4  (Admin & Analytics)
+     19.5, // Coach 06: C5  (SaaS & Web)
+  ], []);
 
   useFrame((_, delta) => {
     // 1. Alternating Level Crossing Warning Lights
     flasherTimerRef.current += delta;
-    if (flasherTimerRef.current > 0.4) {
+    if (flasherTimerRef.current > 0.38) {
       flasherTimerRef.current = 0;
       setFlasherState((prev) => !prev);
     }
 
-    // 2. Train Target Position Tracking
-    const targetOffset = -compartmentOffsets[selectedProjectIndex];
-    const dist = targetOffset - trainPosRef.current;
-    const accel = dist * 2.8;
-    trainVelRef.current = THREE.MathUtils.lerp(trainVelRef.current, accel, delta * 4.0);
-    trainPosRef.current += trainVelRef.current * delta;
+    // 2. Detect User Manual Selection (e.g. user clicked a coach in UI or in 3D scene)
+    if (selectedProjectIndex !== lastSelectedIndexRef.current) {
+      lastSelectedIndexRef.current = selectedProjectIndex;
+      userHoldTimerRef.current = 4.2; // Pause / slow cruise for 4.2 seconds to inspect
+    }
 
-    // 3. Wheel rotation proportional to movement displacement
-    wheelRotRef.current += trainVelRef.current * delta * 2.8;
+    // 3. Continuous Train Motion from Right (+X) to Left (-X)
+    let currentSpeed = 2.2; // standard cruising speed 2.2 m/s
+
+    if (userHoldTimerRef.current > 0) {
+      userHoldTimerRef.current -= delta;
+      // Smoothly steer train towards the manually selected coach
+      const targetOffset = -compartmentOffsets[selectedProjectIndex];
+      // Normalize target within current cycle range
+      let diff = targetOffset - trainPosRef.current;
+      while (diff > CYCLE_LENGTH / 2) diff -= CYCLE_LENGTH;
+      while (diff < -CYCLE_LENGTH / 2) diff += CYCLE_LENGTH;
+      trainPosRef.current += diff * Math.min(1, delta * 3.5);
+      currentSpeed = 0.4; // gentle crawl while inspecting
+    } else {
+      // Normal continuous right-to-left cruising!
+      trainPosRef.current -= delta * currentSpeed;
+
+      // Wrap continuously modulo CYCLE_LENGTH for an infinite train rake
+      if (trainPosRef.current < -CYCLE_LENGTH) {
+        trainPosRef.current += CYCLE_LENGTH;
+      }
+      if (trainPosRef.current > 0) {
+        trainPosRef.current -= CYCLE_LENGTH;
+      }
+
+      // 4. Content Auto-Sync: find which coach is currently crossing the center (X = 0)
+      let closestIdx = 0;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < compartmentOffsets.length; i++) {
+        // Check coach position in Set 0 and Set 1
+        const pos0 = trainPosRef.current + compartmentOffsets[i];
+        const pos1 = pos0 + CYCLE_LENGTH;
+        const d = Math.min(Math.abs(pos0), Math.abs(pos1));
+        if (d < minDistance) {
+          minDistance = d;
+          closestIdx = i;
+        }
+      }
+
+      // When the passing coach is nicely centered within +/- 3.2m of the crossing
+      if (minDistance < 3.2 && closestIdx !== selectedProjectIndex) {
+        lastSelectedIndexRef.current = closestIdx;
+        setSelectedProjectIndex(closestIdx);
+      }
+    }
+
+    // 5. Wheel rotation proportional to movement displacement
+    wheelRotRef.current -= delta * currentSpeed * 2.8;
     setWheelRotation(wheelRotRef.current);
   });
+
+  const handleCoachSelect = (idx: number) => {
+    setSelectedProjectIndex(idx);
+    lastSelectedIndexRef.current = idx;
+    userHoldTimerRef.current = 4.2;
+  };
 
   return (
     // ══════════════════════════════════════════════════════════════════════════
@@ -1186,28 +1241,54 @@ export const ProjectsScene: React.FC = () => {
       {/* ── 5. ATMOSPHERIC TRACKSIDE SPEED DUST & AIR PARTICLES ── */}
       <TracksideDust active={journeyProgress >= 0.44 && journeyProgress <= 0.58} />
 
-      {/* ── 6. THE INDIAN VANDE BHARAT EXPRESS (MOVING RIGHT TO LEFT) ── */}
+      {/* ── 6. CONTINUOUS MOVING INDIAN VANDE BHARAT EXPRESS ── */}
+      {/* Set 0 Rake */}
       <group position={[trainPosRef.current, 0, 0]}>
         {/* High-Speed Aerodynamic Bullet Nose Locomotive Cab (Facing -X / Left!) */}
-        <VandeBharatNose position={[-18.6, 0, 0]} wheelRotation={wheelRotation} />
+        <VandeBharatNose position={[-27.3, 0, 0]} wheelRotation={wheelRotation} />
 
         {/* 6 Curated Software Project Category Coaches (EC1 through C5) */}
         {PROJECT_COMPARTMENTS.map((category, idx) => (
           <VandeBharatCoach
-            key={category.id}
+            key={`set0-${category.id}`}
             data={category}
             index={idx}
             isSelected={idx === selectedProjectIndex}
-            onSelect={() => setSelectedProjectIndex(idx)}
+            onSelect={() => handleCoachSelect(idx)}
             wheelRotation={wheelRotation}
             offsetPos={compartmentOffsets[idx]}
           />
         ))}
 
-        {/* Rear Aerodynamic Tail Coach Bellows & Coupling */}
-        <mesh position={[32.0, 1.88, 0]}>
+        {/* Articulated High-Speed Gangway Coupler */}
+        <mesh position={[23.4, 1.88, 0]}>
           <boxGeometry args={[0.8, 2.6, 2.3]} />
           <meshStandardMaterial color="#1E232E" roughness={0.7} />
+        </mesh>
+      </group>
+
+      {/* Set 1 Rake (Seamless continuous loop following directly behind Set 0) */}
+      <group position={[trainPosRef.current + CYCLE_LENGTH, 0, 0]}>
+        {PROJECT_COMPARTMENTS.map((category, idx) => (
+          <VandeBharatCoach
+            key={`set1-${category.id}`}
+            data={category}
+            index={idx}
+            isSelected={idx === selectedProjectIndex}
+            onSelect={() => handleCoachSelect(idx)}
+            wheelRotation={wheelRotation}
+            offsetPos={compartmentOffsets[idx]}
+          />
+        ))}
+
+        {/* Rear Aerodynamic Tail Coach Cab */}
+        <mesh position={[27.3, 1.88, 0]}>
+          <boxGeometry args={[7.2, 2.7, 2.5]} />
+          <meshStandardMaterial color="#FAF7F0" roughness={0.25} />
+        </mesh>
+        <mesh position={[27.3, 2.05, 0]}>
+          <boxGeometry args={[7.22, 1.05, 2.52]} />
+          <meshStandardMaterial color="#0F2C59" roughness={0.2} metalness={0.35} />
         </mesh>
       </group>
     </group>

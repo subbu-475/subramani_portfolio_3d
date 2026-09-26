@@ -134,18 +134,14 @@ export function getAirplaneFlightPosition(progress: number, target = new THREE.V
     // CAREER: glide across boulevard
     const t = Math.sin(((p - 0.38) / 0.04) * Math.PI);
     altOffset = 2.0 - t * 0.2;
-  } else if (p >= 0.48 && p <= 0.56) {
-    // PROJECTS (PROJECT EXPRESS):
-    // Enters railway station, glides down along platform near station sign, cruises alongside train, then ascends ahead
-    if (p <= 0.52) {
-      const t = Math.sin(((p - 0.48) / 0.04) * Math.PI * 0.5);
-      altOffset = THREE.MathUtils.lerp(2.0, 1.25, t);
-    } else if (p <= 0.54) {
-      altOffset = 1.65;
-    } else {
-      const t = (p - 0.54) / 0.02;
-      altOffset = THREE.MathUtils.lerp(1.65, 2.4, t);
-    }
+  } else if (p >= 0.47 && p <= 0.55) {
+    // PROJECTS (INDIAN VANDE BHARAT RAILWAY LEVEL CROSSING):
+    // Smooth cinematic climb over the railway crossing:
+    // Glides UP to 5.4m, crosses safely above the speeding Vande Bharat train,
+    // and glides back DOWN to standard cruising altitude (2.0m).
+    const t = (p - 0.47) / (0.55 - 0.47);
+    const bell = Math.sin(t * Math.PI);
+    altOffset = 2.0 + 3.4 * Math.pow(bell, 1.35);
   } else if (p >= 0.62 && p <= 0.66) {
     // SKILLS: laboratory promenade
     const t = Math.sin(((p - 0.62) / 0.04) * Math.PI);
@@ -203,6 +199,14 @@ export function getAirplaneOrientationQuaternion(progress: number, time: number 
 
     const qRoll = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankAngle + flutter);
     q.multiply(qRoll);
+
+    // Aerodynamic Pitch: nose up when climbing over Vande Bharat train, level at peak, nose down during descent
+    if (p >= 0.47 && p <= 0.55) {
+      const t = (p - 0.47) / (0.55 - 0.47);
+      const pitchAngle = Math.cos(t * Math.PI) * 0.22;
+      const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchAngle);
+      q.multiply(qPitch);
+    }
   }
 
   return q;
