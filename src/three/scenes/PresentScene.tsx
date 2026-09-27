@@ -29,12 +29,11 @@ export const PresentScene: React.FC = () => {
         <group position={[0, 1.2, 7.8]}>
           <mesh position={[0, 0, 0]}>
             <boxGeometry args={[20, 1.8, 0.08]} />
-            <meshPhysicalMaterial
+            <meshStandardMaterial
               color="#38BDF8"
               transparent
               opacity={0.35}
               roughness={0.1}
-              transmission={0.8}
             />
           </mesh>
           {/* Top Handrail */}

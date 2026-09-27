@@ -21,10 +21,9 @@ export const ChapterPanel: React.FC<ChapterPanelProps> = ({
   children,
   position = 'left',
 }) => {
-  const { currentChapter, isMobile } = useJourneyStore();
+  const isActive = useJourneyStore((s) => s.currentChapter === chapter);
+  const isMobile = useJourneyStore((s) => s.isMobile);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  const isActive = currentChapter === chapter;
 
   useEffect(() => {
     if (!panelRef.current) return;

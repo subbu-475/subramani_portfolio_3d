@@ -4,16 +4,14 @@ import { Menu, X, Volume2, VolumeX } from 'lucide-react';
 import { ambientSound } from '../utils/audio';
 
 export const Navbar: React.FC = () => {
-  const {
-    currentChapter,
-    isMenuOpen,
-    toggleMenu,
-    isSoundEnabled,
-    toggleSound,
-    jumpToChapter,
-    viewMode,
-    toggleViewMode,
-  } = useJourneyStore();
+  const currentChapter = useJourneyStore((s) => s.currentChapter);
+  const isMenuOpen = useJourneyStore((s) => s.isMenuOpen);
+  const isSoundEnabled = useJourneyStore((s) => s.isSoundEnabled);
+  const viewMode = useJourneyStore((s) => s.viewMode);
+  const toggleMenu = useJourneyStore((s) => s.toggleMenu);
+  const toggleSound = useJourneyStore((s) => s.toggleSound);
+  const jumpToChapter = useJourneyStore((s) => s.jumpToChapter);
+  const toggleViewMode = useJourneyStore((s) => s.toggleViewMode);
   const [scrolled, setScrolled] = useState(false);
 
   const handleSoundToggle = () => {

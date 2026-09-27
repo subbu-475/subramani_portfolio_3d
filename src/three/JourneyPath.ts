@@ -41,13 +41,13 @@ export const JOURNEY_WAYPOINTS: THREE.Vector3[] = [
   new THREE.Vector3(-38,  0.5,  -295),     // WP12: Road curves right
   new THREE.Vector3( -8,  0.8,  -315),     // WP13: ★ Night city skyline balcony (RIGHT side)
 
-  // ══════ TURN LEFT → CH 07: THE JOURNEY CONTINUES (Pre-Dawn → Space) ══════
-  new THREE.Vector3(-12,  1.5,  -340),     // WP14: Approach launch pad (intermediate)
-  new THREE.Vector3(-28,   15,  -365),     // WP15: ★ Rocket ascending! (LEFT, ascending)
+  // ══════ CH 05: FUTURE — Dawn Horizon Skybridge ══════
+  new THREE.Vector3(-14,  1.8,  -340),     // WP14: Incline ramp onto elevated skybridge
+  new THREE.Vector3(-24,  4.2,  -365),     // WP15: ★ Skybridge runway deck (panoramic sunrise overlook)
 
-  // ══════ CH 08: NEXT DESTINATION — ORBITAL SPACE ══════
-  new THREE.Vector3(-12,   42,  -388),     // WP16: ★ In orbit — space station
-  new THREE.Vector3(  0,   55,  -405),     // WP17: Deep space endpoint
+  // ══════ CH 06: CONTACT — Sunrise Observation Pavilion ══════
+  new THREE.Vector3(-14,  5.8,  -388),     // WP16: Final approach to sunrise horizon pavilion
+  new THREE.Vector3( -4,  6.2,  -405),     // WP17: Touchdown landing platform at sunrise pavilion
 ];
 
 /**
@@ -76,18 +76,20 @@ export function getJourneyTangent(progress: number, target = new THREE.Vector3()
   return journeyCurve.getTangentAt(p, target);
 }
 
+const _normalTangent = new THREE.Vector3();
+const _upRef_Z = new THREE.Vector3(0, 0, -1);
+const _upRef_Y = new THREE.Vector3(0, 1, 0);
+
 /**
  * Computes a stable "right-perpendicular" normal for any tangent direction.
  * Handles the edge case where the tangent is nearly vertical (during space ascent),
  * which would make the standard cross(tangent, worldUp) degenerate to zero.
  */
-export function getJourneyNormal(progress: number): THREE.Vector3 {
-  const tangent = getJourneyTangent(progress).normalize();
+export function getJourneyNormal(progress: number, target = new THREE.Vector3()): THREE.Vector3 {
+  getJourneyTangent(progress, _normalTangent).normalize();
   // When tangent is nearly vertical, use world-forward as the reference axis instead
-  const upRef = Math.abs(tangent.y) > 0.7
-    ? new THREE.Vector3(0, 0, -1)
-    : new THREE.Vector3(0, 1, 0);
-  return new THREE.Vector3().crossVectors(tangent, upRef).normalize();
+  const upRef = Math.abs(_normalTangent.y) > 0.7 ? _upRef_Z : _upRef_Y;
+  return target.crossVectors(_normalTangent, upRef).normalize();
 }
 
 /**
@@ -147,16 +149,15 @@ export function getAirplaneFlightPosition(progress: number, target = new THREE.V
     const t = Math.sin(((p - 0.62) / 0.04) * Math.PI);
     altOffset = 2.0 - t * 0.25;
   } else if (p >= 0.74 && p <= 0.88) {
-    // FUTURE: climbing towards the golden horizon!
-    const t = (p - 0.74) / 0.14;
-    altOffset = THREE.MathUtils.lerp(2.0, 4.0, t);
+    // FUTURE: gliding gracefully across the Skybridge runway deck!
+    altOffset = 1.8;
   } else if (p > 0.88 && p <= 0.98) {
-    // CONTACT: gentle glide descent to landing platform
+    // CONTACT: gentle glide descent to sunrise landing platform
     const t = (p - 0.88) / 0.10;
     const ease = t * t * (3 - 2 * t);
-    altOffset = THREE.MathUtils.lerp(4.0, 0.42, ease);
+    altOffset = THREE.MathUtils.lerp(1.8, 0.42, ease);
   } else if (p > 0.98) {
-    // Resting on contact landing platform
+    // Resting on sunrise contact landing platform
     altOffset = 0.42;
   }
 
@@ -167,50 +168,78 @@ export function getAirplaneFlightPosition(progress: number, target = new THREE.V
   return target;
 }
 
+// Scratch objects for airplane orientation calculation
+const _airplaneForward = new THREE.Vector3();
+const _airplaneRight = new THREE.Vector3();
+const _airplaneUp = new THREE.Vector3();
+const _airplaneBack = new THREE.Vector3();
+const _airplaneBasisMat = new THREE.Matrix4();
+const _aheadForward = new THREE.Vector3();
+const _turnCross = new THREE.Vector3();
+const _rollAxis = new THREE.Vector3(0, 0, 1);
+const _pitchAxis = new THREE.Vector3(1, 0, 0);
+const _qRoll = new THREE.Quaternion();
+const _qPitch = new THREE.Quaternion();
+
 /**
  * Calculates the exact 3D orientation quaternion for the Paper Airplane.
  * Perfectly aligns the airplane's nose along the road path tangent,
  * computes true aerodynamic banking roll into curves, and avoids any Euler gimbal errors.
  */
-export function getAirplaneOrientationQuaternion(progress: number, time: number = 0): THREE.Quaternion {
+export function getAirplaneOrientationQuaternion(
+  progress: number,
+  time: number = 0,
+  target = new THREE.Quaternion()
+): THREE.Quaternion {
   const p = Math.max(0.0001, Math.min(0.9999, progress));
-  const forward = getJourneyTangent(p).normalize();
+  getJourneyTangent(p, _airplaneForward).normalize();
 
   // Stable perpendicular reference (handles space ascent when tangent is nearly vertical)
-  const upRef = Math.abs(forward.y) > 0.85 ? new THREE.Vector3(0, 0, -1) : new THREE.Vector3(0, 1, 0);
-  const right = new THREE.Vector3().crossVectors(forward, upRef).normalize();
-  const up = new THREE.Vector3().crossVectors(right, forward).normalize();
-  const back = forward.clone().negate();
+  const upRef = Math.abs(_airplaneForward.y) > 0.85 ? _upRef_Z : _upRef_Y;
+  _airplaneRight.crossVectors(_airplaneForward, upRef).normalize();
+  _airplaneUp.crossVectors(_airplaneRight, _airplaneForward).normalize();
+  _airplaneBack.copy(_airplaneForward).negate();
 
-  const basisMat = new THREE.Matrix4().makeBasis(right, up, back);
-  const q = new THREE.Quaternion().setFromRotationMatrix(basisMat);
+  _airplaneBasisMat.makeBasis(_airplaneRight, _airplaneUp, _airplaneBack);
+  target.setFromRotationMatrix(_airplaneBasisMat);
 
   // If airborne, compute banking into road curves
   const isAirborne = p > 0.035 && p < 0.98;
   if (isAirborne) {
     const aheadP = Math.min(0.9999, p + 0.008);
-    const aheadForward = getJourneyTangent(aheadP).normalize();
-    const turnCross = new THREE.Vector3().crossVectors(forward, aheadForward);
+    getJourneyTangent(aheadP, _aheadForward).normalize();
+    _turnCross.crossVectors(_airplaneForward, _aheadForward);
 
     // Turn cross Y: >0 when curving left (bank left), <0 when curving right (bank right)
-    const bankAngle = THREE.MathUtils.clamp(turnCross.y * 3.8, -0.65, 0.65);
+    const bankAngle = THREE.MathUtils.clamp(_turnCross.y * 3.8, -0.65, 0.65);
     // Subtle aerodynamic micro-flutter in flight
     const flutter = Math.sin(time * 3.4) * 0.02;
 
-    const qRoll = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankAngle + flutter);
-    q.multiply(qRoll);
+    _qRoll.setFromAxisAngle(_rollAxis, bankAngle + flutter);
+    target.multiply(_qRoll);
 
     // Aerodynamic Pitch: nose up when climbing over Vande Bharat train, level at peak, nose down during descent
     if (p >= 0.47 && p <= 0.55) {
       const t = (p - 0.47) / (0.55 - 0.47);
       const pitchAngle = Math.cos(t * Math.PI) * 0.22;
-      const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchAngle);
-      q.multiply(qPitch);
+      _qPitch.setFromAxisAngle(_pitchAxis, pitchAngle);
+      target.multiply(_qPitch);
     }
   }
 
-  return q;
+  return target;
 }
+
+// Scratch objects for flight transform
+const _flightPos = new THREE.Vector3();
+const _flightQuat = new THREE.Quaternion();
+const _flightForward = new THREE.Vector3();
+const _flightTransform = {
+  pos: _flightPos,
+  quat: _flightQuat,
+  forward: _flightForward,
+  roll: 0,
+};
 
 /**
  * Computes complete 3D aerodynamic flight transform for the Paper Airplane:
@@ -220,24 +249,24 @@ export function getAirplaneOrientationQuaternion(progress: number, time: number 
  */
 export function getAirplaneFlightTransform(progress: number, time: number = 0) {
   const p = Math.max(0.0001, Math.min(0.999, progress));
-  const pos = getAirplaneFlightPosition(p);
-  const forward = getJourneyTangent(p).normalize();
-  const quat = getAirplaneOrientationQuaternion(p, time);
+  getAirplaneFlightPosition(p, _flightPos);
+  getJourneyTangent(p, _flightForward).normalize();
+  getAirplaneOrientationQuaternion(p, time, _flightQuat);
 
   // Compute road turn rate for camera banking
   const aheadP = Math.min(0.9999, p + 0.008);
-  const aheadForward = getJourneyTangent(aheadP).normalize();
-  const turnCross = new THREE.Vector3().crossVectors(forward, aheadForward);
-  const bankAngle = THREE.MathUtils.clamp(turnCross.y * 3.8, -0.65, 0.65);
+  getJourneyTangent(aheadP, _aheadForward).normalize();
+  _turnCross.crossVectors(_flightForward, _aheadForward);
+  _flightTransform.roll = THREE.MathUtils.clamp(_turnCross.y * 3.8, -0.65, 0.65);
 
-  return { pos, quat, forward, roll: bankAngle };
+  return _flightTransform;
 }
 
 /**
- * The progress value beyond which the road stops rendering (space begins).
- * Road dissolves before the rocket launch ramp.
+ * The progress value beyond which the road stops rendering (sunrise touchdown platform).
+ * Road extends smoothly along the Skybridge all the way to the Contact pavilion.
  */
-export const ROAD_END_PROGRESS = 0.83;
+export const ROAD_END_PROGRESS = 0.98;
 
 /**
  * Generates ribbon geometry vertices for the continuous road surface.

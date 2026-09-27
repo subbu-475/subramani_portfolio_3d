@@ -1,156 +1,224 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 /**
- * CH 08 — NEXT DESTINATION: Deep Space Orbital Station / Contact Hub
- * Positioned in high orbit at WP16 (-12, 42, -388).
- * Features an orbital space station with rotating solar arrays,
- * communications dish, docking ring, and floating contact terminal.
+ * Floating Holographic Contact Node Pedestal
+ */
+const ContactPedestal: React.FC<{
+  position: [number, number, number];
+  label: string;
+  icon: string;
+  color: string;
+}> = ({ position, label, icon, color }) => {
+  const nodeRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (!nodeRef.current) return;
+    const t = state.clock.elapsedTime * 1.5;
+    nodeRef.current.position.y = position[1] + Math.sin(t) * 0.08;
+    nodeRef.current.rotation.y = t * 0.4;
+  });
+
+  return (
+    <group position={[position[0], 0, position[2]]}>
+      {/* Sleek Dark Titanium Pedestal Column */}
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.22, 0.32, 1.0, 16]} />
+        <meshStandardMaterial color="#0A0F1D" metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Illuminated Base Ring */}
+      <mesh position={[0, 1.01, 0]}>
+        <cylinderGeometry args={[0.26, 0.26, 0.04, 16]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.8} />
+      </mesh>
+
+      {/* Floating Holographic Node */}
+      <group ref={nodeRef} position={[0, position[1], 0]}>
+        <mesh>
+          <octahedronGeometry args={[0.25, 0]} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={1.5}
+            wireframe
+          />
+        </mesh>
+        <Text
+          position={[0, 0.45, 0]}
+          fontSize={0.16}
+          color="#FFFFFF"
+          letterSpacing={0.1}
+          anchorX="center"
+          anchorY="middle"
+        >
+          {label}
+        </Text>
+        <Text
+          position={[0, -0.4, 0]}
+          fontSize={0.12}
+          color={color}
+          letterSpacing={0.08}
+          anchorX="center"
+          anchorY="middle"
+        >
+          {icon}
+        </Text>
+      </group>
+    </group>
+  );
+};
+
+/**
+ * CH 06 — CONTACT: The Sunrise Pavilion & Touchdown Terrace
+ * 
+ * Replaces the dark outer-space station with a magnificent open-air sunrise terrace
+ * at the terminus of the Skybridge overlooking the golden dawn horizon.
+ * Features:
+ * - Expansive circular glass observation deck
+ * - Architectural Walnut/Slate Touchdown Desk (poetically echoing the Chapter 00 launch desk)
+ * - Holographic interactive contact beacons
+ * - Warm morning sunlight welcoming collaboration
  */
 export const ContactScene: React.FC = () => {
-  const stationRef = useRef<THREE.Group>(null);
-  const dishRef = useRef<THREE.Group>(null);
-  const beaconRef = useRef<THREE.PointLight>(null);
+  const haloRef = useRef<THREE.Mesh>(null);
 
-  useFrame((state, delta) => {
-    if (stationRef.current) {
-      stationRef.current.rotation.y += delta * 0.08;
-    }
-    if (dishRef.current) {
-      dishRef.current.rotation.z += delta * 0.15;
-    }
-    if (beaconRef.current) {
-      beaconRef.current.intensity = Math.sin(state.clock.elapsedTime * 4) > 0.3 ? 2.8 : 0.4;
+  useFrame((_, delta) => {
+    if (haloRef.current) {
+      haloRef.current.rotation.z += delta * 0.15;
     }
   });
 
   return (
-    <group position={[-12, 42, -388]}>
+    <group position={[-4, 5.8, -405]}>
       {/* ========================================================= */}
-      {/* 3D ORBITAL SPACE STATION / CONTACT HUB                    */}
+      {/* 1. CIRCULAR SUNRISE OBSERVATION TERRACE                    */}
       {/* ========================================================= */}
-      <group ref={stationRef} position={[0, 4, -16]}>
-        {/* Central Habitat Cylinder Module */}
-        <mesh rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[2.8, 2.8, 14, 24]} />
-          <meshStandardMaterial color="#E2E8F0" metalness={0.8} roughness={0.2} />
+      <group position={[0, 0, 0]}>
+        {/* Terrace Base Concrete & Titanium Plinth */}
+        <mesh position={[0, 0.15, 0]} receiveShadow>
+          <cylinderGeometry args={[8.8, 9.6, 0.5, 36]} />
+          <meshStandardMaterial color="#0A0F1D" metalness={0.85} roughness={0.25} />
         </mesh>
 
-        {/* Observation Cupola Dome */}
-        <mesh position={[0, 2.8, 0]}>
-          <sphereGeometry args={[1.5, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshPhysicalMaterial
-            color="#38BDF8"
-            emissive="#0284C7"
-            emissiveIntensity={0.8}
-            roughness={0.1}
-            transmission={0.7}
+        {/* Frosted Glass Observation Deck Floor */}
+        <mesh position={[0, 0.42, 0]} receiveShadow>
+          <cylinderGeometry args={[8.6, 8.6, 0.08, 36]} />
+          <meshStandardMaterial
+            color="#141E33"
+            roughness={0.15}
+            metalness={0.4}
+            transparent
+            opacity={0.88}
           />
         </mesh>
 
-        {/* Docking Ring with Cyan Glow */}
-        <mesh position={[-7.2, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-          <torusGeometry args={[2.2, 0.25, 16, 32]} />
-          <meshBasicMaterial color="#00F0FF" />
+        {/* Radiant Golden Outer Edge Ring */}
+        <mesh position={[0, 0.47, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[8.4, 8.6, 36]} />
+          <meshStandardMaterial color="#FFC857" emissive="#FFC857" emissiveIntensity={1.8} />
         </mesh>
-        <pointLight position={[-7.2, 0, 0]} color="#00F0FF" intensity={2.0} distance={10} />
 
-        {/* Left Solar Panel Truss & Array */}
-        <group position={[0, 0, 7]}>
-          <mesh position={[0, 0, 1.5]}>
-            <cylinderGeometry args={[0.2, 0.2, 3.0, 8]} />
-            <meshStandardMaterial color="#64748B" metalness={0.9} />
-          </mesh>
-          {/* Photovoltaic Solar Panel Wing */}
-          <mesh position={[0, 0, 6.5]} rotation={[0.4, 0, 0]}>
-            <boxGeometry args={[7.0, 0.12, 7.5]} />
-            <meshStandardMaterial color="#1E3A8A" emissive="#1D4ED8" emissiveIntensity={0.3} roughness={0.2} metalness={0.9} />
-          </mesh>
-          {/* Panel Grid Lines */}
-          <mesh position={[0, 0.08, 6.5]} rotation={[0.4, 0, 0]}>
-            <planeGeometry args={[6.8, 7.2]} />
-            <meshBasicMaterial color="#38BDF8" wireframe />
-          </mesh>
-        </group>
+        {/* Perimeter Glass Balustrade Overlooking Sunrise */}
+        <mesh position={[0, 1.05, 0]}>
+          <cylinderGeometry args={[8.5, 8.5, 1.1, 36, 1, true]} />
+          <meshStandardMaterial
+            color="#38BDF8"
+            transparent
+            opacity={0.3}
+            roughness={0.1}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
 
-        {/* Right Solar Panel Truss & Array */}
-        <group position={[0, 0, -7]}>
-          <mesh position={[0, 0, -1.5]}>
-            <cylinderGeometry args={[0.2, 0.2, 3.0, 8]} />
-            <meshStandardMaterial color="#64748B" metalness={0.9} />
-          </mesh>
-          <mesh position={[0, 0, -6.5]} rotation={[-0.4, 0, 0]}>
-            <boxGeometry args={[7.0, 0.12, 7.5]} />
-            <meshStandardMaterial color="#1E3A8A" emissive="#1D4ED8" emissiveIntensity={0.3} roughness={0.2} metalness={0.9} />
-          </mesh>
-          <mesh position={[0, 0.08, -6.5]} rotation={[-0.4, 0, 0]}>
-            <planeGeometry args={[6.8, 7.2]} />
-            <meshBasicMaterial color="#38BDF8" wireframe />
-          </mesh>
-        </group>
+        {/* Polished Brass Top Rail */}
+        <mesh position={[0, 1.62, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[8.5, 0.04, 12, 36]} />
+          <meshStandardMaterial color="#F59E0B" metalness={0.9} roughness={0.2} />
+        </mesh>
 
-        {/* Parabolic Communication Dish */}
-        <group ref={dishRef} position={[7.5, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
-          <mesh>
-            <cylinderGeometry args={[0.1, 0.1, 1.8, 8]} />
-            <meshStandardMaterial color="#64748B" metalness={0.9} />
-          </mesh>
-          <mesh position={[0, 1.2, 0]}>
-            <sphereGeometry args={[1.6, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <meshStandardMaterial color="#CBD5E1" metalness={0.8} side={THREE.DoubleSide} />
-          </mesh>
-          <mesh position={[0, 2.0, 0]}>
-            <sphereGeometry args={[0.15, 8, 8]} />
-            <meshBasicMaterial color="#EF4444" />
-          </mesh>
-          <pointLight ref={beaconRef} position={[0, 2.0, 0]} color="#EF4444" intensity={2.0} distance={15} />
-        </group>
+        {/* Subtle Rotating Geometric Floor Halo */}
+        <mesh ref={haloRef} position={[0, 0.48, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[3.8, 4.0, 32]} />
+          <meshBasicMaterial color="#00D9FF" transparent opacity={0.45} />
+        </mesh>
       </group>
 
       {/* ========================================================= */}
-      {/* CLEAN ARCHITECTURAL AIRPLANE LANDING PLATFORM               */}
+      {/* 2. ORIGAMI TOUCHDOWN DESK PLATFORM (WP17 Terminus)        */}
+      {/* Echoes Chapter 00 launch desk for full-circle completion  */}
       {/* ========================================================= */}
-      <group position={[0, 0, 0]}>
-        {/* Solid Circular Landing Pad Plinth */}
-        <mesh position={[0, 0.18, 0]} receiveShadow>
-          <cylinderGeometry args={[4.2, 4.6, 0.36, 32]} />
-          <meshStandardMaterial color="#0F172A" roughness={0.6} metalness={0.4} />
+      <group position={[0, 0.46, 0]}>
+        {/* Dark Walnut Plinth */}
+        <mesh position={[0, 0.16, 0]} castShadow receiveShadow>
+          <boxGeometry args={[1.6, 0.32, 1.2]} />
+          <meshStandardMaterial color="#141822" roughness={0.7} metalness={0.2} />
         </mesh>
 
-        {/* Outer Warm Golden Inlay Ring */}
-        <mesh position={[0, 0.37, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[3.8, 3.9, 48]} />
-          <meshBasicMaterial color="#F59E0B" />
+        {/* Warm Brass Inlay Trim */}
+        <mesh position={[0, 0.325, 0]}>
+          <boxGeometry args={[1.62, 0.02, 1.22]} />
+          <meshStandardMaterial color="#FFC857" roughness={0.3} metalness={0.8} />
         </mesh>
 
-        {/* Inner Cyan Guidance Landing Circle */}
-        <mesh position={[0, 0.375, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[1.8, 1.88, 32]} />
-          <meshBasicMaterial color="#38BDF8" />
+        {/* Blueprint Touchdown Platform Sheet */}
+        <mesh position={[0, 0.34, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[1.3, 0.9]} />
+          <meshStandardMaterial color="#1E293B" roughness={0.8} />
         </mesh>
 
-        {/* Center Touchdown Crosshair */}
-        <mesh position={[0, 0.376, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1.2, 0.04]} />
-          <meshBasicMaterial color="#FDE047" transparent opacity={0.8} />
+        {/* Luminous Golden Touchdown Target Ring */}
+        <mesh position={[0, 0.345, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.22, 0.26, 24]} />
+          <meshBasicMaterial color="#FFC857" />
         </mesh>
-        <mesh position={[0, 0.376, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-          <planeGeometry args={[1.2, 0.04]} />
-          <meshBasicMaterial color="#FDE047" transparent opacity={0.8} />
+        <mesh position={[0, 0.345, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.38, 0.40, 24]} />
+          <meshBasicMaterial color="#00D9FF" transparent opacity={0.6} />
         </mesh>
 
-        {/* Soft Golden Landing Pad Spotlight */}
+        {/* Focused Golden Morning Spotlight on the resting Paper Airplane */}
         <spotLight
-          position={[0, 5.0, 0]}
+          position={[0, 3.2, 0.6]}
           color="#FFFBEB"
-          intensity={2.6}
-          distance={10}
-          angle={0.5}
-          penumbra={0.8}
+          intensity={2.8}
+          distance={6.0}
+          angle={0.65}
+          penumbra={0.7}
         />
       </group>
 
+      {/* ========================================================= */}
+      {/* 3. FOUR HOLOGRAPHIC CONTACT PEDESTALS                     */}
+      {/* ========================================================= */}
+      <ContactPedestal
+        position={[-3.8, 1.4, -2.5]}
+        label="EMAIL"
+        icon="hello@subramani.dev"
+        color="#00D9FF"
+      />
+      <ContactPedestal
+        position={[3.8, 1.4, -2.5]}
+        label="GITHUB"
+        icon="github.com"
+        color="#A855F7"
+      />
+      <ContactPedestal
+        position={[-4.2, 1.4, 2.2]}
+        label="LINKEDIN"
+        icon="connect"
+        color="#38BDF8"
+      />
+      <ContactPedestal
+        position={[4.2, 1.4, 2.2]}
+        label="RESUME"
+        icon="download"
+        color="#FFC857"
+      />
+
+      {/* Warm Golden Sunrise Terrace Ambient Lighting */}
+      <pointLight position={[0, 4.0, 0]} color="#FEF08A" intensity={1.8} distance={24} />
     </group>
   );
 };

@@ -26,11 +26,14 @@ const TIME_STAGES = [
   { ambient: '#CBD5E1', dir: '#FFFBEB', intensity: 2.1, dirPos: [-20, 28, 15] as [number, number, number] },
   // 5: Night City
   { ambient: '#38BDF8', dir: '#60A5FA', intensity: 1.6, dirPos: [25, 35, 20] as [number, number, number] },
-  // 6: Space Ascent
-  { ambient: '#60A5FA', dir: '#38BDF8', intensity: 1.8, dirPos: [-20, 50, 20] as [number, number, number] },
-  // 7: Deep Space
-  { ambient: '#38BDF8', dir: '#00F0FF', intensity: 2.0, dirPos: [0, 80, 25] as [number, number, number] },
+  // 6: Dawn Horizon Skybridge (Deep Indigo ambient, Warm Golden Dawn Sun)
+  { ambient: '#312E81', dir: '#F59E0B', intensity: 2.4, dirPos: [-20, 24, -390] as [number, number, number] },
+  // 7: Sunrise Observation Pavilion (Golden Sunrise Morning Light)
+  { ambient: '#FDE68A', dir: '#F97316', intensity: 2.6, dirPos: [0, 20, -420] as [number, number, number] },
 ];
+
+const scratchColor = new THREE.Color();
+const scratchVec = new THREE.Vector3();
 
 export const Lighting: React.FC = () => {
   const currentChapter = useJourneyStore((state) => state.currentChapter);
@@ -48,12 +51,15 @@ export const Lighting: React.FC = () => {
     const config = TIME_STAGES[stageIdx];
 
     if (ambientRef.current) {
-      ambientRef.current.color.lerp(new THREE.Color(config.ambient), delta * 2.5);
+      scratchColor.set(config.ambient);
+      ambientRef.current.color.lerp(scratchColor, delta * 2.5);
     }
     if (dirRef.current) {
-      dirRef.current.color.lerp(new THREE.Color(config.dir), delta * 2.5);
+      scratchColor.set(config.dir);
+      dirRef.current.color.lerp(scratchColor, delta * 2.5);
       dirRef.current.intensity = THREE.MathUtils.lerp(dirRef.current.intensity, config.intensity, delta * 2.5);
-      dirRef.current.position.lerp(new THREE.Vector3(...config.dirPos), delta * 2.0);
+      scratchVec.set(config.dirPos[0], config.dirPos[1], config.dirPos[2]);
+      dirRef.current.position.lerp(scratchVec, delta * 2.0);
     }
 
     // Dynamic airplane tracking key light & rim light
@@ -67,7 +73,8 @@ export const Lighting: React.FC = () => {
         travelerPos.y + 6.0,
         travelerPos.z + 5.0
       );
-      travelerKeyRef.current.color.lerp(new THREE.Color(config.dir), delta * 3.0);
+      scratchColor.set(config.dir);
+      travelerKeyRef.current.color.lerp(scratchColor, delta * 3.0);
       travelerKeyRef.current.intensity = config.intensity * 0.9;
 
       targetObjRef.current.position.set(travelerPos.x, travelerPos.y + 0.9, travelerPos.z);
@@ -81,10 +88,10 @@ export const Lighting: React.FC = () => {
         travelerPos.y + 1.8,
         travelerPos.z - 2.2
       );
-      // Warm golden rim in day/sunset, cyan/cool rim in twilight/night/space
-      const rimColor = stageIdx <= 4 ? '#FEF08A' : stageIdx === 5 ? '#A5B4FC' : '#38BDF8';
-      travelerRimRef.current.color.lerp(new THREE.Color(rimColor), delta * 3.0);
-      // Consistent rich rim light across all stages matching Chapter 1 & 2
+      // Warm golden rim in day/sunset, lavender in night, golden sunrise rim at dawn
+      const rimColor = stageIdx <= 4 ? '#FEF08A' : stageIdx === 5 ? '#A5B4FC' : '#FDE047';
+      scratchColor.set(rimColor);
+      travelerRimRef.current.color.lerp(scratchColor, delta * 3.0);
       travelerRimRef.current.intensity = 2.2;
     }
   });
@@ -109,15 +116,13 @@ export const Lighting: React.FC = () => {
         shadow-bias={-0.0005}
       />
 
-      {/* Dynamic Key Light following Subramani along the journey */}
+      {/* Dynamic Key Light following Subramani along the journey - fill light without redundant shadow map */}
       <primitive object={targetObjRef.current} />
       <directionalLight
         ref={travelerKeyRef}
         position={[2.5, 6, 5]}
         intensity={1.8}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-bias={-0.0002}
+        castShadow={false}
       />
 
       {/* Tracking Rim Light behind character for crisp cinematic separation */}

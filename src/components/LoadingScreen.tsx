@@ -3,7 +3,8 @@ import { useJourneyStore } from '../store/journeyStore';
 import gsap from 'gsap';
 
 export const LoadingScreen: React.FC = () => {
-  const { loadingProgress, isWorldReady } = useJourneyStore();
+  const loadingProgress = useJourneyStore((s) => s.loadingProgress);
+  const isWorldReady = useJourneyStore((s) => s.isWorldReady);
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLHeadingElement>(null);
 

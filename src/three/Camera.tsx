@@ -6,6 +6,19 @@ import { useJourneyStore } from '../store/journeyStore';
 import { getAirplaneFlightTransform, getJourneyNormal, getJourneyTangent } from './JourneyPath';
 import { getChapterByProgress } from '../data/journey';
 
+const UP_VEC = new THREE.Vector3(0, 1, 0);
+const scratchTargetCamPos = new THREE.Vector3();
+const scratchTargetLook = new THREE.Vector3();
+const scratchShowcaseCamPos = new THREE.Vector3();
+const scratchShowcaseLookTarget = new THREE.Vector3();
+const scratchTangent = new THREE.Vector3();
+const scratchNormal = new THREE.Vector3();
+
+const RACK_POS = new THREE.Vector3(-45.5, 0.2, -259.5);
+const RACK_YAW = 1.426;
+const RACK_FORWARD = new THREE.Vector3(Math.sin(RACK_YAW), 0, Math.cos(RACK_YAW));
+const RACK_RIGHT = new THREE.Vector3(Math.cos(RACK_YAW), 0, -Math.sin(RACK_YAW));
+
 export const Camera: React.FC = () => {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const journeyProgress = useJourneyStore((state) => state.journeyProgress);
@@ -21,9 +34,8 @@ export const Camera: React.FC = () => {
     // Get current paper airplane flight transform
     const airplaneTransform = getAirplaneFlightTransform(journeyProgress, state.clock.elapsedTime);
     const airplanePos = airplaneTransform.pos;
-    const tangent = getJourneyTangent(journeyProgress).normalize();
-    const normal = getJourneyNormal(journeyProgress);
-    const up = new THREE.Vector3(0, 1, 0);
+    const tangent = getJourneyTangent(journeyProgress, scratchTangent).normalize();
+    const normal = getJourneyNormal(journeyProgress, scratchNormal);
 
     // Get camera config for the current chapter
     const chapterData = getChapterByProgress(journeyProgress);
@@ -89,41 +101,36 @@ export const Camera: React.FC = () => {
 
     // Compute camera target position in world space:
     // Follows behind and slightly above the Paper Airplane's actual flight altitude
-    const targetCamPos = airplanePos.clone()
+    scratchTargetCamPos.copy(airplanePos)
       .addScaledVector(normal, effectiveCamX)
-      .addScaledVector(up, effectiveCamY)
+      .addScaledVector(UP_VEC, effectiveCamY)
       .addScaledVector(tangent, -effectiveCamZ * (isMobile ? 1.2 : 1.0));
 
     // Subtle cinematic breathing / steadycam micro-sway
     const swayX = Math.sin(state.clock.elapsedTime * 0.3) * 0.015;
     const swayY = Math.cos(state.clock.elapsedTime * 0.2) * 0.01;
-    targetCamPos.x += swayX;
-    targetCamPos.y += swayY;
+    scratchTargetCamPos.x += swayX;
+    scratchTargetCamPos.y += swayY;
 
     // Compute camera look target in world space (aimed through and slightly ahead of the airplane)
-    const targetLook = airplanePos.clone()
+    scratchTargetLook.copy(airplanePos)
       .addScaledVector(normal, isMobile ? 0 : effectiveLookX)
-      .addScaledVector(up, effectiveLookY)
+      .addScaledVector(UP_VEC, effectiveLookY)
       .addScaledVector(tangent, effectiveForwardDist);
 
     // In Chapter 05 (Technology Showcase):
     // Dedicated straight-on framing directly facing the skills rack,
     // with the road curving in front and the paper airplane visibly flying along the path:
     if (journeyProgress >= 0.58 && journeyProgress <= 0.68) {
-      const rackPos = new THREE.Vector3(-45.5, 0.2, -259.5);
-      const rackYaw = 1.426;
-      const forward = new THREE.Vector3(Math.sin(rackYaw), 0, Math.cos(rackYaw));
-      const right = new THREE.Vector3(Math.cos(rackYaw), 0, -Math.sin(rackYaw));
-
       // Camera position: in front of rack (forward * 15.2), shifted right (right * 3.4) so rack sits straight-on in left 60%, elevated (up * 3.2)
-      const showcaseCamPos = rackPos.clone()
-        .addScaledVector(forward, isMobile ? 22.0 : 15.2)
-        .addScaledVector(right, isMobile ? 0.8 : 3.4)
-        .addScaledVector(up, isMobile ? 3.8 : 3.2);
+      scratchShowcaseCamPos.copy(RACK_POS)
+        .addScaledVector(RACK_FORWARD, isMobile ? 22.0 : 15.2)
+        .addScaledVector(RACK_RIGHT, isMobile ? 0.8 : 3.4)
+        .addScaledVector(UP_VEC, isMobile ? 3.8 : 3.2);
 
-      const showcaseLookTarget = rackPos.clone()
-        .addScaledVector(right, isMobile ? 0.0 : 3.4)
-        .addScaledVector(up, 2.7);
+      scratchShowcaseLookTarget.copy(RACK_POS)
+        .addScaledVector(RACK_RIGHT, isMobile ? 0.0 : 3.4)
+        .addScaledVector(UP_VEC, 2.7);
 
       // Smoothly blend in as plane approaches the curve (0.60 -> 0.63) and blend out as it leaves (0.655 -> 0.675)
       let blendFactor = 1.0;
@@ -135,14 +142,14 @@ export const Camera: React.FC = () => {
       blendFactor = THREE.MathUtils.clamp(blendFactor, 0, 1);
       const smoothBlend = THREE.MathUtils.smoothstep(blendFactor, 0, 1);
 
-      targetCamPos.lerp(showcaseCamPos, smoothBlend);
-      targetLook.lerp(showcaseLookTarget, smoothBlend);
+      scratchTargetCamPos.lerp(scratchShowcaseCamPos, smoothBlend);
+      scratchTargetLook.lerp(scratchShowcaseLookTarget, smoothBlend);
     }
 
     // Smooth cinematic lerp (damping)
     const lerpSpeed = Math.min(1, delta * 3.6);
-    currentCamPos.current.lerp(targetCamPos, lerpSpeed);
-    currentLookTarget.current.lerp(targetLook, Math.min(1, delta * 4.4));
+    currentCamPos.current.lerp(scratchTargetCamPos, lerpSpeed);
+    currentLookTarget.current.lerp(scratchTargetLook, Math.min(1, delta * 4.4));
 
     cameraRef.current.position.copy(currentCamPos.current);
     cameraRef.current.lookAt(currentLookTarget.current);

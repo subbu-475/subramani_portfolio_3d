@@ -6,7 +6,9 @@ import { Github } from './Icons';
 import gsap from 'gsap';
 
 export const ProjectDetail: React.FC = () => {
-  const { activeProjectId, isProjectDetailOpen, closeProjectDetail } = useJourneyStore();
+  const activeProjectId = useJourneyStore((s) => s.activeProjectId);
+  const isProjectDetailOpen = useJourneyStore((s) => s.isProjectDetailOpen);
+  const closeProjectDetail = useJourneyStore((s) => s.closeProjectDetail);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 

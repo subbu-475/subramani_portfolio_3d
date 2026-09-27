@@ -7,7 +7,7 @@ export interface ChapterData {
   progressStart: number;
   progressEnd: number;
   landmarkProgress: number; // exact point where character reaches focal landmark
-  timeOfDay: 'morning' | 'late-morning' | 'afternoon' | 'golden-hour' | 'sunset' | 'twilight' | 'night' | 'space';
+  timeOfDay: 'morning' | 'late-morning' | 'afternoon' | 'golden-hour' | 'sunset' | 'twilight' | 'night' | 'space' | 'dawn' | 'sunrise';
   cameraMode:
     | 'follow'
     | 'wide-establishing'
@@ -17,7 +17,9 @@ export interface ChapterData {
     | 'observatory'
     | 'balcony-overlook'
     | 'launch-ascent'
-    | 'orbital';
+    | 'orbital'
+    | 'skybridge'
+    | 'terrace';
   cameraOffset: [number, number, number]; // [lateral, height, behind] relative to path tangent/normal
   lookOffset: [number, number, number];
   /** Side of the road where the main landmark is placed */
@@ -104,30 +106,30 @@ export const JOURNEY_CHAPTERS: ChapterData[] = [
     id: 'future',
     chapter: '05',
     title: 'Future',
-    subtitle: 'Launch Hub',
-    tagline: 'Next Destination • AI, System Design & Cloud.',
+    subtitle: 'Horizon Skybridge',
+    tagline: 'Next Destination • AI, System Design & Cloud Architecture.',
     progressStart: 0.72,
     progressEnd: 0.88,
     landmarkProgress: 0.82,
-    timeOfDay: 'space',
-    cameraMode: 'launch-ascent',
+    timeOfDay: 'dawn',
+    cameraMode: 'skybridge',
     cameraOffset: [1.25, 1.55, 4.6],
-    lookOffset: [-1.2, 2.2, -4.5],
+    lookOffset: [-0.8, 1.35, -4.5],
     landmarkSide: 'left',
   },
   {
     id: 'contact',
     chapter: '06',
     title: 'Contact',
-    subtitle: 'Control Room',
-    tagline: "Let's build something together.",
+    subtitle: 'Sunrise Pavilion',
+    tagline: "Let's build something extraordinary together.",
     progressStart: 0.88,
     progressEnd: 1.0,
     landmarkProgress: 0.96,
-    timeOfDay: 'space',
-    cameraMode: 'orbital',
+    timeOfDay: 'sunrise',
+    cameraMode: 'terrace',
     cameraOffset: [1.2, 1.55, 4.6],
-    lookOffset: [-0.6, 1.2, -4.0],
+    lookOffset: [-0.4, 1.2, -4.0],
     landmarkSide: 'center',
   },
 ];

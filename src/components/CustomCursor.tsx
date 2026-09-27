@@ -3,7 +3,7 @@ import { useJourneyStore } from '../store/journeyStore';
 import gsap from 'gsap';
 
 export const CustomCursor: React.FC = () => {
-  const { isMobile } = useJourneyStore();
+  const isMobile = useJourneyStore((s) => s.isMobile);
   const cursorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -20,18 +20,21 @@ export const CustomCursor: React.FC = () => {
       mouseY = e.clientY;
     };
 
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
 
-    gsap.ticker.add(() => {
+    const tick = () => {
       gsap.set(cursor, {
         x: mouseX,
         y: mouseY,
       });
-    });
+    };
+
+    gsap.ticker.add(tick);
 
     const handleHover = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const isClickable = window.getComputedStyle(target).cursor === 'pointer' || target.tagName.toLowerCase() === 'a' || target.tagName.toLowerCase() === 'button';
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const isClickable = !!target.closest?.('a, button, [role="button"], input, textarea, select, .cursor-pointer');
       
       gsap.to(cursor, {
         scale: isClickable ? 3 : 1,
@@ -39,12 +42,12 @@ export const CustomCursor: React.FC = () => {
       });
     };
 
-    window.addEventListener('mouseover', handleHover);
+    window.addEventListener('mouseover', handleHover, { passive: true });
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseover', handleHover);
-      gsap.ticker.remove(() => {});
+      gsap.ticker.remove(tick);
     };
   }, [isMobile]);
 

@@ -8,7 +8,7 @@ export const Effects: React.FC = () => {
   if (qualityLevel === 'low') return null;
 
   return (
-    <EffectComposer multisampling={qualityLevel === 'high' ? 4 : 0}>
+    <EffectComposer multisampling={qualityLevel === 'high' ? 2 : 0}>
       {/* 
         Subtle, filmic bloom:
         High threshold (0.82) ensures only bright light fixtures and neon edges bloom,

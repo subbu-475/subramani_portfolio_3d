@@ -440,8 +440,7 @@ const CollegeBuilding: React.FC<{ active: boolean }> = ({ active }) => {
  * - Entrance signboard positioned safely on lawn away from road camera path
  */
 export const EducationScene: React.FC = () => {
-  const currentChapter = useJourneyStore((state) => state.currentChapter);
-  const isActive = currentChapter === 1;
+  const isActive = useJourneyStore((state) => state.currentChapter === 1);
 
   return (
     <group position={[-42, 0, -75]}>

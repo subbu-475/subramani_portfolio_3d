@@ -38,9 +38,8 @@ interface TechCubeProps {
 const TechCube: React.FC<TechCubeProps> = ({ cube, isSelected, onSelect }) => {
   const [hovered, setHovered] = useState(false);
   const cubeGroupRef = useRef<THREE.Group>(null);
-  const lightRef = useRef<THREE.PointLight>(null);
 
-  // Load the 512x512 crisp vector CanvasTexture for the front face
+  // Load the crisp vector CanvasTexture for the front face
   const frontTexture = useMemo(() => getCubeFrontTexture(cube), [cube]);
 
   // Create 6 face materials:
@@ -86,23 +85,17 @@ const TechCube: React.FC<TechCubeProps> = ({ cube, isSelected, onSelect }) => {
     const targetZ = hovered ? 0.28 : isSelected ? 0.22 : 0;
     const targetY = hovered ? 0.14 : isSelected ? 0.08 : 0;
 
-    cubeGroupRef.current.position.z = THREE.MathUtils.lerp(
-      cubeGroupRef.current.position.z,
-      targetZ,
-      delta * 8.0
-    );
-    cubeGroupRef.current.position.y = THREE.MathUtils.lerp(
-      cubeGroupRef.current.position.y,
-      targetY,
-      delta * 8.0
-    );
-
-    if (lightRef.current) {
-      const targetIntensity = hovered ? 2.8 : isSelected ? 2.0 : 0.45;
-      lightRef.current.intensity = THREE.MathUtils.lerp(
-        lightRef.current.intensity,
-        targetIntensity,
-        delta * 6.0
+    // Only compute lerp if not at rest
+    if (hovered || isSelected || cubeGroupRef.current.position.z > 0.005) {
+      cubeGroupRef.current.position.z = THREE.MathUtils.lerp(
+        cubeGroupRef.current.position.z,
+        targetZ,
+        delta * 8.0
+      );
+      cubeGroupRef.current.position.y = THREE.MathUtils.lerp(
+        cubeGroupRef.current.position.y,
+        targetY,
+        delta * 8.0
       );
     }
   });
@@ -148,16 +141,6 @@ const TechCube: React.FC<TechCubeProps> = ({ cube, isSelected, onSelect }) => {
           emissiveIntensity={hovered ? 1.2 : isSelected ? 0.8 : 0.2}
         />
       </mesh>
-
-      {/* Forward/Downward Ambient Point Light */}
-      <pointLight
-        ref={lightRef}
-        position={[0, 0.4, 0.7]}
-        color={cube.brandColor}
-        distance={2.8}
-        decay={2}
-        intensity={0.5}
-      />
     </group>
   );
 };
@@ -317,7 +300,6 @@ export const SkillsScene: React.FC = () => {
   const setSelectedSkillCategoryIndex = useJourneyStore((state) => state.setSelectedSkillCategoryIndex);
   const selectedTechCubeId = useJourneyStore((state) => state.selectedTechCubeId);
   const setSelectedTechCubeId = useJourneyStore((state) => state.setSelectedTechCubeId);
-  const journeyProgress = useJourneyStore((state) => state.journeyProgress);
 
   // Stepped keyboard riser settings for 4 ordered category tiers:
   // Row 3 (DevOps, bottom / front) -> Row 0 (Frontend, top / back)
@@ -340,10 +322,11 @@ export const SkillsScene: React.FC = () => {
     return map;
   }, []);
 
-  // Smoothly sync category tab when scrolling through Chapter 04
+  // Smoothly sync category tab when scrolling through Chapter 04 without triggering component re-renders
   useFrame(() => {
-    if (journeyProgress >= 0.56 && journeyProgress <= 0.68) {
-      const t = (journeyProgress - 0.56) / (0.68 - 0.56);
+    const p = useJourneyStore.getState().journeyProgress;
+    if (p >= 0.56 && p <= 0.68) {
+      const t = (p - 0.56) / (0.68 - 0.56);
       const step = Math.min(3, Math.max(0, Math.floor(t * 4)));
       if (step !== selectedSkillCategoryIndex) {
         setSelectedSkillCategoryIndex(step);

@@ -758,9 +758,10 @@ export function getCubeFrontTexture(cube: TechnologyCubeData): THREE.CanvasTextu
   }
 
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
+  canvas.width = 256;
+  canvas.height = 256;
   const ctx = canvas.getContext('2d')!;
+  ctx.scale(0.5, 0.5);
 
   // 1. Sleek glossy gradient background matching brand color
   const grad = ctx.createLinearGradient(0, 0, 0, 512);
@@ -796,6 +797,7 @@ export function getCubeFrontTexture(cube: TechnologyCubeData): THREE.CanvasTextu
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
   texture.needsUpdate = true;
 
   textureCache.set(cube.id, texture);

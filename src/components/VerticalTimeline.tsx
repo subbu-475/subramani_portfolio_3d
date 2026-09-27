@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useJourneyStore } from '../store/journeyStore';
 
 /**
@@ -45,17 +45,21 @@ const FLIGHT_DESTINATIONS: FlightDestination[] = [
 ];
 
 export const VerticalTimeline: React.FC = () => {
-  const { journeyProgress, isLoading, setJourneyProgress, jumpToChapter } = useJourneyStore();
+  const isLoading = useJourneyStore((s) => s.isLoading);
+  const setJourneyProgress = useJourneyStore((s) => s.setJourneyProgress);
+  const jumpToChapter = useJourneyStore((s) => s.jumpToChapter);
 
-  // Determine active flight destination index based on continuous journey progress
-  const activeDestIndex = useMemo(() => {
-    if (journeyProgress < 0.28) return 0; // 01 Education
-    if (journeyProgress < 0.46) return 1; // 02 Career
-    if (journeyProgress < 0.58) return 2; // 03 Projects
-    if (journeyProgress < 0.72) return 3; // 04 Technology
-    if (journeyProgress < 0.88) return 4; // 05 Future
-    return 5;                             // 06 Contact
-  }, [journeyProgress]);
+  // Determine active flight destination index directly in the selector
+  // Only triggers re-render when destination index actually changes!
+  const activeDestIndex = useJourneyStore((s) => {
+    const p = s.journeyProgress;
+    if (p < 0.28) return 0; // 01 Education
+    if (p < 0.46) return 1; // 02 Career
+    if (p < 0.58) return 2; // 03 Projects
+    if (p < 0.72) return 3; // 04 Technology
+    if (p < 0.88) return 4; // 05 Future
+    return 5;              // 06 Contact
+  });
 
   if (isLoading) return null;
 

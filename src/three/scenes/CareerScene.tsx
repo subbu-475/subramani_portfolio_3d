@@ -17,7 +17,8 @@ import { useJourneyStore } from '../../store/journeyStore';
  * and reveals the complete milestone details in the clean HTML card.
  */
 export const CareerScene: React.FC = () => {
-  const { selectedExperienceIndex, setSelectedExperienceIndex } = useJourneyStore();
+  const selectedExperienceIndex = useJourneyStore((s) => s.selectedExperienceIndex);
+  const setSelectedExperienceIndex = useJourneyStore((s) => s.setSelectedExperienceIndex);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const tower1LightRef = useRef<THREE.PointLight>(null);

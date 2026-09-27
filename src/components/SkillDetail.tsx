@@ -6,7 +6,9 @@ import { X } from 'lucide-react';
 import gsap from 'gsap';
 
 export const SkillDetail: React.FC = () => {
-  const { activeSkillName, isSkillDetailOpen, closeSkillDetail } = useJourneyStore();
+  const activeSkillName = useJourneyStore((s) => s.activeSkillName);
+  const isSkillDetailOpen = useJourneyStore((s) => s.isSkillDetailOpen);
+  const closeSkillDetail = useJourneyStore((s) => s.closeSkillDetail);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 

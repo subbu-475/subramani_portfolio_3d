@@ -4,7 +4,10 @@ import { X } from 'lucide-react';
 import gsap from 'gsap';
 
 export const JourneyMenu: React.FC = () => {
-  const { isMenuOpen, closeMenu, currentChapter, jumpToChapter } = useJourneyStore();
+  const isMenuOpen = useJourneyStore((s) => s.isMenuOpen);
+  const currentChapter = useJourneyStore((s) => s.currentChapter);
+  const closeMenu = useJourneyStore((s) => s.closeMenu);
+  const jumpToChapter = useJourneyStore((s) => s.jumpToChapter);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 

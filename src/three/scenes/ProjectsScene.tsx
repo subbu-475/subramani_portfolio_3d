@@ -25,12 +25,21 @@ import { PROJECT_COMPARTMENTS, type ProjectCompartment } from '../../data/projec
  */
 
 // ─── 1. BOGIE WHEEL TRUCK (FLANGED STEEL WHEELS ON RAILS) ─────────────────────
+// ─── 1. BOGIE WHEEL TRUCK (FLANGED STEEL WHEELS ON RAILS) ─────────────────────
 interface BogieProps {
   position: [number, number, number];
-  wheelRotation: number;
 }
 
-const BogieTruck: React.FC<BogieProps> = ({ position, wheelRotation }) => {
+const BogieTruck: React.FC<BogieProps> = ({ position }) => {
+  const wheelARef = useRef<THREE.Group>(null);
+  const wheelBRef = useRef<THREE.Group>(null);
+
+  useFrame((_, delta) => {
+    const rotSpeed = delta * 6.5;
+    if (wheelARef.current) wheelARef.current.rotation.z -= rotSpeed;
+    if (wheelBRef.current) wheelBRef.current.rotation.z -= rotSpeed;
+  });
+
   return (
     <group position={position}>
       {/* Bogie Steel Chassis Frame */}
@@ -45,46 +54,71 @@ const BogieTruck: React.FC<BogieProps> = ({ position, wheelRotation }) => {
       </mesh>
       {/* Primary Coil Suspension */}
       {[-0.85, 0.85].map((sx, i) => (
-        <group key={`susp-${i}`} position={[sx, 0.3, 0]}>
+        <mesh key={`susp-${i}`} position={[sx, 0.3, 0]}>
           <cylinderGeometry args={[0.12, 0.12, 0.24, 8]} />
           <meshStandardMaterial color="#475569" metalness={0.9} />
-        </group>
+        </mesh>
       ))}
 
-      {/* 4 Flanged Steel Wheels (y = 0.22) */}
-      {[-0.9, 0.9].map((wx, i) => (
-        <group key={`axle-${i}`} position={[wx, 0.22, 0]}>
-          {/* Steel Axle Shaft */}
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[0.05, 0.05, 2.0, 12]} />
-            <meshStandardMaterial color="#334155" metalness={0.9} />
-          </mesh>
-
-          {/* Left Flanged Wheel (Z = +0.84) */}
-          <group position={[0, 0, 0.84]} rotation={[0, 0, wheelRotation]}>
+      {/* Front Axle (X = -0.9) */}
+      <group position={[-0.9, 0.22, 0]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 2.0, 10]} />
+          <meshStandardMaterial color="#334155" metalness={0.9} />
+        </mesh>
+        <group ref={wheelARef}>
+          <group position={[0, 0, 0.84]}>
             <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.34, 0.34, 0.12, 24]} />
+              <cylinderGeometry args={[0.34, 0.34, 0.12, 16]} />
               <meshStandardMaterial color="#64748B" metalness={0.95} roughness={0.2} />
             </mesh>
             <mesh position={[0, 0, -0.06]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.38, 0.38, 0.03, 24]} />
+              <cylinderGeometry args={[0.38, 0.38, 0.03, 16]} />
               <meshStandardMaterial color="#475569" metalness={0.95} />
             </mesh>
           </group>
-
-          {/* Right Flanged Wheel (Z = -0.84) */}
-          <group position={[0, 0, -0.84]} rotation={[0, 0, wheelRotation]}>
+          <group position={[0, 0, -0.84]}>
             <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.34, 0.34, 0.12, 24]} />
+              <cylinderGeometry args={[0.34, 0.34, 0.12, 16]} />
               <meshStandardMaterial color="#64748B" metalness={0.95} roughness={0.2} />
             </mesh>
             <mesh position={[0, 0, 0.06]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[0.38, 0.38, 0.03, 24]} />
+              <cylinderGeometry args={[0.38, 0.38, 0.03, 16]} />
               <meshStandardMaterial color="#475569" metalness={0.95} />
             </mesh>
           </group>
         </group>
-      ))}
+      </group>
+
+      {/* Rear Axle (X = 0.9) */}
+      <group position={[0.9, 0.22, 0]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 2.0, 10]} />
+          <meshStandardMaterial color="#334155" metalness={0.9} />
+        </mesh>
+        <group ref={wheelBRef}>
+          <group position={[0, 0, 0.84]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.34, 0.34, 0.12, 16]} />
+              <meshStandardMaterial color="#64748B" metalness={0.95} roughness={0.2} />
+            </mesh>
+            <mesh position={[0, 0, -0.06]} rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.38, 0.38, 0.03, 16]} />
+              <meshStandardMaterial color="#475569" metalness={0.95} />
+            </mesh>
+          </group>
+          <group position={[0, 0, -0.84]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.34, 0.34, 0.12, 16]} />
+              <meshStandardMaterial color="#64748B" metalness={0.95} roughness={0.2} />
+            </mesh>
+            <mesh position={[0, 0, 0.06]} rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.38, 0.38, 0.03, 16]} />
+              <meshStandardMaterial color="#475569" metalness={0.95} />
+            </mesh>
+          </group>
+        </group>
+      </group>
     </group>
   );
 };
@@ -216,7 +250,6 @@ interface VandeBharatCoachProps {
   index: number;
   isSelected: boolean;
   onSelect: () => void;
-  wheelRotation: number;
   offsetPos: number; // position along train X
 }
 
@@ -224,7 +257,6 @@ const VandeBharatCoach: React.FC<VandeBharatCoachProps> = ({
   data,
   isSelected,
   onSelect,
-  wheelRotation,
   offsetPos,
 }) => {
   const [hovered, setHovered] = useState(false);
@@ -310,13 +342,11 @@ const VandeBharatCoach: React.FC<VandeBharatCoachProps> = ({
         <group key={`win-${i}`} position={[wx, 2.05, 1.26]}>
           <mesh>
             <boxGeometry args={[1.15, 0.88, 0.04]} />
-            <meshPhysicalMaterial
+            <meshStandardMaterial
               color="#CBD5E1"
-              transmission={0.88}
               opacity={0.35}
               transparent
               roughness={0.08}
-              thickness={0.2}
             />
           </mesh>
           {/* Black Rubber Window Gasket Frame */}
@@ -343,7 +373,7 @@ const VandeBharatCoach: React.FC<VandeBharatCoachProps> = ({
         {/* Door Glass Inset */}
         <mesh position={[0, 0.35, 0.02]}>
           <boxGeometry args={[0.42, 0.7, 0.02]} />
-          <meshPhysicalMaterial color="#94A3B8" transmission={0.9} transparent opacity={0.3} />
+          <meshStandardMaterial color="#94A3B8" transparent opacity={0.3} roughness={0.1} />
         </mesh>
         {/* Door Orange Status Indicator LED */}
         <mesh position={[0.35, 1.15, 0.02]}>
@@ -404,8 +434,8 @@ const VandeBharatCoach: React.FC<VandeBharatCoachProps> = ({
       </group>
 
       {/* ── Bogie Wheel Trucks (Front and Rear) ── */}
-      <BogieTruck position={[-2.3, 0, 0]} wheelRotation={wheelRotation} />
-      <BogieTruck position={[2.3, 0, 0]} wheelRotation={wheelRotation} />
+      <BogieTruck position={[-2.3, 0, 0]} />
+      <BogieTruck position={[2.3, 0, 0]} />
 
       {/* Flexible Gangway Interconnect Bellows (linking to previous coach on right) */}
       <mesh position={[3.65, 1.85, 0]}>
@@ -413,14 +443,16 @@ const VandeBharatCoach: React.FC<VandeBharatCoachProps> = ({
         <meshStandardMaterial color="#111827" roughness={0.9} />
       </mesh>
 
-      {/* Warm Passenger Cabin Ambiance Light */}
-      <pointLight
-        ref={interiorLightRef}
-        position={[0, 2.2, 0.5]}
-        color={isSelected ? '#FFFDF0' : '#FED7AA'}
-        intensity={isSelected ? 2.6 : 0.9}
-        distance={9}
-      />
+      {/* Warm Passenger Cabin Ambiance Light - rendered only when selected to avoid 12 active point lights */}
+      {isSelected && (
+        <pointLight
+          ref={interiorLightRef}
+          position={[0, 2.2, 0.5]}
+          color="#FFFDF0"
+          intensity={2.6}
+          distance={9}
+        />
+      )}
 
       {/* Highlight Spotlight for Selected Compartment */}
       {isSelected && (
@@ -441,10 +473,9 @@ const VandeBharatCoach: React.FC<VandeBharatCoachProps> = ({
 // ─── 4. INDIAN VANDE BHARAT AERODYNAMIC BULLET NOSE LOCOMOTIVE ───────────────
 interface VandeBharatNoseProps {
   position: [number, number, number];
-  wheelRotation: number;
 }
 
-const VandeBharatNose: React.FC<VandeBharatNoseProps> = ({ position, wheelRotation }) => {
+const VandeBharatNose: React.FC<VandeBharatNoseProps> = ({ position }) => {
   return (
     <group position={position}>
       {/* ── Main Engine Coach Body ── */}
@@ -501,9 +532,8 @@ const VandeBharatNose: React.FC<VandeBharatNoseProps> = ({ position, wheelRotati
       {/* ── Aerodynamic Driver Panoramic Windshield with Black Visor Mask ── */}
       <mesh position={[-3.9, 2.4, 0]} rotation={[0, 0, 0.45]}>
         <boxGeometry args={[0.08, 0.95, 2.1]} />
-        <meshPhysicalMaterial
+        <meshStandardMaterial
           color="#0A0F1D"
-          transmission={0.8}
           transparent
           opacity={0.3}
           roughness={0.08}
@@ -597,8 +627,8 @@ const VandeBharatNose: React.FC<VandeBharatNoseProps> = ({ position, wheelRotati
       </group>
 
       {/* Dual Bogies */}
-      <BogieTruck position={[-2.4, 0, 0]} wheelRotation={wheelRotation} />
-      <BogieTruck position={[2.4, 0, 0]} wheelRotation={wheelRotation} />
+      <BogieTruck position={[-2.4, 0, 0]} />
+      <BogieTruck position={[2.4, 0, 0]} />
     </group>
   );
 };
@@ -607,12 +637,20 @@ const VandeBharatNose: React.FC<VandeBharatNoseProps> = ({ position, wheelRotati
 interface RailwayGateProps {
   approachZ: number; // Z position of gate across the road
   armSide: 'left' | 'right';
-  isFlashing: boolean;
 }
 
-const RailwayBoomGate: React.FC<RailwayGateProps> = ({ approachZ, armSide, isFlashing }) => {
+const RailwayBoomGate: React.FC<RailwayGateProps> = ({ approachZ, armSide }) => {
   const pivotX = armSide === 'right' ? 3.8 : -3.8;
   const boomDir = armSide === 'right' ? -1 : 1;
+
+  const leftLampRef = useRef<THREE.MeshStandardMaterial>(null);
+  const rightLampRef = useRef<THREE.MeshStandardMaterial>(null);
+
+  useFrame((state) => {
+    const isLeft = Math.sin(state.clock.elapsedTime * 6.5) > 0;
+    if (leftLampRef.current) leftLampRef.current.emissiveIntensity = isLeft ? 3.5 : 0.2;
+    if (rightLampRef.current) rightLampRef.current.emissiveIntensity = !isLeft ? 3.5 : 0.2;
+  });
 
   return (
     <group position={[pivotX, 0, approachZ]}>
@@ -691,9 +729,10 @@ const RailwayBoomGate: React.FC<RailwayGateProps> = ({ approachZ, armSide, isFla
           <mesh position={[0, 0, 0.045]} rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[0.11, 0.11, 0.02, 16]} />
             <meshStandardMaterial
+              ref={leftLampRef}
               color="#DC2626"
               emissive="#EF4444"
-              emissiveIntensity={isFlashing ? 3.5 : 0.2}
+              emissiveIntensity={3.5}
             />
           </mesh>
         </group>
@@ -706,9 +745,10 @@ const RailwayBoomGate: React.FC<RailwayGateProps> = ({ approachZ, armSide, isFla
           <mesh position={[0, 0, 0.045]} rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[0.11, 0.11, 0.02, 16]} />
             <meshStandardMaterial
+              ref={rightLampRef}
               color="#DC2626"
               emissive="#EF4444"
-              emissiveIntensity={!isFlashing ? 3.5 : 0.2}
+              emissiveIntensity={0.2}
             />
           </mesh>
         </group>
@@ -758,7 +798,7 @@ const GatekeeperCabin: React.FC = () => {
         </mesh>
         <mesh position={[0, 0, 0.02]}>
           <boxGeometry args={[1.65, 1.05, 0.02]} />
-          <meshPhysicalMaterial color="#93C5FD" transmission={0.9} transparent opacity={0.35} />
+          <meshStandardMaterial color="#93C5FD" transparent opacity={0.35} roughness={0.1} />
         </mesh>
       </group>
 
@@ -1109,22 +1149,17 @@ const TracksideDust: React.FC<{ active: boolean }> = ({ active }) => {
 
 // ─── MAIN PROJECTS SCENE: VANDE BHARAT AT RAILWAY LEVEL CROSSING ──────────────
 export const ProjectsScene: React.FC = () => {
-  const journeyProgress = useJourneyStore((state) => state.journeyProgress);
   const selectedProjectIndex = useJourneyStore((state) => state.selectedProjectIndex);
   const setSelectedProjectIndex = useJourneyStore((state) => state.setSelectedProjectIndex);
 
   // Train Movement State along Track X axis (Right to Left continuous cruising)
   const trainPosRef = useRef(0);
-  const wheelRotRef = useRef(0);
-  const [wheelRotation, setWheelRotation] = useState(0);
+  const set0Ref = useRef<THREE.Group>(null);
+  const set1Ref = useRef<THREE.Group>(null);
 
   // User manual hold timer (when a user clicks a coach, hold it steady for 4s before resuming cruise)
   const userHoldTimerRef = useRef(0);
   const lastSelectedIndexRef = useRef(selectedProjectIndex);
-
-  // Alternating red warning flasher state (1.5 Hz)
-  const [flasherState, setFlasherState] = useState(false);
-  const flasherTimerRef = useRef(0);
 
   // 6 Coach base offsets along train X (Pitch = 7.8m, Total Cycle = 46.8m):
   // When coach k is at center (X = 0), trainPos equals -coachOffsets[k]
@@ -1139,23 +1174,17 @@ export const ProjectsScene: React.FC = () => {
   ], []);
 
   useFrame((_, delta) => {
+    const p = useJourneyStore.getState().journeyProgress;
     // When past the railway crossing into Technology chapter or beyond, stop updating train
-    if (journeyProgress >= 0.55) return;
+    if (p >= 0.58 || p <= 0.32) return;
 
-    // 1. Alternating Level Crossing Warning Lights
-    flasherTimerRef.current += delta;
-    if (flasherTimerRef.current > 0.38) {
-      flasherTimerRef.current = 0;
-      setFlasherState((prev) => !prev);
-    }
-
-    // 2. Detect User Manual Selection (e.g. user clicked a coach in UI or in 3D scene)
+    // Detect User Manual Selection (e.g. user clicked a coach in UI or in 3D scene)
     if (selectedProjectIndex !== lastSelectedIndexRef.current) {
       lastSelectedIndexRef.current = selectedProjectIndex;
       userHoldTimerRef.current = 4.2; // Pause / slow cruise for 4.2 seconds to inspect
     }
 
-    // 3. Continuous Train Motion from Right (+X) to Left (-X)
+    // Continuous Train Motion from Right (+X) to Left (-X)
     let currentSpeed = 2.2; // standard cruising speed 2.2 m/s
 
     if (userHoldTimerRef.current > 0) {
@@ -1180,31 +1209,37 @@ export const ProjectsScene: React.FC = () => {
         trainPosRef.current -= CYCLE_LENGTH;
       }
 
-      // 4. Content Auto-Sync: find which coach is currently crossing the center (X = 0)
-      let closestIdx = 0;
-      let minDistance = Infinity;
+      // Content Auto-Sync: find which coach is currently crossing the center (X = 0)
+      const currentJP = useJourneyStore.getState().journeyProgress;
+      if (currentJP >= 0.46 && currentJP <= 0.54) {
+        let closestIdx = 0;
+        let minDistance = Infinity;
 
-      for (let i = 0; i < compartmentOffsets.length; i++) {
-        // Check coach position in Set 0 and Set 1
-        const pos0 = trainPosRef.current + compartmentOffsets[i];
-        const pos1 = pos0 + CYCLE_LENGTH;
-        const d = Math.min(Math.abs(pos0), Math.abs(pos1));
-        if (d < minDistance) {
-          minDistance = d;
-          closestIdx = i;
+        for (let i = 0; i < compartmentOffsets.length; i++) {
+          const pos0 = trainPosRef.current + compartmentOffsets[i];
+          const pos1 = pos0 + CYCLE_LENGTH;
+          const d = Math.min(Math.abs(pos0), Math.abs(pos1));
+          if (d < minDistance) {
+            minDistance = d;
+            closestIdx = i;
+          }
         }
-      }
 
-      // When the passing coach is nicely centered within +/- 3.2m of the crossing
-      if (minDistance < 3.2 && closestIdx !== selectedProjectIndex) {
-        lastSelectedIndexRef.current = closestIdx;
-        setSelectedProjectIndex(closestIdx);
+        // When the passing coach is nicely centered within +/- 3.2m of the crossing
+        if (minDistance < 3.2 && closestIdx !== selectedProjectIndex) {
+          lastSelectedIndexRef.current = closestIdx;
+          setSelectedProjectIndex(closestIdx);
+        }
       }
     }
 
-    // 5. Wheel rotation proportional to movement displacement
-    wheelRotRef.current -= delta * currentSpeed * 2.8;
-    setWheelRotation(wheelRotRef.current);
+    // Direct GPU transform update on group refs (zero React re-renders!)
+    if (set0Ref.current) {
+      set0Ref.current.position.x = trainPosRef.current;
+    }
+    if (set1Ref.current) {
+      set1Ref.current.position.x = trainPosRef.current + CYCLE_LENGTH;
+    }
   });
 
   const handleCoachSelect = (idx: number) => {
@@ -1213,23 +1248,11 @@ export const ProjectsScene: React.FC = () => {
     userHoldTimerRef.current = 4.2;
   };
 
-  // When departing towards the Technology chapter, completely hide the Projects train and crossing
-  // so it does NOT block or overlap the Technology section
-  if (journeyProgress >= 0.55) {
-    return null;
-  }
-
   return (
     // ══════════════════════════════════════════════════════════════════════════
     // WORLD POSITION & ORIENTATION:
     // Placed precisely where the road crosses at progress p ≈ 0.51:
     // pt = [-19.39, 0, -211.41], road yaw = -1.14 rad (-65.3 deg)
-    // In this local frame:
-    // - Z is along the road path (paper airplane flies along road)
-    // - X is across the road (tracks run along X)
-    // - +X is to the RIGHT of the road
-    // - -X is to the LEFT of the road
-    // - The Vande Bharat train moves from RIGHT (+X) to LEFT (-X)!
     // ══════════════════════════════════════════════════════════════════════════
     <group position={[-19.39, 0, -211.41]} rotation={[0, -1.14, 0]}>
       {/* ── 1. DUAL RAILWAY TRACKS & FLUSH ROAD CROSSING SURFACE ── */}
@@ -1237,9 +1260,9 @@ export const ProjectsScene: React.FC = () => {
 
       {/* ── 2. RAILWAY GATE BOOM BARRIERS (Approach & Exit) ── */}
       {/* Approach Gate (Z = +4.0m) */}
-      <RailwayBoomGate approachZ={4.0} armSide="right" isFlashing={flasherState} />
+      <RailwayBoomGate approachZ={4.0} armSide="right" />
       {/* Exit Gate (Z = -4.0m) */}
-      <RailwayBoomGate approachZ={-4.0} armSide="left" isFlashing={!flasherState} />
+      <RailwayBoomGate approachZ={-4.0} armSide="left" />
 
       {/* ── 3. CLASSIC INDIAN RAILWAYS GATEKEEPER CABIN (GHUMTI) ── */}
       <GatekeeperCabin />
@@ -1248,13 +1271,13 @@ export const ProjectsScene: React.FC = () => {
       <RailwaySignageAndOHE />
 
       {/* ── 5. ATMOSPHERIC TRACKSIDE SPEED DUST & AIR PARTICLES ── */}
-      <TracksideDust active={journeyProgress >= 0.44 && journeyProgress <= 0.58} />
+      <TracksideDust active={true} />
 
       {/* ── 6. CONTINUOUS MOVING INDIAN VANDE BHARAT EXPRESS ── */}
       {/* Set 0 Rake */}
-      <group position={[trainPosRef.current, 0, 0]}>
+      <group ref={set0Ref} position={[0, 0, 0]}>
         {/* High-Speed Aerodynamic Bullet Nose Locomotive Cab (Facing -X / Left!) */}
-        <VandeBharatNose position={[-27.3, 0, 0]} wheelRotation={wheelRotation} />
+        <VandeBharatNose position={[-27.3, 0, 0]} />
 
         {/* 6 Curated Software Project Category Coaches (EC1 through C5) */}
         {PROJECT_COMPARTMENTS.map((category, idx) => (
@@ -1264,7 +1287,6 @@ export const ProjectsScene: React.FC = () => {
             index={idx}
             isSelected={idx === selectedProjectIndex}
             onSelect={() => handleCoachSelect(idx)}
-            wheelRotation={wheelRotation}
             offsetPos={compartmentOffsets[idx]}
           />
         ))}
@@ -1277,7 +1299,7 @@ export const ProjectsScene: React.FC = () => {
       </group>
 
       {/* Set 1 Rake (Seamless continuous loop following directly behind Set 0) */}
-      <group position={[trainPosRef.current + CYCLE_LENGTH, 0, 0]}>
+      <group ref={set1Ref} position={[CYCLE_LENGTH, 0, 0]}>
         {PROJECT_COMPARTMENTS.map((category, idx) => (
           <VandeBharatCoach
             key={`set1-${category.id}`}
@@ -1285,7 +1307,6 @@ export const ProjectsScene: React.FC = () => {
             index={idx}
             isSelected={idx === selectedProjectIndex}
             onSelect={() => handleCoachSelect(idx)}
-            wheelRotation={wheelRotation}
             offsetPos={compartmentOffsets[idx]}
           />
         ))}

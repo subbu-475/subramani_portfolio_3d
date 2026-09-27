@@ -83,7 +83,9 @@ function createOrigamiAirplaneGeometry(): THREE.BufferGeometry {
  * Continuous Glowing Flight Trail connecting the chapters
  */
 const FlightTrail: React.FC<{ progress: number }> = ({ progress }) => {
-  const pointsCount = 140;
+  const pointsCount = 70;
+  const lastProgressRef = useRef(-1);
+  const scratchPosRef = useRef(new THREE.Vector3());
 
   const [lineObj, lineGeometry] = useMemo(() => {
     const geom = new THREE.BufferGeometry();
@@ -99,13 +101,17 @@ const FlightTrail: React.FC<{ progress: number }> = ({ progress }) => {
   }, [pointsCount]);
 
   useFrame(() => {
+    // Only recalculate spline points when progress actually changes
+    if (Math.abs(progress - lastProgressRef.current) < 0.0004) return;
+    lastProgressRef.current = progress;
+
     const posAttr = lineGeometry.attributes.position as THREE.BufferAttribute;
     const currentMax = Math.max(0.001, progress);
 
     for (let i = 0; i < pointsCount; i++) {
       const t = (i / (pointsCount - 1)) * currentMax;
-      const pt = getAirplaneFlightPosition(t);
-      posAttr.setXYZ(i, pt.x, pt.y - 0.05, pt.z);
+      getAirplaneFlightPosition(t, scratchPosRef.current);
+      posAttr.setXYZ(i, scratchPosRef.current.x, scratchPosRef.current.y - 0.05, scratchPosRef.current.z);
     }
     posAttr.needsUpdate = true;
   });

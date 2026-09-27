@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useJourneyStore } from '../store/journeyStore';
 
 export const InteractionHint: React.FC = () => {
-  const { currentChapter, isLoading } = useJourneyStore();
+  const currentChapter = useJourneyStore((s) => s.currentChapter);
+  const isLoading = useJourneyStore((s) => s.isLoading);
   const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {

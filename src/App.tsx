@@ -76,26 +76,24 @@ const TechBrandIcon: React.FC<{ cube: TechnologyCubeData }> = ({ cube }) => {
 };
 
 function App() {
-  const {
-    setJourneyProgress,
-    setWorldReady,
-    setLoadingProgress,
-    setIsMobile,
-    setPrefersReducedMotion,
-    journeyProgress,
-    isLoading,
-    openProjectDetail,
-    selectedProjectIndex,
-    setSelectedProjectIndex,
-    selectedExperienceIndex,
-    setSelectedExperienceIndex,
-    selectedSkillCategoryIndex,
-    setSelectedSkillCategoryIndex,
-    selectedTechCubeId,
-    setSelectedTechCubeId,
-    viewMode,
-    jumpToChapter,
-  } = useJourneyStore();
+  const isLoading = useJourneyStore((s) => s.isLoading);
+  const selectedProjectIndex = useJourneyStore((s) => s.selectedProjectIndex);
+  const selectedExperienceIndex = useJourneyStore((s) => s.selectedExperienceIndex);
+  const selectedSkillCategoryIndex = useJourneyStore((s) => s.selectedSkillCategoryIndex);
+  const selectedTechCubeId = useJourneyStore((s) => s.selectedTechCubeId);
+  const viewMode = useJourneyStore((s) => s.viewMode);
+
+  const setJourneyProgress = useJourneyStore((s) => s.setJourneyProgress);
+  const setWorldReady = useJourneyStore((s) => s.setWorldReady);
+  const setLoadingProgress = useJourneyStore((s) => s.setLoadingProgress);
+  const setIsMobile = useJourneyStore((s) => s.setIsMobile);
+  const setPrefersReducedMotion = useJourneyStore((s) => s.setPrefersReducedMotion);
+  const openProjectDetail = useJourneyStore((s) => s.openProjectDetail);
+  const setSelectedProjectIndex = useJourneyStore((s) => s.setSelectedProjectIndex);
+  const setSelectedExperienceIndex = useJourneyStore((s) => s.setSelectedExperienceIndex);
+  const setSelectedSkillCategoryIndex = useJourneyStore((s) => s.setSelectedSkillCategoryIndex);
+  const setSelectedTechCubeId = useJourneyStore((s) => s.setSelectedTechCubeId);
+  const jumpToChapter = useJourneyStore((s) => s.jumpToChapter);
 
   const activeExp = useMemo(() => {
     return experiences[selectedExperienceIndex] || experiences[0];
@@ -108,6 +106,8 @@ function App() {
   const [hasWebGL, setHasWebGL] = useState(true);
   const scrollAccum = useRef(0);
   const maxScroll = 7000; // Virtual scroll units for 7 chapters
+  const rafWheelId = useRef<number | null>(null);
+  const rafTouchId = useRef<number | null>(null);
 
   // Check WebGL availability
   useEffect(() => {
@@ -151,7 +151,7 @@ function App() {
     return () => clearInterval(interval);
   }, [setLoadingProgress, setWorldReady]);
 
-  // Scroll handler - maps wheel/touch to journey progress
+  // Scroll handler with requestAnimationFrame throttling - prevents 1000Hz mouse/trackpad spam
   const handleWheel = useCallback(
     (e: WheelEvent) => {
       e.preventDefault();
@@ -159,18 +159,25 @@ function App() {
         0,
         Math.min(maxScroll, scrollAccum.current + e.deltaY * 1.6)
       );
-      const progress = scrollAccum.current / maxScroll;
-      setJourneyProgress(progress);
+      if (rafWheelId.current === null) {
+        rafWheelId.current = requestAnimationFrame(() => {
+          setJourneyProgress(scrollAccum.current / maxScroll);
+          rafWheelId.current = null;
+        });
+      }
     },
     [setJourneyProgress]
   );
 
   useEffect(() => {
     window.addEventListener('wheel', handleWheel, { passive: false });
-    return () => window.removeEventListener('wheel', handleWheel);
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      if (rafWheelId.current !== null) cancelAnimationFrame(rafWheelId.current);
+    };
   }, [handleWheel]);
 
-  // Touch support
+  // Touch support with rAF throttling
   const touchStartY = useRef(0);
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
@@ -184,20 +191,30 @@ function App() {
         0,
         Math.min(maxScroll, scrollAccum.current + deltaY * 3.2)
       );
-      setJourneyProgress(scrollAccum.current / maxScroll);
+      if (rafTouchId.current === null) {
+        rafTouchId.current = requestAnimationFrame(() => {
+          setJourneyProgress(scrollAccum.current / maxScroll);
+          rafTouchId.current = null;
+        });
+      }
     };
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
     return () => {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
+      if (rafTouchId.current !== null) cancelAnimationFrame(rafTouchId.current);
     };
   }, [setJourneyProgress]);
 
-  // Sync scroll accumulator when menu or timeline jumps
+  // Sync scroll accumulator only when jumping chapters from menu/timeline without re-rendering App
   useEffect(() => {
-    scrollAccum.current = journeyProgress * maxScroll;
-  }, [journeyProgress]);
+    return useJourneyStore.subscribe((state, prevState) => {
+      if (Math.abs(state.journeyProgress - prevState.journeyProgress) > 0.03) {
+        scrollAccum.current = state.journeyProgress * maxScroll;
+      }
+    });
+  }, []);
 
   // Keyboard navigation support (Arrow keys, PageUp/Down, Space, Home, End, 1-7)
   useEffect(() => {
@@ -628,13 +645,13 @@ function App() {
             </div>
           </ChapterPanel>
 
-          {/* Chapter 05: Future — Launch Hub */}
+          {/* Chapter 05: Future — Dawn Horizon Skybridge */}
           <ChapterPanel
             chapter={5}
             chapterNumberText="05 FUTURE"
             title="NEXT DESTINATION"
-            tagline="Future Launch Hub"
-            description="The airplane arrives at a futuristic launch platform preparing to launch toward the sky."
+            tagline="Dawn Horizon Skybridge"
+            description="The airplane glides across an illuminated glass skydeck overlooking sunrise clouds, charting the next frontiers of software engineering."
             position="left"
           >
             <div className="glass p-5 rounded-2xl border border-white/10 max-w-md shadow-2xl backdrop-blur-xl space-y-4 mt-1 bg-[rgba(10,15,25,0.85)]">

@@ -89,12 +89,11 @@ export const Road: React.FC = () => {
               <meshStandardMaterial
                 color="#FDE68A"
                 emissive="#F59E0B"
-                emissiveIntensity={0.8}
+                emissiveIntensity={1.4}
                 transparent
-                opacity={0.85}
+                opacity={0.9}
               />
             </mesh>
-            <pointLight position={[0, 0.95, 0]} color="#FDE68A" intensity={0.4} distance={4} />
           </group>
 
           {/* Right lantern */}
@@ -108,12 +107,11 @@ export const Road: React.FC = () => {
               <meshStandardMaterial
                 color="#FDE68A"
                 emissive="#F59E0B"
-                emissiveIntensity={0.8}
+                emissiveIntensity={1.4}
                 transparent
-                opacity={0.85}
+                opacity={0.9}
               />
             </mesh>
-            <pointLight position={[0, 0.95, 0]} color="#FDE68A" intensity={0.4} distance={4} />
           </group>
 
           {/* Ground Chapter Milestone Disc */}

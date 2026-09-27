@@ -9,15 +9,18 @@ import { useJourneyStore } from '../store/journeyStore';
 // Deep charcoal slate zenith, warm sunset horizon, soft golden-hour mist
 const SKY_COLORS = [
   { sky: '#1E232D', fog: '#2A2A34', density: 0.0015 }, // 0: Cinematic Sunset / Trailhead
-  { sky: '#142033', fog: '#202D42', density: 0.0014 }, // 1: Education Campus (Deep navy sky, clean atmospheric fog)
+  { sky: '#142033', fog: '#202D42', density: 0.0014 }, // 1: Education Campus
   { sky: '#4A3B32', fog: '#6B5344', density: 0.0018 }, // 2: Mid-Afternoon / First Code
   { sky: '#3D282E', fog: '#5C3843', density: 0.0018 }, // 3: Golden Hour / Career
   { sky: '#11141A', fog: '#171B22', density: 0.0016 }, // 4: Modern Architecture Gallery / Projects
   { sky: '#0A0F1D', fog: '#101625', density: 0.0015 }, // 5: Technology Laboratory / Skills
   { sky: '#07090E', fog: '#0C101A', density: 0.0016 }, // 6: Night City / Balcony
-  { sky: '#020307', fog: '#04060C', density: 0.0006 }, // 7: Space Ascent
-  { sky: '#000103', fog: '#010204', density: 0.0001 }, // 8: Orbital Deep Space
+  { sky: '#1E1B4B', fog: '#2E1065', density: 0.0017 }, // 7: Dawn Horizon Skybridge (Deep Indigo/Violet Dawn)
+  { sky: '#38182E', fog: '#451A03', density: 0.0015 }, // 8: Sunrise Observation Pavilion (Warm Amber/Gold Sunrise)
 ];
+
+const scratchSkyColor = new THREE.Color();
+const scratchFogColor = new THREE.Color();
 
 export const Environment: React.FC = () => {
   const currentChapter = useJourneyStore((state) => state.currentChapter);
@@ -27,7 +30,7 @@ export const Environment: React.FC = () => {
   const bgColorRef = useRef<THREE.Color>(new THREE.Color('#1E232D'));
   const sunRef = useRef<THREE.Group>(null);
   const moonRef = useRef<THREE.Group>(null);
-  const earthRef = useRef<THREE.Group>(null);
+  const dawnSunRef = useRef<THREE.Group>(null);
   const starsGroupRef = useRef<THREE.Group>(null);
   const groundRef = useRef<THREE.Mesh>(null);
 
@@ -36,12 +39,14 @@ export const Environment: React.FC = () => {
     const config = SKY_COLORS[stageIdx];
 
     // Smoothly interpolate background sky color
-    bgColorRef.current.lerp(new THREE.Color(config.sky), delta * 2.5);
+    scratchSkyColor.set(config.sky);
+    bgColorRef.current.lerp(scratchSkyColor, delta * 2.5);
     state.scene.background = bgColorRef.current;
 
     // Smoothly interpolate fog color and density
     if (fogRef.current) {
-      fogRef.current.color.lerp(new THREE.Color(config.fog), delta * 2.5);
+      scratchFogColor.set(config.fog);
+      fogRef.current.color.lerp(scratchFogColor, delta * 2.5);
       fogRef.current.density = THREE.MathUtils.lerp(fogRef.current.density, config.density, delta * 2.0);
     }
 
@@ -59,7 +64,7 @@ export const Environment: React.FC = () => {
 
     // Dynamic Moon in Night Chapter (Ch 06)
     if (moonRef.current) {
-      if (journeyProgress >= 0.62 && journeyProgress <= 0.82) {
+      if (journeyProgress >= 0.58 && journeyProgress <= 0.74) {
         moonRef.current.visible = true;
         moonRef.current.position.set(-25, 38, -325);
       } else {
@@ -67,20 +72,22 @@ export const Environment: React.FC = () => {
       }
     }
 
-    // Planet Earth in Space Chapters (Ch 07, 08)
-    if (earthRef.current) {
-      if (journeyProgress >= 0.75) {
-        earthRef.current.visible = true;
-        earthRef.current.rotation.y += delta * 0.02;
-        earthRef.current.position.set(-15, -45, -395);
+    // Radiant Golden Dawn Sunrise ahead of Skybridge (Ch 05 & 06)
+    if (dawnSunRef.current) {
+      if (journeyProgress >= 0.70) {
+        dawnSunRef.current.visible = true;
+        const sunriseY = THREE.MathUtils.lerp(10, 18, (journeyProgress - 0.70) / 0.30);
+        dawnSunRef.current.position.set(-18, sunriseY, -445);
       } else {
-        earthRef.current.visible = false;
+        dawnSunRef.current.visible = false;
       }
     }
 
-    // Stars visibility fades in towards evening and peaks in space
+    // Stars visibility peaks at night and fades during dawn sunrise
     if (starsGroupRef.current) {
-      const starOpacity = THREE.MathUtils.clamp((journeyProgress - 0.45) * 3, 0, 1);
+      const starOpacity = journeyProgress < 0.75
+        ? THREE.MathUtils.clamp((journeyProgress - 0.45) * 3, 0, 1)
+        : THREE.MathUtils.clamp(1 - (journeyProgress - 0.75) * 4, 0, 1);
       starsGroupRef.current.visible = starOpacity > 0.05;
     }
   });
@@ -134,29 +141,27 @@ export const Environment: React.FC = () => {
         </mesh>
       </group>
 
-      {/* Planet Earth visible below in Space (Ch 07 & 08) */}
-      <group ref={earthRef} position={[-15, -45, -395]} visible={false}>
+      {/* Golden Dawn Sunrise at Horizon (Ch 05 & 06) */}
+      <group ref={dawnSunRef} position={[-18, 14, -445]} visible={false}>
+        {/* Luminous Sun Core */}
         <mesh>
-          <sphereGeometry args={[42, 48, 48]} />
-          <meshStandardMaterial
-            color="#1D4ED8"
-            emissive="#0F172A"
-            roughness={0.6}
-            metalness={0.2}
-          />
+          <sphereGeometry args={[7, 32, 32]} />
+          <meshBasicMaterial color="#FEF08A" />
         </mesh>
+        {/* Warm Golden Sunrise Corona */}
         <mesh>
-          <sphereGeometry args={[42.1, 32, 32]} />
-          <meshStandardMaterial
-            color="#15803D"
-            transparent
-            opacity={0.5}
-            roughness={0.9}
-          />
+          <sphereGeometry args={[14, 24, 24]} />
+          <meshBasicMaterial color="#F59E0B" transparent opacity={0.35} />
         </mesh>
+        {/* Soft Apricot Atmospheric Glow */}
         <mesh>
-          <sphereGeometry args={[43.5, 32, 32]} />
-          <meshBasicMaterial color="#38BDF8" transparent opacity={0.28} />
+          <sphereGeometry args={[26, 24, 24]} />
+          <meshBasicMaterial color="#F97316" transparent opacity={0.15} />
+        </mesh>
+        {/* Violet Horizon Sky Tint */}
+        <mesh>
+          <sphereGeometry args={[45, 24, 24]} />
+          <meshBasicMaterial color="#EC4899" transparent opacity={0.05} />
         </mesh>
       </group>
 
@@ -165,7 +170,7 @@ export const Environment: React.FC = () => {
         <Stars
           radius={180}
           depth={90}
-          count={8000}
+          count={3500}
           factor={4.0}
           saturation={0.5}
           fade

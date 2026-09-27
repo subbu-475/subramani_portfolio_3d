@@ -9,7 +9,8 @@ const QUALITY_OPTIONS = [
 ];
 
 export const QualitySettings: React.FC = () => {
-  const { qualityLevel, setQualityLevel } = useJourneyStore();
+  const qualityLevel = useJourneyStore((s) => s.qualityLevel);
+  const setQualityLevel = useJourneyStore((s) => s.setQualityLevel);
   const [isOpen, setIsOpen] = useState(false);
 
   return (
